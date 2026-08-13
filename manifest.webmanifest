@@ -1,0 +1,20 @@
+{
+  "name": "衣见｜个人衣橱",
+  "short_name": "衣见",
+  "description": "记录衣橱、天气与每日穿搭的个人 PWA",
+  "lang": "zh-CN",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#7058df",
+  "background_color": "#fbfaff",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
