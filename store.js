@@ -21,7 +21,7 @@
 
   // 真实后端配置：优先读取 window.YIJIAN_API_BASE，其次 localStorage，默认指向本地 FastAPI。
   // 如果后端不可用，下面的数据方法会自动保留 localStorage 兜底，不破坏 v17 UI。
-  const DEFAULT_API_BASE = 'http://127.0.0.1:8000';
+  const DEFAULT_API_BASE = 'https://yijian-backend-ir33.onrender.com';
   function getApiBase() {
     const fromWindow = (window.YIJIAN_API_BASE || '').trim();
     if (fromWindow) return fromWindow.replace(/\/$/, '');
