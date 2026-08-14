@@ -1248,13 +1248,15 @@
 
   function normalizeRecordDate(record) {
     if (record.date && /^\d{4}-\d{2}-\d{2}$/.test(record.date)) return record.date;
-    return formatDateKey(new Date(record.createdAt || Date.now()));
+    const d = new Date(record.createdAt || Date.now());
+    return Number.isNaN(d.getTime()) ? formatDateKey(new Date()) : formatDateKey(d);
   }
   function formatDateKey(date) {
     const d = date instanceof Date ? date : new Date(date);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const safe = Number.isNaN(d.getTime()) ? new Date() : d;
+    const y = safe.getFullYear();
+    const m = String(safe.getMonth() + 1).padStart(2, '0');
+    const day = String(safe.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
   }
   function buildCalendarMonth(year, month) {
@@ -1273,8 +1275,8 @@
   }
   function buildRecordYears(records, fallbackYear) {
     const set = new Set([fallbackYear]);
-    records.forEach((r) => set.add(new Date(r.createdAt || r.date).getFullYear()));
-    return Array.from(set).sort((a, b) => b - a);
+    records.forEach((r) => set.add(new Date(normalizeRecordDate(r) + 'T00:00:00').getFullYear()));
+    return Array.from(set).filter((y) => Number.isFinite(y)).sort((a, b) => b - a);
   }
   function formatDiaryDate(key) {
     const d = new Date(key + 'T00:00:00');

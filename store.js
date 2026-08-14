@@ -213,6 +213,14 @@
     return merged;
   }
 
+  function resolveBackendImageUrl(url) {
+    if (!url) return '';
+    const raw = String(url);
+    if (raw.startsWith('http://127.0.0.1') || raw.startsWith('http://localhost')) return '';
+    if (raw.startsWith('http')) return raw;
+    return getApiBase() + raw;
+  }
+
   function mapBackendClothing(row) {
     const notes = row.notes ? String(row.notes) : '';
     return normalizeItem({
@@ -224,11 +232,7 @@
       seasonTags: row.season ? String(row.season).split(/[、,，/ ]+/).filter(Boolean) : [],
       styleTags: row.style_tags ? String(row.style_tags).split(/[、,，/ ]+/).filter(Boolean) : [],
       customNotes: notes,
-      image: row.image_url
-        ? (String(row.image_url).startsWith('http')
-          ? row.image_url
-          : getApiBase() + row.image_url)
-        : '',
+      image: resolveBackendImageUrl(row.image_url),
       createdAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
       updatedAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
     });
