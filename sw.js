@@ -1,4 +1,4 @@
-const CACHE_NAME = 'yijian-pwa-disabled-v37';
+const CACHE_NAME = 'yijian-pwa-disabled-v38';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

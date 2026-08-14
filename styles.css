@@ -57,6 +57,7 @@ a{color:inherit;text-decoration:none}
 @media(max-width:480px){
   .stage{padding:0;background:linear-gradient(180deg,#d9d2ee 0%,#eeeaf7 35%,#faf9fd 78%,#ffffff 100%)}
   .phone{width:100vw;height:100vh;max-height:100vh;aspect-ratio:auto;border-radius:0}
+  .status{display:none}
 }
 
 /* ============ Status Bar ============ */
@@ -818,7 +819,6 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 /* iOS notch-safe (native app) */
 @supports (padding: env(safe-area-inset-top)){
   @media(max-width:480px){
-    .status{padding-top:max(10px, env(safe-area-inset-top))}
     .bottom{padding-bottom:max(18px, env(safe-area-inset-bottom))}
   }
 }

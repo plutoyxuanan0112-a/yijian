@@ -992,9 +992,8 @@
   const RecordsPage = ({ records, onDelete, onOpen }) => {
     const stats = useMemo(() => S.statsOfRecords(records), [records]);
     const today = new Date();
-    const initialMonth = records.length
-      ? new Date(records[records.length - 1].createdAt || records[records.length - 1].date)
-      : today;
+    const initialKey = records.length ? normalizeRecordDate(records[records.length - 1]) : formatDateKey(today);
+    const initialMonth = safeDateFromKey(initialKey, today);
     const [cursor, setCursor] = useState({
       year: initialMonth.getFullYear(),
       month: initialMonth.getMonth(),
@@ -1259,10 +1258,16 @@
     const day = String(safe.getDate()).padStart(2, '0');
     return y + '-' + m + '-' + day;
   }
+  function safeDateFromKey(key, fallback) {
+    const d = new Date(String(key || '') + 'T00:00:00');
+    return Number.isNaN(d.getTime()) ? (fallback || new Date()) : d;
+  }
   function buildCalendarMonth(year, month) {
-    const first = new Date(year, month, 1);
+    const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
+    const safeMonth = Number.isFinite(month) ? month : new Date().getMonth();
+    const first = new Date(safeYear, safeMonth, 1);
     const startOffset = (first.getDay() + 6) % 7;
-    const start = new Date(year, month, 1 - startOffset);
+    const start = new Date(safeYear, safeMonth, 1 - startOffset);
     return Array.from({ length: 42 }).map((_, i) => {
       const d = new Date(start);
       d.setDate(start.getDate() + i);
@@ -1279,7 +1284,7 @@
     return Array.from(set).filter((y) => Number.isFinite(y)).sort((a, b) => b - a);
   }
   function formatDiaryDate(key) {
-    const d = new Date(key + 'T00:00:00');
+    const d = safeDateFromKey(key, new Date());
     return d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
   }
 
