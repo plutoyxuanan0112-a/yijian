@@ -26,7 +26,10 @@
     const fromWindow = (window.YIJIAN_API_BASE || '').trim();
     if (fromWindow) return fromWindow.replace(/\/$/, '');
     const fromStorage = (localStorage.getItem(K.API_BASE) || '').trim();
-    return (fromStorage || DEFAULT_API_BASE).replace(/\/$/, '');
+    if (fromStorage && !/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/i.test(fromStorage)) {
+      return fromStorage.replace(/\/$/, '');
+    }
+    return DEFAULT_API_BASE.replace(/\/$/, '');
   }
   function setApiBase(base) {
     localStorage.setItem(K.API_BASE, (base || '').trim().replace(/\/$/, ''));

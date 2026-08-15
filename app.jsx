@@ -302,17 +302,13 @@
           try {
             saved = await S.addWardrobeItemRemote(compact);
             showToast('已保存：' + saved.name);
-            try { await S.syncWardrobeFromBackend(); } catch (syncError) { /* 保留当前保存结果 */ }
+            const freshRemote = await S.syncWardrobeFromBackend().catch(() => S.getWardrobe());
+            setWardrobe(freshRemote);
           } catch (remoteError) {
-            saved = S.addWardrobeItem(compact);
-            showToast('已保存：' + saved.name);
+            console.warn('Remote save failed', remoteError);
+            showToast('云端保存失败，请检查后端服务后重试');
+            return;
           }
-          let fresh = S.getWardrobe();
-          if (!fresh.some((x) => x.id === saved.id)) {
-            fresh = [...fresh, saved];
-            S.saveWardrobe(fresh.map((x) => ({ ...x, originalImage: '' })));
-          }
-          setWardrobe(fresh);
           setOpenSheet(null);
         } catch (e) {
           if (e && e.code === 'STORAGE_FULL') {
@@ -376,12 +372,15 @@
           setSelectedItem(fresh.find((x) => x.id === id) || null);
           showToast('已更新');
         } catch (e) {
+          console.warn('Update item failed', e);
           if (e && e.code === 'BACKEND_NEEDS_RESTART') {
-            showToast('编辑暂时不可用，请稍后再试');
+            showToast('后端版本未更新，请重新部署 Render 后再保存');
+          } else if (e && e.status === 401) {
+            showToast('登录已过期，请重新登录后保存');
           } else if (e && e.code === 'STORAGE_FULL') {
             showToast('空间不足：请先删除几件旧单品再试');
           } else {
-            showToast('更新失败，请重试');
+            showToast('云端保存失败，请稍后重试');
           }
         }
       },
