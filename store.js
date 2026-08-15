@@ -30,7 +30,11 @@
     const isLocal = /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/i.test(fromStorage);
     const isLegacy = LEGACY_API_BASES.includes(fromStorage);
     if (fromStorage && !isLocal && !isLegacy) return fromStorage;
-    if (isLocal || isLegacy) localStorage.removeItem(K.API_BASE);
+    if (isLocal || isLegacy) {
+      localStorage.removeItem(K.API_BASE);
+      localStorage.removeItem(K.API_TOKEN);
+      localStorage.removeItem('yijian_user_profile');
+    }
     return DEFAULT_API_BASE.replace(/\/$/, '');
   }
   function setApiBase(base) {
@@ -54,6 +58,10 @@
     let body = null;
     try { body = await res.json(); } catch { body = null; }
     if (!res.ok) {
+      if (res.status === 401) {
+        localStorage.removeItem(K.API_TOKEN);
+        localStorage.removeItem('yijian_user_profile');
+      }
       const err = new Error((body && body.detail) || '请求失败，请稍后再试');
       err.status = res.status;
       err.body = body;
