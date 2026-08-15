@@ -77,8 +77,9 @@
       const loadRemote = async () => {
         if (profile && profile.authStatus === 'demo_logged_in') {
           try {
-            const fresh = await S.syncWardrobeFromBackend();
-            setWardrobe(fresh);
+            const fresh = await S.syncAllFromBackend();
+            setWardrobe(fresh.wardrobe || []);
+            setRecords(fresh.outfits || []);
           } catch (e) {
             console.warn('Sync failed', e);
           }

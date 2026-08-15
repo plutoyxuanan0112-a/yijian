@@ -1013,7 +1013,7 @@
         map[key].push(r);
       });
       Object.keys(map).forEach((key) => {
-        map[key].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+        map[key].sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
       });
       return map;
     }, [records]);
