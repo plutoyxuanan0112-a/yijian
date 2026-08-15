@@ -379,7 +379,9 @@
       merged.backendId ||
       (String(merged.id || '').startsWith('api-') ? Number(String(merged.id).slice(4)) : null);
     if (!backendId) {
-      return updateWardrobeItem(id, patch);
+      const created = await addWardrobeItemRemote(merged);
+      saveWardrobe(getWardrobe().filter((x) => x.id !== id || x.backendId).map((x) => (x.id === created.id ? created : x)));
+      return created;
     }
 
     let imageUrl = merged.image_url || merged.imageUrl || merged.image || '';
@@ -406,14 +408,16 @@
       data = await apiFetch('/api/v1/clothes/' + backendId, { method: 'PUT', body: JSON.stringify(payload) });
     } catch (e) {
       if (e && (e.status === 405 || e.status === 404)) {
-        const err = new Error('BACKEND_NEEDS_RESTART');
-        err.code = 'BACKEND_NEEDS_RESTART';
-        throw err;
+        data = await apiFetch('/api/v1/clothes', { method: 'POST', body: JSON.stringify(payload) });
+        try { await apiFetch('/api/v1/clothes/' + backendId, { method: 'DELETE' }); } catch { /* 旧版本后端可能也不支持删除，先保证编辑保存成功 */ }
+      } else {
+        throw e;
       }
-      throw e;
     }
     const mapped = mapBackendClothing(data.item);
-    const next = getWardrobe().map((x) => (x.backendId === mapped.backendId ? mapped : x));
+    const next = getWardrobe()
+      .filter((x) => x.id !== id && x.backendId !== backendId && x.backendId !== mapped.backendId)
+      .concat(mapped);
     saveWardrobe(next);
     return mapped;
   }

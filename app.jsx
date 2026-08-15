@@ -354,10 +354,10 @@
         try {
           const isLoggedIn = profile && profile.authStatus === 'demo_logged_in';
           if (isLoggedIn) {
-            await S.updateWardrobeItemRemote(id, patch);
+            const updated = await S.updateWardrobeItemRemote(id, patch);
             const fresh = await S.syncWardrobeFromBackend();
             setWardrobe(fresh);
-            setSelectedItem(fresh.find((x) => x.id === id) || null);
+            setSelectedItem(fresh.find((x) => x.id === id || x.backendId === updated?.backendId) || updated || null);
             showToast('已更新');
             return;
           }
