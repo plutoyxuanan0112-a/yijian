@@ -488,6 +488,16 @@
     const handleSaveProfile = useCallback(
       (p) => {
         const prev = profile;
+        if (p && p._logout) {
+          const cleared = S.clearUserSession();
+          setProfile(cleared);
+          setWardrobe([]);
+          setRecords([]);
+          setOutfit(null);
+          setOpenSheet(null);
+          showToast('已退出登录');
+          return;
+        }
         const saved = S.saveProfile(p);
         setProfile(saved);
         // 登录 / 注册后：不关闭 sheet（AuthView 会自动切到 ProfileEditView）；仅在真正保存资料时关闭

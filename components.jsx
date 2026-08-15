@@ -2619,21 +2619,11 @@
         const remote = await S.authRegister(email.trim(), pw, profile.name || '衣见的主理人');
         await applyRemoteAuth(remote, '注册成功');
         return;
-      } catch {
-        setErr('暂时无法连接账号服务，已为你保留当前设备体验');
+      } catch (e) {
+        setErr((e && e.message) || '账号服务暂时不可用，请稍后再试');
       } finally {
         setBusy(false);
       }
-      const salt = S.makeSalt();
-      const hash = S.demoHashPassword(pw, salt);
-      onSave({
-        ...profile,
-        email: email.trim(),
-        passwordHash: hash,
-        passwordSalt: salt,
-        authStatus: 'demo_logged_in',
-      });
-      onToast && onToast('注册成功');
     };
 
     const doLogin = async () => {
@@ -2646,27 +2636,11 @@
         const remote = await S.authLogin(email.trim(), pw);
         await applyRemoteAuth(remote, '登录成功');
         return;
-      } catch {
-        // 连接暂时不可用时，继续检查当前设备上已保存的账号。
+      } catch (e) {
+        setErr((e && e.message) || '登录失败，请检查邮箱和密码');
       } finally {
         setBusy(false);
       }
-      // 当前设备上还没有保存过这个账号
-      if (!profile.passwordHash) {
-        setErr('当前设备还没有这个账号，请先「新建账号」');
-        return;
-      }
-      if ((email || '').trim() !== (profile.email || '').trim()) {
-        setErr('该邮箱与当前保存的账号不一致');
-        return;
-      }
-      const check = S.demoHashPassword(pw, profile.passwordSalt);
-      if (check !== profile.passwordHash) {
-        setErr('密码错误');
-        return;
-      }
-      onSave({ ...profile, authStatus: 'demo_logged_in' });
-      onToast && onToast('登录成功');
     };
 
     return (
@@ -2869,8 +2843,8 @@
       });
     };
     const logout = () => {
-      if (!window.confirm('确认退出登录？你的衣橱会保留。')) return;
-      onSave({ ...profile, authStatus: 'none' });
+      if (!window.confirm('确认退出登录？本机将清空当前账号的衣橱和日记展示，重新登录后再从云端读取。')) return;
+      onSave({ ...profile, authStatus: 'none', _logout: true });
       onToast && onToast('已退出登录');
     };
 

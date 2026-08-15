@@ -603,6 +603,13 @@
     save(K_PROFILE, p);
     return p;
   }
+  function clearUserSession() {
+    localStorage.removeItem(K.API_TOKEN);
+    localStorage.removeItem(K_PROFILE);
+    saveWardrobe([]);
+    saveOutfits([]);
+    return getProfile();
+  }
   // 邮箱格式校验（前端校验，真实注册仍需邮箱验证链接）
   function validateEmail(s) {
     return /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/.test((s || '').trim());
@@ -2100,6 +2107,7 @@
     // profile
     getProfile,
     saveProfile,
+    clearUserSession,
     validateEmail,
     passwordStrength,
     demoHashPassword,
