@@ -31,17 +31,19 @@
   } = U;
 
   const App = () => {
+    // 未登录时不读取本机 localStorage 中可能残留的用户数据。
+    const hasToken = () => !!S.getApiToken();
     // 页面
     const [page, setPage] = useState('home');
-    // 数据
-    const [wardrobe, setWardrobe] = useState(() => S.getWardrobe());
-    const [records, setRecords] = useState(() => S.getOutfits());
-    const [links, setLinks] = useState(() => S.getLinks());
-    const [prefs, setPrefs] = useState(() => S.getPreferences());
+    // 数据（未登录时一律为空，绝不把 localStorage 里的旧缓存灌进来展示）
+    const [wardrobe, setWardrobe] = useState(() => (hasToken() ? S.getWardrobe() : []));
+    const [records, setRecords] = useState(() => (hasToken() ? S.getOutfits() : []));
+    const [links, setLinks] = useState(() => (hasToken() ? S.getLinks() : []));
+    const [prefs, setPrefs] = useState(() => (hasToken() ? S.getPreferences() : { style: '简约', scene: '通勤', aiEndpoint: '' }));
     // 生成的当前搭配
     const [style, setStyle] = useState(prefs.style || '简约');
     const [scene, setScene] = useState(prefs.scene || '通勤');
-    const [weather, setWeather] = useState(() => S.getStoredWeather());
+    const [weather, setWeather] = useState(() => (hasToken() ? S.getStoredWeather() : null));
     const [geoStatus, setGeoStatus] = useState('idle'); // idle | ok | denied | unavailable | timeout | no_support | insecure | weather_error
     const [geoLocating, setGeoLocating] = useState(false);
     const [profile, setProfile] = useState(() => S.getProfile());
@@ -73,24 +75,44 @@
       };
     }, [outfit, showToast]);
 
+    // 登录后从后端同步当前账号的数据；未登录时保持空衣橱，不展示本机历史缓存。
     useEffect(() => {
-      const loadRemote = async () => {
-        if (profile && profile.authStatus === 'demo_logged_in') {
-          try {
-            const fresh = await S.syncAllFromBackend();
-            setWardrobe(fresh.wardrobe || []);
-            setRecords(fresh.outfits || []);
-          } catch (e) {
-            console.warn('Sync failed', e);
-          }
+      let alive = true;
+      const boot = async () => {
+        if (!S.getApiToken()) {
+          S.clearLocalUserData && S.clearLocalUserData();
+          setWardrobe([]);
+          setRecords([]);
+          setLinks([]);
+          setOutfit(null);
+          return;
+        }
+        try {
+          await S.authMe();
+          const fresh = await S.syncAllFromBackend();
+          if (!alive) return;
+          setWardrobe(fresh.wardrobe || []);
+          setRecords(fresh.outfits || []);
+          setLinks(S.getLinks());
+        } catch (e) {
+          if (!alive) return;
+          S.clearUserSession();
+          setProfile(S.getProfile());
+          setWardrobe([]);
+          setRecords([]);
+          setLinks([]);
+          setOutfit(null);
         }
       };
-      loadRemote();
-    }, [profile]);
+      boot();
+      return () => {
+        alive = false;
+      };
+    }, [profile.authStatus, profile.email]);
 
     // 保存 prefs
     useEffect(() => {
-      S.savePreferences({ ...prefs, style, scene });
+      if (S.getApiToken()) S.savePreferences({ ...prefs, style, scene });
     }, [style, scene]); // eslint-disable-line
 
     // 博主推荐（依赖当前 style/scene）
@@ -493,8 +515,10 @@
           setProfile(cleared);
           setWardrobe([]);
           setRecords([]);
+          setLinks([]);
           setOutfit(null);
           setOpenSheet(null);
+          setPage('home');
           showToast('已退出登录');
           return;
         }

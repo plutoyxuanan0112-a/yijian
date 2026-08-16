@@ -2588,6 +2588,10 @@
     const [busy, setBusy] = useState(false);
 
     const applyRemoteAuth = async (remote, fallbackMessage) => {
+      // 登录 / 注册成功（token 已由 authLogin/authRegister 写入）后：
+      // 先清掉本机上一个账号残留的衣橱 / 日记 / 灵感等本地缓存，再从后端全量同步，
+      // 以后端为准，避免同一设备换账号时数据串号。
+      S.clearLocalUserData();
       const u = remote.user || {};
       onSave({
         ...profile,
@@ -2596,7 +2600,7 @@
         authStatus: 'demo_logged_in',
         backendUserId: u.id,
       });
-      try { await S.syncAllFromBackend(); } catch { /* 同步失败时保留当前设备内容 */ }
+      try { await S.syncAllFromBackend(); } catch { /* 同步失败时后端不可达，保持本地为空，不展示旧账号数据 */ }
       onToast && onToast(fallbackMessage);
     };
 

@@ -603,11 +603,17 @@
     save(K_PROFILE, p);
     return p;
   }
+  // 该用户在本机的所有「数据缓存」key（不含 token / profile / 站点配置 API_BASE / AI_CFG）。
+  // 登录后「先清本地再从后端同步」、以及退出登录时都会用到，避免换账号串数据。
+  const USER_DATA_KEYS = [K.WARDROBE, K.OUTFITS, K.LINKS, K.WEATHER, K.AI_LOG, K.PREF];
+  function clearLocalUserData() {
+    USER_DATA_KEYS.forEach((k) => localStorage.removeItem(k));
+  }
   function clearUserSession() {
+    // 退出登录：清空 token + profile + 全部本地用户数据（衣橱 / 穿搭日记 / 灵感 / 天气 / 偏好等）
     localStorage.removeItem(K.API_TOKEN);
     localStorage.removeItem(K_PROFILE);
-    saveWardrobe([]);
-    saveOutfits([]);
+    clearLocalUserData();
     return getProfile();
   }
   // 邮箱格式校验（前端校验，真实注册仍需邮箱验证链接）
@@ -2108,6 +2114,7 @@
     getProfile,
     saveProfile,
     clearUserSession,
+    clearLocalUserData,
     validateEmail,
     passwordStrength,
     demoHashPassword,
