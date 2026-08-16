@@ -158,7 +158,7 @@
           .filter((x) => x && x.image);
         setOutfit(result);
         // v15：普通用户不感知 AI/回退/服务商，只给结果反馈
-        if (result._source === 'ai' || result._source === 'local-fallback') {
+        if (result._source === 'backend-ai' || result._source === 'local-fallback') {
           showToast('已为你搭配完成');
         }
       } catch (e) {

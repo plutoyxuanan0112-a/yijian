@@ -515,7 +515,7 @@
                   : style + ' / ' + scene
               }
               footer={
-                outfit._source === 'ai'
+                outfit._source === 'backend-ai'
                   ? '智能推荐 · 从你的真实衣橱挑选'
                   : outfit._source === 'local-fallback'
                   ? '智能推荐 · 从你的真实衣橱挑选'
@@ -2388,7 +2388,7 @@
             scene
           }
           footer={
-            outfit._source === 'ai'
+            outfit._source === 'backend-ai'
               ? '智能推荐 · 平面搭配效果图'
               : outfit._source === 'local-fallback'
               ? '智能推荐 · 平面搭配效果图'
