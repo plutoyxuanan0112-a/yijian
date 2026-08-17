@@ -380,10 +380,12 @@
         try {
           const isLoggedIn = profile && profile.authStatus === 'demo_logged_in';
           if (isLoggedIn) {
-            const updated = await S.updateWardrobeItemRemote(id, patch);
+            await S.updateWardrobeItemRemote(id, patch);
             const fresh = await S.syncWardrobeFromBackend();
             setWardrobe(fresh);
-            setSelectedItem(fresh.find((x) => x.id === id || x.backendId === updated?.backendId) || updated || null);
+            // 保存成功后关闭编辑弹窗、回到衣橱列表，不再用 find 兜底（会误命中第一件单品）。
+            setSelectedItem(null);
+            setOpenSheet(null);
             showToast('已更新');
             return;
           }
@@ -395,7 +397,8 @@
           }
           const fresh = S.getWardrobe();
           setWardrobe(fresh);
-          setSelectedItem(fresh.find((x) => x.id === id) || null);
+          setSelectedItem(null);
+          setOpenSheet(null);
           showToast('已更新');
         } catch (e) {
           console.warn('Update item failed', e);

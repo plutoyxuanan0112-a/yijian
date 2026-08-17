@@ -1618,14 +1618,18 @@
     const submitSave = async () => {
       let image = useCutout && processed ? processed : original;
       let originalImg = original;
-      try {
-        const mime = image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
-        image = await S.compressImage(image, 360, 0.7, mime);
-        originalImg = '';
-        // 编辑单品不再保留原始大图，避免存储撑爆导致衣橱/分类/删除表现不稳定。
-      } catch (e) {
-        /* 压缩失败也用原始 */
+      // 仅对本地新选择的图片（data: URL）做压缩；已托管的远程 URL 直接透传。
+      // 否则会把透明抠图 PNG 重新编码成带白底的 JPEG，表现为“使用抠图版保存后变原图”。
+      if (image && String(image).startsWith('data:')) {
+        try {
+          const mime = image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+          image = await S.compressImage(image, 360, 0.7, mime);
+        } catch (e) {
+          /* 压缩失败也用原始 */
+        }
       }
+      // 编辑单品不再保留原始大图，避免存储撑爆导致衣橱/分类/删除表现不稳定。
+      originalImg = '';
       const patch = {
         name: form.name,
         category: form.category,
