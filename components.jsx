@@ -1181,33 +1181,6 @@
           </div>
         </div>
 
-        <div className="year-strip" aria-label="年份筛选">
-          {yearOptions.map((y) => (
-            <button
-              key={y}
-              className={y === cursor.year ? 'active' : ''}
-              onClick={() => setCursor((prev) => ({ ...prev, year: y }))}
-            >
-              {y}
-            </button>
-          ))}
-        </div>
-
-        <div className="calendar-filter-row select-row">
-          <Select
-            value={styleFilter}
-            options={['全部', ...S.STYLE_TAGS]}
-            onChange={setStyleFilter}
-            label="风格"
-          />
-          <Select
-            value={sceneFilter}
-            options={['全部', ...S.SCENE_TAGS]}
-            onChange={setSceneFilter}
-            label="场景"
-          />
-        </div>
-
         <div className="calendar-card">
           <div className="calendar-toolbar">
             <button className="calendar-nav" onClick={() => moveMonth(-1)} aria-label="上个月">‹</button>
@@ -1267,6 +1240,21 @@
               onClose={() => setPickerOpen(false)}
             />
           )}
+        </div>
+
+        <div className="calendar-filter-row select-row" aria-label="穿搭筛选">
+          <Select
+            value={styleFilter}
+            options={['全部', ...S.STYLE_TAGS]}
+            onChange={setStyleFilter}
+            label="风格"
+          />
+          <Select
+            value={sceneFilter}
+            options={['全部', ...S.SCENE_TAGS]}
+            onChange={setSceneFilter}
+            label="场景"
+          />
         </div>
 
         <div className="diary-summary-grid">

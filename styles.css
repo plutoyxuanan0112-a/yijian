@@ -2168,30 +2168,6 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   font-size:12px;
   line-height:1.45;
 }
-.year-strip{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  padding:2px 0 10px;
-  scrollbar-width:none;
-}
-.year-strip::-webkit-scrollbar{display:none}
-.year-strip button{
-  flex:0 0 auto;
-  border:none;
-  border-radius:999px;
-  padding:7px 13px;
-  color:#82769b;
-  background:rgba(255,255,255,.52);
-  font-size:12px;
-  font-weight:700;
-  box-shadow:inset 0 0 0 1px rgba(125,103,188,.10);
-}
-.year-strip button.active{
-  color:#fff;
-  background:linear-gradient(135deg,#8b75e6,#b79af6);
-  box-shadow:0 10px 24px rgba(129,100,218,.22);
-}
 .calendar-card{
   border-radius:28px;
   padding:15px;
@@ -2343,7 +2319,7 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 }
 
 /* ============ iOS 风格年月滚轮选择器 ============ */
-.calendar-filter-row{margin:2px 0 14px}
+.calendar-filter-row{margin:14px 0 4px}
 .wheel-sheet-mask{
   position:fixed;inset:0;z-index:120;
   background:rgba(30,22,55,.42);
