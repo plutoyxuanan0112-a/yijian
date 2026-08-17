@@ -283,13 +283,17 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
   background:#f0edf6;
   color:#554d65;
   border:0 !important;
+  outline:none !important;
   box-shadow:none !important;
+  -webkit-appearance:none;
+  appearance:none;
   border-radius:10px;
   padding:11px 14px;
   font-weight:600;
   font-size:14px;
 }
 .outline:active{opacity:.8}
+.outline:focus,.outline:focus-visible{outline:none;box-shadow:none}
 /* 克制的实色操作组：参考 Claude 的圆润、温和与清晰层级 */
 .action-row{
   display:flex;
@@ -2446,11 +2450,14 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .profile-email-text{
   min-width:0;
   flex:1;
+  display:block;
+  width:100%;
   overflow-x:auto;
   overflow-y:hidden;
   white-space:nowrap;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:none;
+  -ms-overflow-style:none;
 }
 .profile-email-text::-webkit-scrollbar{display:none}
 .profile-email-eye{
@@ -2458,11 +2465,15 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   width:28px;height:28px;
   border-radius:10px;
   border:0;
+  outline:none;
   background:#f0edf6;
   color:#554d65;
   flex:0 0 auto;
+  -webkit-appearance:none;
+  appearance:none;
 }
 .profile-email-eye:active{opacity:.8}
+.profile-email-eye:focus,.profile-email-eye:focus-visible{outline:none;box-shadow:none}
 
 /* ============ Item edit bottom safe space ============ */
 .item-detail-edit-content{padding-bottom:78px}
