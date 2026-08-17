@@ -2917,9 +2917,7 @@
             </div>
             <div className="profile-hero-meta profile-email-row">
               <span
-                className={
-                  'profile-email-text' + (revealEmail ? ' profile-email-text--reveal' : '')
-                }
+                className="profile-email-text"
               >
                 {revealEmail ? form.email : maskEmail(form.email)}
               </span>
@@ -2965,11 +2963,7 @@
         <div className="profile-row">
           <div className="profile-row-k">登录邮箱</div>
           <div className="profile-row-v profile-row-v-static profile-email-row">
-            <span
-              className={
-                'profile-email-text' + (revealEmail ? ' profile-email-text--reveal' : '')
-              }
-            >
+            <span className="profile-email-text">
               {revealEmail ? form.email : maskEmail(form.email) || '—'}
             </span>
             <button

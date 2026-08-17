@@ -282,8 +282,9 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
 .outline{
   background:#f0edf6;
   color:#554d65;
-  border:0;
-  border-radius:12px;
+  border:0 !important;
+  box-shadow:none !important;
+  border-radius:10px;
   padding:11px 14px;
   font-weight:600;
   font-size:14px;
@@ -643,7 +644,7 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   bottom:0;
   z-index:2;
   margin-bottom:0;
-  padding:12px 0 calc(4px + env(safe-area-inset-bottom));
+  padding:12px 2px calc(4px + env(safe-area-inset-bottom));
   background:transparent;
 }
 .dual-preview{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
@@ -2441,9 +2442,17 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 }
 
 /* ============ Profile Email Reveal ============ */
-.profile-email-row{display:flex;align-items:center;gap:8px}
-.profile-email-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.profile-email-text--reveal{overflow-x:auto;text-overflow:clip;-webkit-overflow-scrolling:touch}
+.profile-email-row{display:flex;align-items:center;gap:8px;min-width:0}
+.profile-email-text{
+  min-width:0;
+  flex:1;
+  overflow-x:auto;
+  overflow-y:hidden;
+  white-space:nowrap;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+.profile-email-text::-webkit-scrollbar{display:none}
 .profile-email-eye{
   display:flex;align-items:center;justify-content:center;
   width:28px;height:28px;
@@ -2451,8 +2460,9 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   border:0;
   background:#f0edf6;
   color:#554d65;
+  flex:0 0 auto;
 }
 .profile-email-eye:active{opacity:.8}
 
 /* ============ Item edit bottom safe space ============ */
-.item-detail-edit-content{padding-bottom:72px}
+.item-detail-edit-content{padding-bottom:78px}
