@@ -280,15 +280,15 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
 .primary:active{opacity:.8}
 .primary:disabled{opacity:.5}
 .outline{
-  background:transparent;
-  color:var(--purple);
-  border:1px solid rgba(112,88,223,.3);
+  background:#f0edf6;
+  color:#554d65;
+  border:0;
   border-radius:12px;
   padding:11px 14px;
   font-weight:600;
   font-size:14px;
 }
-.outline:active{opacity:.7}
+.outline:active{opacity:.8}
 /* 克制的实色操作组：参考 Claude 的圆润、温和与清晰层级 */
 .action-row{
   display:flex;
@@ -2439,3 +2439,20 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   font-size:12px;
   line-height:1.55;
 }
+
+/* ============ Profile Email Reveal ============ */
+.profile-email-row{display:flex;align-items:center;gap:8px}
+.profile-email-text{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-email-text--reveal{overflow-x:auto;text-overflow:clip;-webkit-overflow-scrolling:touch}
+.profile-email-eye{
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;
+  border-radius:10px;
+  border:0;
+  background:#f0edf6;
+  color:#554d65;
+}
+.profile-email-eye:active{opacity:.8}
+
+/* ============ Item edit bottom safe space ============ */
+.item-detail-edit-content{padding-bottom:72px}

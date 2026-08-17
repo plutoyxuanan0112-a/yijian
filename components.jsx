@@ -1685,14 +1685,15 @@
 
         {editing && (
           <>
-            <div className="field">
-              <label>衣物名称</label>
-              <input
-                className="input"
-                value={form.name || ''}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
+            <div className="item-detail-edit-content">
+              <div className="field">
+                <label>衣物名称</label>
+                <input
+                  className="input"
+                  value={form.name || ''}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
             <div className="field">
               <label>分类</label>
               <div className="cat-grid">
@@ -1801,6 +1802,7 @@
             </div>
             <div className="item-detail-desc" style={{ marginTop: 4 }}>
               <div>{displayDesc}</div>
+            </div>
             </div>
             <div className="upload-toolbar upload-toolbar--sticky" style={{ marginTop: 14 }}>
               <button
@@ -2760,6 +2762,37 @@
     });
     const [nameEditing, setNameEditing] = useState(false);
     const [changePwOpen, setChangePwOpen] = useState(false);
+    const [revealEmail, setRevealEmail] = useState(false);
+
+    const maskEmail = (s) => {
+      const email = (s || '').trim();
+      if (!email) return '';
+      const at = email.indexOf('@');
+      if (at <= 1) return email;
+      const head = email.slice(0, 2);
+      const tail = email.slice(at);
+      return head + '***' + tail;
+    };
+
+    const EmailEye = ({ off }) => (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M2.5 12c2.3-4.7 6-7 9.5-7s7.2 2.3 9.5 7c-2.3 4.7-6 7-9.5 7s-7.2-2.3-9.5-7z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+        />
+        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+        {off && (
+          <path d="M4 20L20 4" stroke="currentColor" strokeWidth="1.8" />
+        )}
+      </svg>
+    );
     const [oldPw, setOldPw] = useState('');
     const [newPw, setNewPw] = useState('');
     const [newPw2, setNewPw2] = useState('');
@@ -2882,7 +2915,23 @@
             <div className="profile-hero-name">
               {form.name || '衣见的主理人'}
             </div>
-            <div className="profile-hero-meta">{form.email}</div>
+            <div className="profile-hero-meta profile-email-row">
+              <span
+                className={
+                  'profile-email-text' + (revealEmail ? ' profile-email-text--reveal' : '')
+                }
+              >
+                {revealEmail ? form.email : maskEmail(form.email)}
+              </span>
+              <button
+                type="button"
+                className="profile-email-eye"
+                onClick={() => setRevealEmail((v) => !v)}
+                aria-label={revealEmail ? '隐藏邮箱' : '显示邮箱'}
+              >
+                <EmailEye off={!revealEmail} />
+              </button>
+            </div>
           </div>
         </div>
 
@@ -2915,8 +2964,22 @@
         {/* 邮箱 */}
         <div className="profile-row">
           <div className="profile-row-k">登录邮箱</div>
-          <div className="profile-row-v profile-row-v-static">
-            <span>{form.email || '—'}</span>
+          <div className="profile-row-v profile-row-v-static profile-email-row">
+            <span
+              className={
+                'profile-email-text' + (revealEmail ? ' profile-email-text--reveal' : '')
+              }
+            >
+              {revealEmail ? form.email : maskEmail(form.email) || '—'}
+            </span>
+            <button
+              type="button"
+              className="profile-email-eye"
+              onClick={() => setRevealEmail((v) => !v)}
+              aria-label={revealEmail ? '隐藏邮箱' : '显示邮箱'}
+            >
+              <EmailEye off={!revealEmail} />
+            </button>
           </div>
         </div>
 
