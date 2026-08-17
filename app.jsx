@@ -340,7 +340,7 @@
           if (e && e.code === 'STORAGE_FULL') {
             showToast('本地空间不足：已存衣物过多，请先删除几件后再试');
           } else {
-            showToast('保存失败，请重试（可能是浏览器隐私模式）');
+            showToast('保存失败，请重试');
           }
         }
       },

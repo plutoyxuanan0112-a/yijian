@@ -1593,7 +1593,7 @@
         title={editing ? '编辑单品' : item.name}
         subtitle={
           editing
-            ? '让搭配更懂你的衣橱（每项可多选 + 其他）'
+            ? ''
             : item.category +
               (displayColors !== '未填' ? ' · ' + displayColors : '') +
               (displayMaterials ? ' · ' + displayMaterials : '')
@@ -1708,34 +1708,34 @@
               </div>
             </div>
             <MultiChipField
-              label="颜色（可多选）"
+              label="颜色"
               options={S.COLOR_PALETTE}
               values={form.colors}
               otherValue={form.colorOther}
               onToggle={(v) => toggleMulti('colors', v)}
               onOtherChange={(v) => setForm({ ...form, colorOther: v })}
-              otherPlaceholder="其他颜色，如：脏橘 / 燕麦白灰"
+              otherPlaceholder="其他"
             />
             <MultiChipField
-              label="厚薄（可多选）"
+              label="厚薄"
               options={S.WARMTH}
               values={form.warmthTags}
               otherValue={form.warmthOther}
               onToggle={(v) => toggleMulti('warmthTags', v)}
               onOtherChange={(v) => setForm({ ...form, warmthOther: v })}
-              otherPlaceholder="其他，如：单穿凉 / 特别透气"
+              otherPlaceholder="其他"
             />
             <MultiChipField
-              label="材质（可多选，帮助识别季节 / 场合）"
+              label="材质"
               options={S.MATERIALS}
               values={form.materials}
               otherValue={form.materialOther}
               onToggle={(v) => toggleMulti('materials', v)}
               onOtherChange={(v) => setForm({ ...form, materialOther: v })}
-              otherPlaceholder="其他材质，如：科技面料 / 麂皮"
+              otherPlaceholder="其他"
             />
             <div className="field">
-              <label>廓形（可多选）</label>
+              <label>廓形</label>
               <div className="chips">
                 {S.SILHOUETTES.map((s) => (
                   <button
@@ -1749,34 +1749,34 @@
               </div>
             </div>
             <MultiChipField
-              label="风格（可多选）"
+              label="风格"
               options={S.STYLE_TAGS}
               values={form.styleTags}
               otherValue={form.styleOther}
               onToggle={(v) => toggleMulti('styleTags', v)}
               onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-              otherPlaceholder="其他风格，如：山系 / 中式"
+              otherPlaceholder="其他"
             />
             <MultiChipField
-              label="场景（可多选）"
+              label="场景"
               options={S.SCENE_TAGS}
               values={form.sceneTags}
               otherValue={form.sceneOther}
               onToggle={(v) => toggleMulti('sceneTags', v)}
               onOtherChange={(v) => setForm({ ...form, sceneOther: v })}
-              otherPlaceholder="其他场景，如：拍照 / 见客户"
+              otherPlaceholder="其他"
             />
             <MultiChipField
-              label="季节（可多选）"
+              label="季节"
               options={S.SEASON_TAGS}
               values={form.seasonTags}
               otherValue={form.seasonOther}
               onToggle={(v) => toggleMulti('seasonTags', v)}
               onOtherChange={(v) => setForm({ ...form, seasonOther: v })}
-              otherPlaceholder="其他，如：早春 / 深秋"
+              otherPlaceholder="其他"
             />
             <div className="field">
-              <label>版型标签（可多选）</label>
+              <label>版型标签</label>
               <div className="chips">
                 {S.FIT_TAGS.map((t) => (
                   <button
@@ -1790,19 +1790,16 @@
               </div>
             </div>
             <div className="field">
-              <label>我的补充描述（可自由写，将纳入搭配参考）</label>
+              <label>我的补充描述</label>
               <textarea
                 className="input"
-                placeholder="例如：这件是奶奶送的、比较正式；或者：只有约会才想穿"
+                placeholder=""
                 rows={3}
                 value={form.customNotes || ''}
                 onChange={(e) => setForm({ ...form, customNotes: e.target.value })}
               />
             </div>
             <div className="item-detail-desc" style={{ marginTop: 4 }}>
-              <div className="tiny" style={{ color: 'var(--muted)', marginBottom: 4 }}>
-                系统会用这段"识别描述"参与搭配推荐
-              </div>
               <div>{displayDesc}</div>
             </div>
             <div className="upload-toolbar upload-toolbar--sticky" style={{ marginTop: 14 }}>
@@ -1929,7 +1926,7 @@
             ? '选择一张真实衣物照片，将自动抠图'
             : step === 'preview'
             ? '预览抠图效果'
-            : '让衣见更好地了解这件衣服（每一项都可多选）'
+            : ''
         }
         onClose={onClose}
       >
@@ -2054,7 +2051,7 @@
               </div>
             </div>
             <div className="field">
-              <label>补充说明（可选，会一起参考）</label>
+              <label>补充说明</label>
               <textarea
                 className="input"
                 placeholder="例如：春秋穿 / 起球了 / 妈妈送的 / 只搭牛仔"
@@ -2071,64 +2068,64 @@
               style={{ width: '100%', marginTop: 4 }}
               onClick={() => setShowAdvanced((v) => !v)}
             >
-              {showAdvanced ? '收起更多信息' : '更多信息（可多选）'}
+              {showAdvanced ? '收起' : '更多'}
             </button>
 
             {showAdvanced && (
               <>
                 <MultiChipField
-                  label="颜色（可多选）"
+                  label="颜色"
                   options={S.COLOR_PALETTE}
                   values={form.colors}
                   otherValue={form.colorOther}
                   onToggle={(v) => toggleMulti('colors', v)}
                   onOtherChange={(v) => setForm({ ...form, colorOther: v })}
-                  otherPlaceholder="其他颜色，如：脏橘 / 燕麦白灰"
+                  otherPlaceholder="其他"
                 />
                 <MultiChipField
-                  label="厚薄（可多选，例如 薄 + 中等）"
+                  label="厚薄"
                   options={S.WARMTH}
                   values={form.warmthTags}
                   otherValue={form.warmthOther}
                   onToggle={(v) => toggleMulti('warmthTags', v)}
                   onOtherChange={(v) => setForm({ ...form, warmthOther: v })}
-                  otherPlaceholder="其他，如：单穿凉 / 特别透气"
+                  otherPlaceholder="其他"
                 />
                 <MultiChipField
-                  label="材质（可多选）"
+                  label="材质"
                   options={S.MATERIALS}
                   values={form.materials}
                   otherValue={form.materialOther}
                   onToggle={(v) => toggleMulti('materials', v)}
                   onOtherChange={(v) => setForm({ ...form, materialOther: v })}
-                  otherPlaceholder="其他材质，如：科技面料 / 麂皮"
+                  otherPlaceholder="其他"
                 />
                 <MultiChipField
-                  label="风格（可多选）"
+                  label="风格"
                   options={S.STYLE_TAGS}
                   values={form.styleTags}
                   otherValue={form.styleOther}
                   onToggle={(v) => toggleMulti('styleTags', v)}
                   onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-                  otherPlaceholder="其他风格，如：山系 / 中式"
+                  otherPlaceholder="其他"
                 />
                 <MultiChipField
-                  label="场景（可多选）"
+                  label="场景"
                   options={S.SCENE_TAGS}
                   values={form.sceneTags}
                   otherValue={form.sceneOther}
                   onToggle={(v) => toggleMulti('sceneTags', v)}
                   onOtherChange={(v) => setForm({ ...form, sceneOther: v })}
-                  otherPlaceholder="其他场景，如：拍照 / 见客户"
+                  otherPlaceholder="其他"
                 />
                 <MultiChipField
-                  label="季节（可多选）"
+                  label="季节"
                   options={S.SEASON_TAGS}
                   values={form.seasonTags}
                   otherValue={form.seasonOther}
                   onToggle={(v) => toggleMulti('seasonTags', v)}
                   onOtherChange={(v) => setForm({ ...form, seasonOther: v })}
-                  otherPlaceholder="其他，如：早春 / 深秋"
+                  otherPlaceholder="其他"
                 />
               </>
             )}
@@ -2236,7 +2233,7 @@
           />
         </div>
         <div className="field">
-          <label>标签（空格 / 逗号分隔）</label>
+          <label>标签</label>
           <input
             className="input"
             placeholder="例如：简约 通勤"
@@ -2852,7 +2849,7 @@
     return (
       <Sheet
         title="个人资料"
-        subtitle="打理属于你的衣见"
+        subtitle=""
         onClose={onClose}
       >
         <input
