@@ -1616,7 +1616,7 @@
           )}
         </div>
         {editing && (
-          <div className="action-row item-detail-actions">
+          <div className="action-row item-detail-photo-actions">
             <button
               className={'solid-action ' + (useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
               onClick={() => setUseCutout(true)}
@@ -1805,7 +1805,7 @@
               </div>
               <div>{displayDesc}</div>
             </div>
-            <div className="upload-toolbar" style={{ marginTop: 14 }}>
+            <div className="upload-toolbar upload-toolbar--sticky" style={{ marginTop: 14 }}>
               <button
                 className="outline"
                 onClick={() => {
