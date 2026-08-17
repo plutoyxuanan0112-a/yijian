@@ -1099,26 +1099,10 @@
       return normalizeRecordDate(last);
     });
     const [pickerOpen, setPickerOpen] = useState(false);
-    const [styleFilter, setStyleFilter] = useState('全部');
-    const [sceneFilter, setSceneFilter] = useState('全部');
-
-    const filteredRecords = useMemo(
-      () =>
-        records.filter((r) => {
-          const okStyle =
-            styleFilter === '全部' ||
-            (r.style && String(r.style).includes(styleFilter));
-          const okScene =
-            sceneFilter === '全部' ||
-            (r.scene && String(r.scene).includes(sceneFilter));
-          return okStyle && okScene;
-        }),
-      [records, styleFilter, sceneFilter],
-    );
 
     const recordsByDate = useMemo(() => {
       const map = {};
-      filteredRecords.forEach((r) => {
+      records.forEach((r) => {
         const key = normalizeRecordDate(r);
         if (!map[key]) map[key] = [];
         map[key].push(r);
@@ -1127,7 +1111,7 @@
         map[key].sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
       });
       return map;
-    }, [filteredRecords]);
+    }, [records]);
 
     const monthCells = useMemo(
       () => buildCalendarMonth(cursor.year, cursor.month),
@@ -1240,21 +1224,6 @@
               onClose={() => setPickerOpen(false)}
             />
           )}
-        </div>
-
-        <div className="calendar-filter-row select-row" aria-label="穿搭筛选">
-          <Select
-            value={styleFilter}
-            options={['全部', ...S.STYLE_TAGS]}
-            onChange={setStyleFilter}
-            label="风格"
-          />
-          <Select
-            value={sceneFilter}
-            options={['全部', ...S.SCENE_TAGS]}
-            onChange={setSceneFilter}
-            label="场景"
-          />
         </div>
 
         <div className="diary-summary-grid">

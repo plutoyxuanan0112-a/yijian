@@ -47,6 +47,10 @@
     if (token) localStorage.setItem(K.API_TOKEN, token);
     else localStorage.removeItem(K.API_TOKEN);
   }
+  // 请求超时兜底：后端冷启动 / 不可达时，fetch 默认会一直挂起，
+  // 导致上层 await 永不 resolve（登录按钮卡在「提交中…」）。
+  // 用 AbortController 给每个请求加超时，超时后主动 abort，让上层 catch/finally 能执行。
+  const API_TIMEOUT_MS = 20000;
   async function apiFetch(path, options) {
     const isFormData = options && options.body instanceof FormData;
     const headers = isFormData
@@ -54,7 +58,29 @@
       : { 'Content-Type': 'application/json', ...((options && options.headers) || {}) };
     const token = getApiToken();
     if (token) headers.Authorization = 'Bearer ' + token;
-    const res = await fetch(getApiBase() + path, { ...(options || {}), headers });
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), API_TIMEOUT_MS) : null;
+    let res;
+    try {
+      res = await fetch(getApiBase() + path, {
+        ...(options || {}),
+        headers,
+        ...(controller ? { signal: controller.signal } : {}),
+      });
+    } catch (e) {
+      if (timer) clearTimeout(timer);
+      if (e && (e.name === 'AbortError')) {
+        const err = new Error('网络超时，请检查网络或稍后再试');
+        err.status = 0;
+        err.code = 'TIMEOUT';
+        throw err;
+      }
+      const err = new Error('网络连接失败，请检查网络或稍后再试');
+      err.status = 0;
+      err.code = 'NETWORK';
+      throw err;
+    }
+    if (timer) clearTimeout(timer);
     let body = null;
     try { body = await res.json(); } catch { body = null; }
     if (!res.ok) {

@@ -2319,7 +2319,6 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 }
 
 /* ============ iOS 风格年月滚轮选择器 ============ */
-.calendar-filter-row{margin:14px 0 4px}
 .wheel-sheet-mask{
   position:fixed;inset:0;z-index:120;
   background:rgba(30,22,55,.42);
