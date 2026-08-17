@@ -2341,42 +2341,68 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   border:1px solid rgba(142,118,205,.14);
   box-shadow:0 14px 34px rgba(91,71,145,.12), inset 0 0 0 1px rgba(255,255,255,.62);
 }
-.picker-block + .picker-block{margin-top:12px}
-.picker-label{
-  font-size:11px;
-  color:#9a8daf;
-  font-weight:800;
-  margin-bottom:7px;
+
+/* ============ iOS 风格年月滚轮选择器 ============ */
+.calendar-filter-row{margin:2px 0 14px}
+.wheel-sheet-mask{
+  position:fixed;inset:0;z-index:120;
+  background:rgba(30,22,55,.42);
+  backdrop-filter:blur(4px);
+  -webkit-backdrop-filter:blur(4px);
+  display:flex;align-items:flex-end;justify-content:center;
 }
-.picker-options{
-  display:flex;
-  gap:8px;
-  overflow-x:auto;
-  scrollbar-width:none;
+.wheel-sheet{
+  width:100%;max-width:480px;
+  background:#fff;
+  border-radius:22px 22px 0 0;
+  padding:8px 16px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -10px 40px rgba(60,40,110,.2);
 }
-.picker-options::-webkit-scrollbar{display:none}
-.picker-options button,
-.month-picker-grid button{
-  border:none;
+.wheel-sheet-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 2px 6px;
+}
+.wheel-title{font-size:15px;font-weight:600;color:var(--ink,#2b2145)}
+.wheel-cancel,.wheel-done{
+  border:0;background:transparent;font-size:15px;font-weight:600;padding:6px 4px;
+}
+.wheel-cancel{color:#8577a8}
+.wheel-done{color:#7058d9}
+.wheel-search{margin:4px 0 10px}
+.wheel-search .input{height:40px}
+.wheel-body{
+  position:relative;
+  display:flex;gap:12px;
+  padding:6px 0 4px;
+}
+.wheel-col{
+  position:relative;flex:1;
+  height:200px;overflow:hidden;
+}
+.wheel-highlight{
+  position:absolute;left:0;right:0;top:80px;height:40px;
   border-radius:12px;
-  padding:8px 11px;
-  background:rgba(246,242,255,.72);
-  color:#766993;
-  font-size:12px;
-  font-weight:800;
-  box-shadow:inset 0 0 0 1px rgba(132,108,198,.10);
+  background:rgba(112,88,223,.08);
+  pointer-events:none;
 }
-.picker-options button.active,
-.month-picker-grid button.active{
-  color:#fff;
-  background:linear-gradient(135deg,#8069df,#b793f3);
-  box-shadow:0 9px 20px rgba(126,98,214,.22);
+.wheel-scroll{
+  height:200px;overflow-y:auto;
+  scroll-snap-type:y mandatory;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
 }
-.month-picker-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:8px;
+.wheel-scroll::-webkit-scrollbar{display:none}
+.wheel-pad{height:80px;flex-shrink:0}
+.wheel-item{
+  display:flex;align-items:center;justify-content:center;
+  height:40px;width:100%;
+  border:0;background:transparent;
+  scroll-snap-align:center;
+  font-size:17px;color:#b3a8c9;font-weight:500;
+  transition:color .15s ease,font-size .15s ease;
 }
+.wheel-item.active{color:#2b2145;font-weight:700;font-size:19px}
+
 .diary-summary-grid{
   display:grid;
   grid-template-columns:1fr;

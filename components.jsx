@@ -247,6 +247,101 @@
   const Toast = ({ text }) =>
     text ? <div className="toast">{text}</div> : null;
 
+  const WheelColumn = ({ items, value, onChange, formatLabel }) => {
+    const ref = useRef(null);
+    const ITEM_H = 40;
+    const idx = Math.max(0, items.indexOf(value));
+    useEffect(() => {
+      if (ref.current) ref.current.scrollTop = idx * ITEM_H;
+    }, [idx]);
+    const onScroll = () => {
+      if (!ref.current) return;
+      const i = Math.round(ref.current.scrollTop / ITEM_H);
+      const clamped = Math.min(items.length - 1, Math.max(0, i));
+      if (items[clamped] !== value) onChange(items[clamped]);
+    };
+    return (
+      <div className="wheel-col">
+        <div className="wheel-highlight" />
+        <div className="wheel-scroll" ref={ref} onScroll={onScroll}>
+          <div className="wheel-pad" />
+          {items.map((it) => (
+            <button
+              type="button"
+              key={it}
+              className={'wheel-item' + (it === value ? ' active' : '')}
+              onClick={() => {
+                if (ref.current) ref.current.scrollTop = items.indexOf(it) * ITEM_H;
+                onChange(it);
+              }}
+            >
+              {formatLabel ? formatLabel(it) : it}
+            </button>
+          ))}
+          <div className="wheel-pad" />
+        </div>
+      </div>
+    );
+  };
+
+  const YearMonthWheel = ({ year, month, minYear, maxYear, onConfirm, onClose }) => {
+    const years = useMemo(() => {
+      const arr = [];
+      for (let y = minYear; y <= maxYear; y += 1) arr.push(y);
+      return arr;
+    }, [minYear, maxYear]);
+    const months = useMemo(() => Array.from({ length: 12 }, (_, i) => i), []);
+    const [tempYear, setTempYear] = useState(year);
+    const [tempMonth, setTempMonth] = useState(month);
+    const [yearQuery, setYearQuery] = useState('');
+    const jumpYear = (raw) => {
+      setYearQuery(raw);
+      const n = parseInt(raw, 10);
+      if (Number.isFinite(n) && n >= minYear && n <= maxYear) setTempYear(n);
+    };
+    return (
+      <div className="wheel-sheet-mask" onClick={onClose}>
+        <div className="wheel-sheet" onClick={(e) => e.stopPropagation()}>
+          <div className="wheel-sheet-head">
+            <button type="button" className="wheel-cancel" onClick={onClose}>取消</button>
+            <span className="wheel-title">选择年月</span>
+            <button
+              type="button"
+              className="wheel-done"
+              onClick={() => onConfirm(tempYear, tempMonth)}
+            >
+              完成
+            </button>
+          </div>
+          <div className="wheel-search">
+            <input
+              className="input"
+              type="number"
+              inputMode="numeric"
+              placeholder="输入年份跳转，如 2024"
+              value={yearQuery}
+              onChange={(e) => jumpYear(e.target.value)}
+            />
+          </div>
+          <div className="wheel-body">
+            <WheelColumn
+              items={years}
+              value={tempYear}
+              onChange={setTempYear}
+              formatLabel={(y) => y + ' 年'}
+            />
+            <WheelColumn
+              items={months}
+              value={tempMonth}
+              onChange={setTempMonth}
+              formatLabel={(m) => m + 1 + ' 月'}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const EmptyState = ({ title, tip, big, action }) => (
     <div className="empty">
       {big && <div className="big">{big}</div>}
@@ -1004,10 +1099,26 @@
       return normalizeRecordDate(last);
     });
     const [pickerOpen, setPickerOpen] = useState(false);
+    const [styleFilter, setStyleFilter] = useState('全部');
+    const [sceneFilter, setSceneFilter] = useState('全部');
+
+    const filteredRecords = useMemo(
+      () =>
+        records.filter((r) => {
+          const okStyle =
+            styleFilter === '全部' ||
+            (r.style && String(r.style).includes(styleFilter));
+          const okScene =
+            sceneFilter === '全部' ||
+            (r.scene && String(r.scene).includes(sceneFilter));
+          return okStyle && okScene;
+        }),
+      [records, styleFilter, sceneFilter],
+    );
 
     const recordsByDate = useMemo(() => {
       const map = {};
-      records.forEach((r) => {
+      filteredRecords.forEach((r) => {
         const key = normalizeRecordDate(r);
         if (!map[key]) map[key] = [];
         map[key].push(r);
@@ -1016,7 +1127,7 @@
         map[key].sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
       });
       return map;
-    }, [records]);
+    }, [filteredRecords]);
 
     const monthCells = useMemo(
       () => buildCalendarMonth(cursor.year, cursor.month),
@@ -1082,6 +1193,21 @@
           ))}
         </div>
 
+        <div className="calendar-filter-row select-row">
+          <Select
+            value={styleFilter}
+            options={['全部', ...S.STYLE_TAGS]}
+            onChange={setStyleFilter}
+            label="风格"
+          />
+          <Select
+            value={sceneFilter}
+            options={['全部', ...S.SCENE_TAGS]}
+            onChange={setSceneFilter}
+            label="场景"
+          />
+        </div>
+
         <div className="calendar-card">
           <div className="calendar-toolbar">
             <button className="calendar-nav" onClick={() => moveMonth(-1)} aria-label="上个月">‹</button>
@@ -1129,39 +1255,17 @@
             })}
           </div>
           {pickerOpen && (
-            <div className="calendar-picker-popover">
-              <div className="picker-block">
-                <div className="picker-label">年份</div>
-                <div className="picker-options">
-                  {yearOptions.map((y) => (
-                    <button
-                      key={y}
-                      className={y === cursor.year ? 'active' : ''}
-                      onClick={() => setCursor((prev) => ({ ...prev, year: y }))}
-                    >
-                      {y}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="picker-block">
-                <div className="picker-label">月份</div>
-                <div className="month-picker-grid">
-                  {Array.from({ length: 12 }).map((_, i) => (
-                    <button
-                      key={i}
-                      className={i === cursor.month ? 'active' : ''}
-                      onClick={() => {
-                        setCursor((prev) => ({ ...prev, month: i }));
-                        setPickerOpen(false);
-                      }}
-                    >
-                      {i + 1}月
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <YearMonthWheel
+              year={cursor.year}
+              month={cursor.month}
+              minYear={Math.min(cursor.year - 15, (yearOptions[yearOptions.length - 1] || cursor.year) - 1)}
+              maxYear={Math.max(cursor.year + 5, (yearOptions[0] || cursor.year) + 1)}
+              onConfirm={(y, m) => {
+                setCursor({ year: y, month: m });
+                setPickerOpen(false);
+              }}
+              onClose={() => setPickerOpen(false)}
+            />
           )}
         </div>
 
