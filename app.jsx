@@ -536,7 +536,13 @@
             const remoteProfile = await S.updateProfileRemote(saved);
             setProfile(remoteProfile);
           } catch (e) {
-            // 本地资料已先保存；云端失败时保留编辑结果与当前编辑视图。
+            // 本地资料已先保存；若后端不支持资料接口（404），以本地为准，不打扰用户。
+            if (e && e.status === 404) {
+              setOpenSheet(null);
+              showToast('已保存个人资料');
+              return;
+            }
+            // 其他云端失败（网络 / 5xx）时保留编辑结果与当前编辑视图。
             showToast('资料暂未同步，请稍后重试');
             return;
           }

@@ -326,14 +326,21 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
 .solid-action:disabled{opacity:.42;pointer-events:none;box-shadow:none}
 .profile-actions{justify-content:flex-end;margin-top:18px;margin-bottom:2px}
 .item-detail-actions{justify-content:flex-end}
-.item-detail-photo-actions{flex-wrap:nowrap;gap:8px}
+.item-detail-photo-actions{
+  flex-wrap:nowrap;
+  gap:6px;
+  justify-content:center;
+}
 .item-detail-photo-actions .solid-action{
-  flex:1 1 0;
+  flex:0 1 auto;
   width:auto;
   min-width:0;
-  padding:9px 6px;
+  padding:8px 10px;
+  font-size:12px;
+  border-radius:12px;
   text-align:center;
   white-space:nowrap;
+  box-shadow:none;
 }
 .ghost{
   color:var(--purple);
