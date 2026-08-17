@@ -89,8 +89,12 @@
         }
         try {
           await S.authMe();
-          const fresh = await S.syncAllFromBackend();
+          const [fresh, syncedProfile] = await Promise.all([
+            S.syncAllFromBackend(),
+            S.syncProfileFromBackend().catch(() => null),
+          ]);
           if (!alive) return;
+          if (syncedProfile) setProfile(syncedProfile);
           setWardrobe(fresh.wardrobe || []);
           setRecords(fresh.outfits || []);
           setLinks(S.getLinks());
@@ -508,7 +512,7 @@
 
     // 保存个人资料 / 账号状态（v13：邮箱登录也走这里）
     const handleSaveProfile = useCallback(
-      (p) => {
+      async (p) => {
         const prev = profile;
         if (p && p._logout) {
           const cleared = S.clearUserSession();
@@ -527,6 +531,16 @@
         // 登录 / 注册后：不关闭 sheet（AuthView 会自动切到 ProfileEditView）；仅在真正保存资料时关闭
         const authChanged = prev.authStatus !== saved.authStatus;
         const pwChanged = prev.passwordHash !== saved.passwordHash;
+        if (saved.authStatus === 'demo_logged_in' && !authChanged) {
+          try {
+            const remoteProfile = await S.updateProfileRemote(saved);
+            setProfile(remoteProfile);
+          } catch (e) {
+            // 本地资料已先保存；云端失败时保留编辑结果与当前编辑视图。
+            showToast('资料暂未同步，请稍后重试');
+            return;
+          }
+        }
         if (authChanged || pwChanged) {
           // 账号变动：让 AuthView / ProfileEditView 自己发 toast，主 App 不再重复提示
           return;

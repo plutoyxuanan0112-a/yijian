@@ -1,12 +1,59 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="title desc">
+  <title id="title">衣见 YJ 标志</title>
+  <desc id="desc">浅灰白底板上的平面紫色 YJ 编织融合字标</desc>
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop stop-color="#8d79f5"/>
-      <stop offset="1" stop-color="#5d45c7"/>
+    <!-- Y/J 共用：左上浅紫，右下深紫 -->
+    <linearGradient id="yjGradient" x1="88" y1="86" x2="398" y2="426" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A78BFA"/>
+      <stop offset=".48" stop-color="#9265EC"/>
+      <stop offset="1" stop-color="#7C3AED"/>
     </linearGradient>
+
+    <!-- 仅底板使用的极轻投影；字母路径不使用任何滤镜 -->
+    <filter id="plateShadow" x="-12%" y="-12%" width="124%" height="132%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#72677A" flood-opacity=".12"/>
+    </filter>
+
   </defs>
-  <rect width="512" height="512" rx="116" fill="url(#g)"/>
-  <path d="M157 161c36 24 57 35 99 35s63-11 99-35l36 65-42 24v129H163V250l-42-24 36-65z" fill="#fff" opacity=".96"/>
-  <path d="M256 196v193M204 143c12 31 26 48 52 53 26-5 40-22 52-53" fill="none" stroke="#7058df" stroke-width="12" stroke-linecap="round"/>
-  <text x="256" y="456" text-anchor="middle" font-family="serif" font-size="38" fill="#fff">衣见</text>
+
+  <!-- 极浅灰米白 iOS 底板 -->
+  <g filter="url(#plateShadow)">
+    <rect x="16" y="16" width="480" height="480" rx="112" fill="#F8F7F8"/>
+  </g>
+
+  <!-- J 位于底层，Y 右臂和底座随后覆盖，形成真实穿插 -->
+  <g fill="url(#yjGradient)">
+    <!-- J 顶部：宽横衬线；左端短钝，右端逐渐收成挑角 -->
+    <path d="M267 105H414L395 119L373 128H288C285 117 278 110 267 109V105Z"/>
+
+    <!-- J 主干与回钩：主干等宽；底部为一条连续、光滑的大半圆 U 形 -->
+    <path d="M319 122H371V321C371 382 333 420 276 420C225 420 188 397 171 359L216 337C228 365 247 380 276 380C306 380 319 360 319 323V122Z"/>
+
+    <!-- J 回钩左端：保持弧面厚度后逐渐收细，末端斜切为楔形 -->
+    <path d="M171 359C188 397 225 420 276 420C238 430 198 416 171 389C154 372 143 350 138 327L176 316C181 333 193 348 216 337L171 359Z"/>
+  </g>
+
+  <!-- 兼容性镂空：用底板色路径直接覆盖 J，不依赖复杂裁切 -->
+  <path d="M151 378H269L258 411H145L151 378Z" fill="#F8F7F8"/>
+
+  <!-- Y 左臂：顶部极细锋利衬线，向下弯曲，形成细→厚→细的 stress -->
+  <path d="M88 116H183V121C164 123 158 132 162 150C168 181 185 219 215 264L201 289C157 239 127 188 113 137C110 126 101 122 88 121V116Z" fill="url(#yjGradient)"/>
+
+  <!-- Y 右臂：核心 S 型流线，使用三次贝塞尔；末端高于 J 顶部约 10 单位 -->
+  <path d="M201 289
+           C226 252 241 206 265 166
+           C291 123 326 91 383 95
+           L371 117
+           C335 110 310 128 289 159
+           C258 205 244 254 221 296
+           Z" fill="url(#yjGradient)"/>
+
+  <!-- Y 两臂在约 60% 高度交汇后进入垂直主干 -->
+  <path d="M196 277H224V388H196V277Z" fill="url(#yjGradient)"/>
+
+  <!-- Y 底部：窄而明确的水平底座，左右对称、端部平齐直角；高于 J 钩底约 15 -->
+  <path d="M158 383H262V405H158V383Z" fill="url(#yjGradient)"/>
+
+  <!-- 编织缝隙：Y 右臂飞过 J 顶衬线，两者之间保留匀称水平负空间 -->
+  <path d="M280 111H373V119H280V111Z" fill="#F8F7F8"/>
 </svg>

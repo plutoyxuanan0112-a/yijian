@@ -1616,22 +1616,22 @@
           )}
         </div>
         {editing && (
-          <div className="upload-toolbar">
+          <div className="action-row item-detail-actions">
             <button
-              className={useCutout ? 'primary' : 'outline'}
+              className={'solid-action ' + (useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
               onClick={() => setUseCutout(true)}
               disabled={!processed}
             >
               使用抠图版
             </button>
             <button
-              className={!useCutout ? 'primary' : 'outline'}
+              className={'solid-action ' + (!useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
               onClick={() => setUseCutout(false)}
               disabled={!original}
             >
               使用原图
             </button>
-            <button className="outline" onClick={chooseFile}>
+            <button className="solid-action solid-action--quiet" onClick={chooseFile}>
               重新上传
             </button>
           </div>
@@ -1666,15 +1666,17 @@
                 <MetaRow label="版型" value={item.fitTags.join(' / ')} />
               )}
             </div>
-            <div className="upload-toolbar" style={{ marginTop: 14 }}>
+            <div className="action-row item-detail-actions" style={{ marginTop: 14 }}>
               <button
-                className="outline"
+                className="solid-action solid-action--quiet"
                 onClick={() => onDelete && onDelete(item)}
-                style={{ color: '#a04b60' }}
               >
                 删除
               </button>
-              <button className="primary" onClick={() => setEditing(true)}>
+              <button
+                className="solid-action solid-action--accent"
+                onClick={() => setEditing(true)}
+              >
                 编辑 / 重新上传
               </button>
             </div>
@@ -2597,6 +2599,8 @@
         ...profile,
         email: u.email || email.trim(),
         name: u.display_name || profile.name || '衣见的主理人',
+        avatar: u.avatar != null ? u.avatar : profile.avatar,
+        bio: u.bio != null ? u.bio : profile.bio,
         authStatus: 'demo_logged_in',
         backendUserId: u.id,
       });
@@ -2745,13 +2749,6 @@
         >
           {busy ? '提交中…' : (mode === 'register' ? '创建账号' : '登录')}
         </button>
-
-        <div className="auth-hint">
-          <div className="auth-hint-title">登录后会保存你的衣橱</div>
-          <div className="auth-hint-body">
-            你的衣物、搭配和穿搭日记会跟随账号保存，之后可以继续回来查看和编辑。
-          </div>
-        </div>
       </Sheet>
     );
   };
@@ -3009,24 +3006,19 @@
           />
         </div>
 
-
-
-        <button
-          className="primary"
-          style={{ width: '100%', marginTop: 6 }}
-          onClick={saveAll}
-        >
-          保存
-        </button>
-        <button
-          className="outline"
-          style={{ width: '100%', marginTop: 8, color: '#a04b60' }}
-          onClick={logout}
-        >
-          退出登录
-        </button>
-        <div className="tiny center mt-2" style={{ color: 'var(--muted)' }}>
-          你的账号与衣橱会跟随当前登录状态保存，之后可以继续回来查看和编辑。
+        <div className="action-row profile-actions">
+          <button
+            className="solid-action solid-action--accent"
+            onClick={saveAll}
+          >
+            保存
+          </button>
+          <button
+            className="solid-action solid-action--quiet"
+            onClick={logout}
+          >
+            退出登录
+          </button>
         </div>
       </Sheet>
     );

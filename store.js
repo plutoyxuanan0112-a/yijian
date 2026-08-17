@@ -603,6 +603,39 @@
     save(K_PROFILE, p);
     return p;
   }
+  function mergeRemoteProfile(remote) {
+    const current = getProfile();
+    const source = remote && (remote.profile || remote.user)
+      ? { ...(remote.user || {}), ...(remote.profile || {}) }
+      : (remote || {});
+    const merged = {
+      ...current,
+      name: source.display_name != null ? source.display_name : current.name,
+      avatar: source.avatar != null ? source.avatar : current.avatar,
+      bio: source.bio != null ? source.bio : current.bio,
+      email: source.email != null ? source.email : current.email,
+      authStatus: 'demo_logged_in',
+      backendUserId: source.id != null
+        ? source.id
+        : (source.user_id != null ? source.user_id : current.backendUserId),
+    };
+    return saveProfile(merged);
+  }
+  async function syncProfileFromBackend() {
+    const data = await apiFetch('/api/v1/profile');
+    return mergeRemoteProfile(data);
+  }
+  async function updateProfileRemote(profile) {
+    const data = await apiFetch('/api/v1/profile', {
+      method: 'PUT',
+      body: JSON.stringify({
+        display_name: profile.name,
+        avatar: profile.avatar || '',
+        bio: profile.bio || '',
+      }),
+    });
+    return mergeRemoteProfile(data);
+  }
   // 该用户在本机的所有「数据缓存」key（不含 token / profile / 站点配置 API_BASE / AI_CFG）。
   // 登录后「先清本地再从后端同步」、以及退出登录时都会用到，避免换账号串数据。
   const USER_DATA_KEYS = [K.WARDROBE, K.OUTFITS, K.LINKS, K.WEATHER, K.AI_LOG, K.PREF];
@@ -2113,6 +2146,8 @@
     // profile
     getProfile,
     saveProfile,
+    syncProfileFromBackend,
+    updateProfileRemote,
     clearUserSession,
     clearLocalUserData,
     validateEmail,

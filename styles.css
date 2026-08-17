@@ -292,6 +292,40 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
   -webkit-backdrop-filter:blur(14px);
 }
 .outline:active{transform:scale(.97)}
+/* 克制的实色操作组：参考 Claude 的圆润、温和与清晰层级 */
+.action-row{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:12px;
+}
+.solid-action{
+  width:auto;
+  flex:0 0 auto;
+  padding:9px 15px;
+  border:0;
+  border-radius:14px;
+  font-size:13px;
+  font-weight:650;
+  line-height:1.2;
+  letter-spacing:.005em;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+.solid-action--accent{
+  color:#fff;
+  background:#7058d9;
+  box-shadow:0 5px 14px rgba(80,62,155,.22),0 1px 2px rgba(55,43,104,.18);
+}
+.solid-action--quiet{
+  color:#554d65;
+  background:#eeeaf4;
+  box-shadow:0 3px 10px rgba(67,56,87,.09),0 1px 2px rgba(67,56,87,.07);
+}
+.solid-action:active{transform:translateY(1px) scale(.98);box-shadow:0 2px 7px rgba(67,56,87,.12)}
+.solid-action:disabled{opacity:.42;pointer-events:none;box-shadow:none}
+.profile-actions{justify-content:flex-end;margin-top:18px;margin-bottom:2px}
+.item-detail-actions{justify-content:flex-end}
 .ghost{
   color:var(--purple);
   font-size:13px;
