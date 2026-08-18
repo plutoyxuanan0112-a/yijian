@@ -2804,31 +2804,29 @@
     const onAvatar = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        onToast && onToast('请选择图片文件');
+      if (!file.type.startsWith("image/")) {
+        onToast && onToast("请选择图片文件");
         return;
       }
       try {
-        const raw = await S.readFileAsDataURL(file);
-        const img = await new Promise((res, rej) => {
-          const im = new Image();
-          im.onload = () => res(im);
-          im.onerror = rej;
-          im.src = raw;
+        // 方案 A：先上传图片获取 URL，再写回 /api/v1/profile
+        const up = await S.uploadAvatar(file);
+        const url = (up && up.url) || "";
+        if (!url) throw new Error("no url");
+
+        await S.saveProfileToBackend({ avatar_url: url });
+
+        setForm((f) => ({ ...f, avatar: url }));
+        onSave({
+          ...profile,
+          avatar: url,
         });
-        const size = 320;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        const scale = Math.min(img.width, img.height);
-        const sx = (img.width - scale) / 2;
-        const sy = (img.height - scale) / 2;
-        ctx.drawImage(img, sx, sy, scale, scale, 0, 0, size, size);
-        const small = canvas.toDataURL('image/jpeg', 0.82);
-        setForm((f) => ({ ...f, avatar: small }));
-      } catch (err) {
-        onToast && onToast('读取头像失败，请重试');
+        onToast && onToast("头像已同步到云端");
+      } catch {
+        onToast && onToast("头像同步失败，请重试");
+      } finally {
+        // 允许重复选择同一文件也能触发 onChange
+        if (e.target) e.target.value = "";
       }
     };
 
@@ -2865,12 +2863,21 @@
       onToast && onToast('密码已更新');
     };
 
-    const saveAll = () => {
+    const saveAll = async () => {
+      const name = (form.name || "").trim() || "衣见的主理人";
+      const bio = (form.bio || "").trim();
+      try {
+        await S.saveProfileToBackend({ nickname: name });
+        onToast && onToast("昵称已同步到云端");
+      } catch {
+        onToast && onToast("昵称同步失败（本地仍已保存）");
+      }
+
       onSave({
         ...profile,
         avatar: form.avatar,
-        name: (form.name || '').trim() || '衣见的主理人',
-        bio: (form.bio || '').trim(),
+        name,
+        bio,
       });
     };
     const logout = async () => {

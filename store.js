@@ -658,12 +658,56 @@
       backendUserId: src.id != null ? src.id : p.backendUserId,
     };
   }
+
+  // 上传头像文件（multipart/form-data），返回 { url }
+  async function uploadAvatar(file) {
+    const fd = new FormData();
+    fd.append('file', file);
+    return apiFetch('/api/v1/upload', {
+      method: 'POST',
+      body: fd,
+    });
+  }
+
+  // 写回昵称/头像 URL 到后端（PUT /api/v1/profile）
+  async function saveProfileToBackend(payload) {
+    return apiFetch('/api/v1/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload || {}),
+    });
+  }
+
   // 从后端拉取当前登录用户资料并合并到本地，返回合并后的 profile。
+  // 同时：若后端尚未写入 nickname / avatar_url，而本地已有可用信息，则自动写回（避免换设备丢失）。
   async function syncProfileFromBackend() {
+    const prev = getProfile();
     const data = await authMe();
     const u = (data && data.user) || {};
-    const merged = mergeRemoteProfile(getProfile(), u);
+    const merged = mergeRemoteProfile(prev, u);
     saveProfile(merged);
+
+    // 登录后补写回：后端为空，但本地已有昵称/头像 URL
+    const patch = {};
+    if (!u.nickname && merged.name && merged.name !== '衣见的主理人') {
+      patch.nickname = merged.name;
+    }
+    // 头像只允许写回 URL（dataURL 太大且后端字段是 avatar_url）
+    if (!u.avatar_url && merged.avatar && /^https?:\/\//i.test(merged.avatar)) {
+      patch.avatar_url = merged.avatar;
+    }
+
+    if (Object.keys(patch).length) {
+      try {
+        const resp = await saveProfileToBackend(patch);
+        const remoteUser = (resp && resp.user) || {};
+        const merged2 = mergeRemoteProfile(merged, remoteUser);
+        saveProfile(merged2);
+        return merged2;
+      } catch {
+        // 写回失败不影响登录流程，继续用本地合并结果
+      }
+    }
+
     return merged;
   }
   // 该用户在本机的所有「数据缓存」key（不含 token / profile / 站点配置 API_BASE / AI_CFG）。
@@ -2200,6 +2244,8 @@
     authMe,
     syncAllFromBackend,
     mergeRemoteProfile,
+    uploadAvatar,
+    saveProfileToBackend,
     syncProfileFromBackend,
     cleanRecommendationText,
     formatWeather,
