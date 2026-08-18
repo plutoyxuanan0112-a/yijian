@@ -510,6 +510,22 @@
                 <WeatherIcon weather={weather} />
               )}
             </span>
+            {!geoLocating && weather && weather.isFallback && (
+              <span
+                style={{
+                  marginLeft: 6,
+                  fontSize: 11,
+                  color: '#c2410c',
+                  background: '#fff1e6',
+                  borderRadius: 6,
+                  padding: '1px 6px',
+                  alignSelf: 'center',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                默认天气
+              </span>
+            )}
             <span className="col">
               {geoLocating ? (
                 <>
@@ -560,7 +576,7 @@
                     {weather ? weather.temperature + '°C · ' + weather.weatherLabel : '定位失败'}
                   </strong>
                   <span className="meta">
-                    定位或天气服务失败，可点击重试
+                    定位失败，显示默认天气 · 可点击重试
                   </span>
                 </>
               ) : (
@@ -617,30 +633,17 @@
                   : '为你从衣橱挑选'
               }
             />
-            <div className="reason-list">
-              <div className="reason-row">
-                <div className="k">风格</div>
-                <div className="v">{outfit.style_reason}</div>
-              </div>
-              <div className="reason-row">
-                <div className="k">天气</div>
-                <div className="v">{outfit.weather_reason}</div>
-              </div>
-              <div className="reason-row">
-                <div className="k">场景</div>
-                <div className="v">{outfit.scene_reason}</div>
-              </div>
-              <div className="reason-row">
-                <div className="k">配色</div>
-                <div className="v">{outfit.color_reason}</div>
-              </div>
-              {outfit.avoid && (
-                <div className="reason-row reason-avoid">
-                  <div className="k">今天不建议</div>
-                  <div className="v">{outfit.avoid}</div>
-                </div>
-              )}
-            </div>
+            {(outfit.summary || outfit.color_reason || outfit.style_reason) && (
+              <p
+                className="look-card-summary"
+                style={{ margin: '10px 2px 0', fontSize: 13, lineHeight: 1.6, color: '#4b4b57' }}
+              >
+                {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
+                  .replace(/\s+/g, ' ')
+                  .trim()
+                  .slice(0, 60)}
+              </p>
+            )}
             <div className="outfit-action">
               <button className="outline" onClick={onGenerate}>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -2356,10 +2359,19 @@
     scene,
     onClose,
     onReplace,
+    onRegenerate,
     onSave,
     saveText,
   }) => {
     const artRef = useRef(null);
+    const chipStyle = {
+      fontSize: 12,
+      color: '#5b4bdb',
+      background: '#efeaff',
+      borderRadius: 999,
+      padding: '3px 10px',
+      lineHeight: 1.4,
+    };
     if (!outfit) return null;
     if (outfit.missing_piece) {
       return (
@@ -2462,30 +2474,38 @@
           }
           forwardRef={artRef}
         />
-        <div className="reason-list">
-          <div className="reason-row">
-            <div className="k">风格</div>
-            <div className="v">{outfit.style_reason}</div>
-          </div>
-          <div className="reason-row">
-            <div className="k">天气</div>
-            <div className="v">{outfit.weather_reason}</div>
-          </div>
-          <div className="reason-row">
-            <div className="k">场景</div>
-            <div className="v">{outfit.scene_reason}</div>
-          </div>
-          <div className="reason-row">
-            <div className="k">配色</div>
-            <div className="v">{outfit.color_reason}</div>
-          </div>
-          {outfit.avoid && (
-            <div className="reason-row reason-avoid">
-              <div className="k">今天不建议</div>
-              <div className="v">{outfit.avoid}</div>
-            </div>
+        <div
+          className="detail-param-tags"
+          style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '2px 0 12px' }}
+        >
+          {weather && weather.weatherLabel && (
+            <span style={chipStyle}>
+              {(weather.temperature != null ? weather.temperature + '°C · ' : '') +
+                weather.weatherLabel}
+            </span>
           )}
+          {style && <span style={chipStyle}>{style}</span>}
+          {scene && <span style={chipStyle}>{scene}</span>}
         </div>
+        {(outfit.summary || outfit.color_reason || outfit.style_reason) && (
+          <p
+            className="detail-summary"
+            style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.6, color: '#4b4b57' }}
+          >
+            {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
+              .replace(/\s+/g, ' ')
+              .trim()
+              .slice(0, 60)}
+          </p>
+        )}
+        {outfit.avoid && (
+          <p
+            className="detail-avoid"
+            style={{ margin: '0 0 14px', fontSize: 12, color: '#c2410c' }}
+          >
+            今天不建议：{outfit.avoid}
+          </p>
+        )}
 
         <h2 style={{ marginTop: 18 }}>本套单品</h2>
         <div className="wardrobe-grid" style={{ marginBottom: 12 }}>
@@ -2493,27 +2513,59 @@
             <div
               key={p.id + '-' + i}
               className="item-card"
-              onClick={() => onReplace && onReplace(p)}
+              style={{ position: 'relative' }}
             >
               <div className="item-photo">
                 {p.image && <img src={p.image} alt={p.name} />}
               </div>
               <div className="item-name">{p.name}</div>
-              <div className="item-tag">
-                {p.category} · 点击替换
-              </div>
+              <div className="item-tag">{p.category}</div>
+              <button
+                type="button"
+                aria-label={'替换' + (p.category || '单品')}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReplace && onReplace(p);
+                }}
+                style={{
+                  position: 'absolute',
+                  right: 6,
+                  bottom: 6,
+                  fontSize: 12,
+                  lineHeight: 1,
+                  padding: '5px 12px',
+                  borderRadius: 999,
+                  border: 'none',
+                  background: '#5b4bdb',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(91,75,219,.35)',
+                }}
+              >
+                换
+              </button>
             </div>
           ))}
         </div>
 
+        <button
+          type="button"
+          className="link"
+          onClick={downloadCard}
+          style={{ display: 'block', margin: '0 auto 10px', fontSize: 13 }}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Icon name="download" size={14} /> 保存搭配效果图
+          </span>
+        </button>
         <div className="outfit-action">
-          <button className="outline" onClick={downloadCard}>
+          <button className="outline" onClick={onRegenerate}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="download" size={14} /> 保存效果图
+              <Icon name="refresh" size={14} /> 换一套
             </span>
           </button>
           <button className="primary" onClick={onSave}>
-            {saveText || '保存穿搭到记录'}
+            {saveText || '保存'}
           </button>
         </div>
       </Sheet>
@@ -2828,6 +2880,7 @@
     const [nameEditing, setNameEditing] = useState(false);
     const [changePwOpen, setChangePwOpen] = useState(false);
     const [revealEmail, setRevealEmail] = useState(false);
+    const [confirmLogout, setConfirmLogout] = useState(false);
 
     const maskEmail = (s) => {
       const email = (s || '').trim();
@@ -2939,12 +2992,11 @@
       });
     };
     const logout = () => {
-      if (!window.confirm('确认退出登录？本机将清空当前账号的衣橱和日记展示，重新登录后再从云端读取。')) return;
-      onSave({ ...profile, authStatus: 'none', _logout: true });
-      onToast && onToast('已退出登录');
+      setConfirmLogout(true);
     };
 
     return (
+      <>
       <Sheet
         title="个人资料"
         subtitle=""
@@ -3140,6 +3192,21 @@
           </button>
         </div>
       </Sheet>
+      {confirmLogout && (
+        <DeleteConfirmSheet
+          title="确认退出登录？"
+          message="退出后本机会清空当前账号的衣橱和日记展示，重新登录后再从云端读取。"
+          confirmText="退出登录"
+          cancelText="取消"
+          onClose={() => setConfirmLogout(false)}
+          onConfirm={() => {
+            setConfirmLogout(false);
+            onSave({ ...profile, authStatus: 'none', _logout: true });
+            onToast && onToast('已退出登录');
+          }}
+        />
+      )}
+      </>
     );
   };
 

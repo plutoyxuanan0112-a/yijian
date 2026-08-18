@@ -55,6 +55,8 @@
     const [detailRecord, setDetailRecord] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
+    // 通用应用内确认弹窗（替代 window.confirm）：{ title, message, confirmText, onConfirm }
+    const [confirmSheet, setConfirmSheet] = useState(null);
     // Toast
     const [toast, setToastMsg] = useState('');
 
@@ -183,6 +185,7 @@
           })
           .filter((x) => x && x.image);
         setOutfit(result);
+        setOpenSheet('detail'); // 生成后直接弹出详情卡片
         // v15：普通用户不感知 AI/回退/服务商，只给结果反馈
         if (result._source === 'backend-ai' || result._source === 'local-fallback') {
           showToast('已为你搭配完成');
@@ -209,6 +212,7 @@
           })
           .filter((x) => x && x.image);
         setOutfit(fb);
+        setOpenSheet('detail'); // 兜底搭配同样直接弹出详情卡片
       } finally {
         setGenerating(false);
       }
@@ -429,10 +433,18 @@
       [showToast],
     );
     const handleDeleteLink = useCallback((link) => {
-      if (!window.confirm('删除这条灵感？')) return;
-      S.deleteLink(link.id);
-      setLinks(S.getLinks());
-    }, []);
+      setConfirmSheet({
+        title: '删除这条灵感？',
+        message: (link.title || '这条灵感') + ' 删除后不可恢复。',
+        confirmText: '删除',
+        onConfirm: () => {
+          S.deleteLink(link.id);
+          setLinks(S.getLinks());
+          setConfirmSheet(null);
+          showToast('已删除灵感');
+        },
+      });
+    }, [showToast]);
     const handleRenameLink = useCallback(
       (link, title) => {
         if (!link) return false;
@@ -505,10 +517,19 @@
     // 删除记录
     const handleDeleteRecord = useCallback(
       (r) => {
-        if (!window.confirm('删除这条穿搭记录？')) return;
-        S.deleteOutfit(r.id);
-        setRecords(S.getOutfits());
-        showToast('已删除记录');
+        setConfirmSheet({
+          title: '删除这条穿搭记录？',
+          message: (r.date || '这条') + ' 的穿搭记录删除后不可恢复。',
+          confirmText: '删除',
+          onConfirm: () => {
+            S.deleteOutfit(r.id);
+            setRecords(S.getOutfits());
+            setConfirmSheet(null);
+            setOpenSheet((cur) => (cur === 'record' ? null : cur));
+            setDetailRecord(null);
+            showToast('已删除记录');
+          },
+        });
       },
       [showToast],
     );
@@ -703,6 +724,7 @@
                 setReplaceTarget(p);
                 setOpenSheet('replace');
               }}
+              onRegenerate={doGenerate}
               onSave={handleSaveOutfit}
             />
           )}
@@ -767,6 +789,16 @@
               cancelText="取消"
               onClose={() => setDeleteTarget(null)}
               onConfirm={confirmDeleteItem}
+            />
+          )}
+          {confirmSheet && (
+            <DeleteConfirmSheet
+              title={confirmSheet.title}
+              message={confirmSheet.message}
+              confirmText={confirmSheet.confirmText || '删除'}
+              cancelText={confirmSheet.cancelText || '取消'}
+              onClose={() => setConfirmSheet(null)}
+              onConfirm={confirmSheet.onConfirm}
             />
           )}
           <Toast text={toast} />

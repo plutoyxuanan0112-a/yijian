@@ -494,6 +494,28 @@
   }
 
   function mapBackendRecord(row) {
+    // 后端 outfit_records 里存了 selected_clothing_ids（后端单品 id 数组）。
+    // 以前这里写死 selected_items: []，导致穿搭记录里看不到任何单品图片。
+    // 现在把 id 列表还原成 { id:'api-<id>', backendId } 占位，
+    // 上层 hydrateRecord 会用本地衣橱数据 match 出完整单品（图片/名称/颜色/分类）。
+    const rawIds = row.selected_clothing_ids;
+    let ids = [];
+    if (Array.isArray(rawIds)) {
+      ids = rawIds;
+    } else if (typeof rawIds === 'string' && rawIds.trim()) {
+      try {
+        const parsed = JSON.parse(rawIds);
+        if (Array.isArray(parsed)) ids = parsed;
+      } catch {
+        ids = String(rawIds)
+          .split(/[^0-9]+/)
+          .filter(Boolean);
+      }
+    }
+    const selectedItems = ids
+      .map((cid) => Number(cid))
+      .filter((n) => !Number.isNaN(n))
+      .map((cid) => ({ id: 'api-' + cid, backendId: cid }));
     return {
       id: 'api-rec-' + row.id,
       backendId: row.id,
@@ -501,10 +523,12 @@
       style: inferRecordStyle(row.recommendation_text, row.scene),
       scene: row.scene,
       weather: row.weather,
+      selected_clothing_ids: selectedItems.map((x) => x.backendId),
       outfit: {
         title: row.scene + '穿搭记录',
         summary: row.recommendation_text,
-        selected_items: [],
+        color_reason: row.recommendation_text,
+        selected_items: selectedItems,
       },
       createdAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
     };
@@ -1963,15 +1987,32 @@
           method: 'POST',
           body: JSON.stringify({
             scene: input.scene || '日常通勤',
-            weather: typeof input.weather === 'string' ? input.weather : (input.weather?.summary || input.weather?.weatherLabel || '未知'),
+            weather:
+              typeof input.weather === 'string'
+                ? input.weather
+                : {
+                    temperature: input.weather?.temperature,
+                    precipitation: input.weather?.precipitation ?? 0,
+                    windSpeed: input.weather?.windSpeed ?? 0,
+                    weatherLabel: input.weather?.weatherLabel,
+                    warmthNeed: input.weather?.warmthNeed ?? 'medium',
+                    city: input.weather?.city ?? '',
+                  },
             style_preference: input.style || '简洁、实穿',
             extra_request: input.extra || input.extraRequest || '',
           }),
         });
+        // 后端做了穿搭硬规则后验校验：不通过时返回 { error:'outfit_invalid' }，
+        // 这里主动抛错，走下面 catch 的本地规则兜底，保证一定给用户一套可用搭配。
+        if (data && data.error === 'outfit_invalid') {
+          const err = new Error('AI 推荐不符合穿搭规则：' + (data.detail || ''));
+          err.code = 'OUTFIT_INVALID';
+          throw err;
+        }
         const wardrobeByBackendId = new Map((input.wardrobeItems || []).map((x) => [x.backendId || (String(x.id || '').startsWith('api-') ? Number(String(x.id).slice(4)) : null), x]));
         const selected = (data.selected_clothing_ids || []).map((id) => {
           const item = wardrobeByBackendId.get(Number(id));
-          return item ? { id: item.id, backendId: Number(id), name: item.name, category: item.category, reason: 'DeepSeek 推荐选中' } : null;
+          return item ? { id: item.id, backendId: Number(id), name: item.name, category: item.category, image: item.image, color: item.color, reason: 'DeepSeek 推荐选中' } : null;
         }).filter(Boolean);
         const result = {
           title: data.summary || outfitTitle(input.style, input.scene, input.weather || DEFAULT_WEATHER),
