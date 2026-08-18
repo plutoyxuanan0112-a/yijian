@@ -378,7 +378,7 @@
   };
 
   // Flat-lay 效果图：给出 selected_items（含 image / category）
-  const Flatlay = ({ picks, title, meta, footer, forwardRef }) => {
+  const Flatlay = ({ picks, title, meta, footer, forwardRef, onReplace }) => {
     const byCat = useMemo(() => {
       const map = { top: null, bottom: null, shoes: null, outer: null, bag: null };
       picks.forEach((p) => {
@@ -410,6 +410,37 @@
               <strong>{item.name}</strong>
               {item.color || item.category}
             </div>
+            {onReplace && (
+              <button
+                type="button"
+                aria-label={'替换' + (item.category || '单品')}
+                title="换这件"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReplace(item);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  right: 6,
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: 'rgba(91,75,219,.92)',
+                  color: '#fff',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 6px rgba(91,75,219,.35)',
+                  padding: 0,
+                  zIndex: 2,
+                }}
+              >
+                <Icon name="refresh" size={14} />
+              </button>
+            )}
           </>
         ) : (
           <span className="empty-slot">{hint}</span>
@@ -419,16 +450,20 @@
 
     return (
       <div className="look-art" ref={forwardRef}>
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)', letterSpacing: '-.01em' }}>
-            {title}
+        {(title || meta) && (
+          <div style={{ marginBottom: 10 }}>
+            {title && (
+              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)', letterSpacing: '-.01em' }}>
+                {title}
+              </div>
+            )}
+            {meta && (
+              <div className="tiny mt-2" style={{ marginTop: 2 }}>
+                {meta}
+              </div>
+            )}
           </div>
-          {meta && (
-            <div className="tiny mt-2" style={{ marginTop: 2 }}>
-              {meta}
-            </div>
-          )}
-        </div>
+        )}
         <div className="flatlay">
           {cell('top', byCat.top, '上衣')}
           {cell('bottom-item', byCat.bottom, '下装/裙装')}
@@ -581,10 +616,8 @@
                 </>
               ) : (
                 <>
-                  <strong>点这里获取当地真实天气</strong>
-                  <span className="meta">
-                    浏览器会弹「允许获取位置」，允许后即可拿到当前城市天气
-                  </span>
+                  <strong>获取当地天气</strong>
+                  <span className="meta">点击允许定位，显示实时温度</span>
                 </>
               )}
             </span>
@@ -613,7 +646,6 @@
           <div className="look-card">
             <Flatlay
               picks={outfit.selected_items || []}
-              title={outfit.title}
               meta={
                 weather
                   ? weather.temperature +
@@ -639,7 +671,12 @@
                 style={{ margin: '10px 2px 0', fontSize: 13, lineHeight: 1.6, color: '#4b4b57' }}
               >
                 {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
+                  .replace(/选择\s*id\s*[=:：]?\s*\d+/gi, '')
+                  .replace(/id\s*[=:：]?\s*\d+/gi, '')
+                  .replace(/\[\d+\]/g, '')
+                  .replace(/[（(]\s*[）)]/g, '')
                   .replace(/\s+/g, ' ')
+                  .replace(/\s+([，。、；：！？])/g, '$1')
                   .trim()
                   .slice(0, 60)}
               </p>
@@ -654,7 +691,7 @@
                 className="primary"
                 onClick={() => window.dispatchEvent(new Event('yijian:open-detail'))}
               >
-                查看详情 · 保存
+                保存
               </button>
             </div>
           </div>
@@ -2386,60 +2423,82 @@
     }
 
     const downloadCard = async () => {
-      // 简易：将 art 区域绘制成 PNG
-      const node = artRef.current;
-      if (!node) return;
+      // 只导出「搭配单品图」本身，不含任何文字：将各单品图片绘制到画布网格中
+      const items = (outfit.selected_items || []).filter((p) => p && p.image);
+      if (!items.length) {
+        window.dispatchEvent(
+          new CustomEvent('yijian:toast', { detail: '暂无单品图片可保存' }),
+        );
+        return;
+      }
       try {
-        // 使用 SVG foreignObject 快速导出
-        const rect = node.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        const clone = node.cloneNode(true);
-        clone.style.background =
-          'linear-gradient(135deg,#ede9fb,#f8eee8)';
-        const w = rect.width;
-        const h = rect.height;
-        const xml =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="' +
-          w +
-          '" height="' +
-          h +
-          '"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="width:' +
-          w +
-          'px;height:' +
-          h +
-          'px;">' +
-          new XMLSerializer().serializeToString(clone) +
-          '</div></foreignObject></svg>';
-        const url =
-          'data:image/svg+xml;charset=utf-8,' +
-          encodeURIComponent(xml);
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          canvas.width = w * dpr;
-          canvas.height = h * dpr;
-          const ctx = canvas.getContext('2d');
-          ctx.scale(dpr, dpr);
-          ctx.drawImage(img, 0, 0);
-          const png = canvas.toDataURL('image/png');
-          const a = document.createElement('a');
-          a.href = png;
-          a.download = '衣见-' + outfit.title + '.png';
-          a.click();
-        };
-        img.onerror = () => {
-          window.dispatchEvent(
-            new CustomEvent('yijian:toast', {
-              detail: '当前浏览器暂不支持保存图片',
-            }),
-          );
-        };
-        img.src = url;
+        const size = 1080;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const g = ctx.createLinearGradient(0, 0, size, size);
+        g.addColorStop(0, '#ede9fb');
+        g.addColorStop(1, '#f8eee8');
+        ctx.fillStyle = g;
+        ctx.fillRect(0, 0, size, size);
+        const loaded = await Promise.all(
+          items.map(
+            (p) =>
+              new Promise((res) => {
+                const im = new Image();
+                im.crossOrigin = 'anonymous';
+                im.onload = () => res(im);
+                im.onerror = () => res(null);
+                im.src = p.image;
+              }),
+          ),
+        );
+        const pics = loaded.filter(Boolean);
+        if (!pics.length) throw new Error('图片加载失败');
+        const cols = pics.length <= 1 ? 1 : 2;
+        const rows = Math.ceil(pics.length / cols);
+        const pad = 64;
+        const gap = 40;
+        const cellW = (size - pad * 2 - gap * (cols - 1)) / cols;
+        const cellH = (size - pad * 2 - gap * (rows - 1)) / rows;
+        const radius = 28;
+        pics.forEach((im, i) => {
+          const c = i % cols;
+          const r = Math.floor(i / cols);
+          const cx = pad + c * (cellW + gap);
+          const cy = pad + r * (cellH + gap);
+          // 单品白色圆角卡片底
+          ctx.save();
+          ctx.beginPath();
+          const rr = radius;
+          ctx.moveTo(cx + rr, cy);
+          ctx.arcTo(cx + cellW, cy, cx + cellW, cy + cellH, rr);
+          ctx.arcTo(cx + cellW, cy + cellH, cx, cy + cellH, rr);
+          ctx.arcTo(cx, cy + cellH, cx, cy, rr);
+          ctx.arcTo(cx, cy, cx + cellW, cy, rr);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(255,255,255,.72)';
+          ctx.fill();
+          ctx.clip();
+          const inner = 0.86;
+          const scale = Math.min((cellW * inner) / im.width, (cellH * inner) / im.height);
+          const dw = im.width * scale;
+          const dh = im.height * scale;
+          const dx = cx + (cellW - dw) / 2;
+          const dy = cy + (cellH - dh) / 2;
+          ctx.drawImage(im, dx, dy, dw, dh);
+          ctx.restore();
+        });
+        const png = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = png;
+        a.download = '衣见-搭配效果图.png';
+        a.click();
       } catch (e) {
         window.dispatchEvent(
           new CustomEvent('yijian:toast', {
-            detail: '保存图片失败：' + e.message,
+            detail: '保存图片失败：' + (e.message || '请重试'),
           }),
         );
       }
@@ -2447,13 +2506,12 @@
 
     return (
       <Sheet
-        title={outfit.title}
+        variant="detail"
         onClose={onClose}
       >
         <Flatlay
           picks={outfit.selected_items || []}
-          title={outfit.title}
-          meta={style + ' / ' + scene}
+          onReplace={onReplace}
           footer={
             outfit._source === 'backend-ai'
               ? '智能推荐 · 平面搭配效果图'
@@ -2482,11 +2540,12 @@
             style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.6, color: '#4b4b57' }}
           >
             {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
-              .replace(/\s+/g, ' ')
-              .replace(/\(?\bid\s*=\s*\d+\)?/gi, '')
-              .replace(/选择\s*id\s*=\s*\d+/gi, '')
-              .replace(/id[:：]\s*\d+/gi, '')
+              .replace(/选择\s*id\s*[=:：]?\s*\d+/gi, '')
+              .replace(/id\s*[=:：]?\s*\d+/gi, '')
               .replace(/\[\d+\]/g, '')
+              .replace(/[（(]\s*[）)]/g, '')
+              .replace(/\s+/g, ' ')
+              .replace(/\s+([，。、；：！？])/g, '$1')
               .trim()
               .slice(0, 60)}
           </p>
@@ -2500,47 +2559,6 @@
           </p>
         )}
 
-        <h2 style={{ marginTop: 18 }}>本套单品</h2>
-        <div className="wardrobe-grid" style={{ marginBottom: 12 }}>
-          {(outfit.selected_items || []).map((p, i) => (
-            <div
-              key={p.id + '-' + i}
-              className="item-card"
-              style={{ position: 'relative' }}
-            >
-              <div className="item-photo">
-                {p.image && <img src={p.image} alt={p.name} />}
-              </div>
-              <div className="item-name">{p.name}</div>
-              <div className="item-tag">{p.category}</div>
-              <button
-                type="button"
-                aria-label={'替换' + (p.category || '单品')}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onReplace && onReplace(p);
-                }}
-                style={{
-                  position: 'absolute',
-                  right: 6,
-                  bottom: 6,
-                  fontSize: 12,
-                  lineHeight: 1,
-                  padding: '5px 12px',
-                  borderRadius: 999,
-                  border: 'none',
-                  background: '#5b4bdb',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(91,75,219,.35)',
-                }}
-              >
-                换
-              </button>
-            </div>
-          ))}
-        </div>
-
         <button
           type="button"
           className="link"
@@ -2552,24 +2570,10 @@
           </span>
         </button>
         <div className="outfit-action">
-          <button
-            onClick={onRegenerate}
-            title="换一套"
-            style={{
-              background: 'none',
-              border: '1.5px solid #ccc',
-              borderRadius: '50%',
-              width: 36,
-              height: 36,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#999',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            <Icon name="refresh" size={16} />
+          <button className="outline" onClick={onRegenerate}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+              <Icon name="refresh" size={14} /> 换一套
+            </span>
           </button>
           <button className="primary" onClick={onSave}>
             {saveText || '保存'}
