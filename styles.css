@@ -492,13 +492,16 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
   backdrop-filter:blur(10px);
   -webkit-backdrop-filter:blur(10px);
 }
-.flatlay .slot img{width:88%;height:88%;object-fit:contain}
+.flatlay .slot img{width:82%;height:74%;object-fit:contain;transform:translateY(-6px)}
 .flatlay .slot-label{
-  position:absolute;bottom:6px;left:8px;right:8px;
-  font-size:10px;color:var(--muted);
-  text-align:left;line-height:1.2;
+  position:absolute;bottom:0;left:0;right:0;
+  padding:3px 6px;
+  font-size:10px;color:var(--ink);
+  text-align:center;line-height:1.2;
+  background:rgba(255,255,255,.8);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
 }
-.flatlay .slot-label strong{display:block;color:var(--ink);font-size:11px;font-weight:600}
+.flatlay .slot-label strong{display:block;color:var(--ink);font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .flatlay .empty-slot{color:var(--muted);font-size:11px}
 .flatlay .top{grid-column:1;grid-row:1}
 .flatlay .bottom-item{grid-column:2;grid-row:1}
@@ -598,6 +601,8 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
 .sheet-title .sub{margin-top:2px;font-size:12px}
 .sheet-body{overflow-y:auto;flex:1;-webkit-overflow-scrolling:touch;padding-right:2px}
 .sheet-body::-webkit-scrollbar{display:none}
+/* 搭配详情卡片：只占约四分之三高度 */
+.sheet.sheet-detail{max-height:75%}
 .close-x{
   width:30px;height:30px;
   border-radius:50%;

@@ -1838,9 +1838,12 @@
   }
   function bestOfCategory(items, ctx) {
     if (!items.length) return null;
-    return items
+    const scored = items
       .map((x) => ({ x, s: scoreItem(x, ctx) }))
-      .sort((a, b) => b.s - a.s)[0].x;
+      .sort((a, b) => b.s - a.s);
+    // 从得分最高的前几件里随机取，保证「换一套」每次都有变化，又不失合理性
+    const topN = scored.slice(0, Math.min(3, scored.length));
+    return topN[Math.floor(Math.random() * topN.length)].x;
   }
   function localRuleOutfit(input) {
     const items = input.wardrobeItems || [];

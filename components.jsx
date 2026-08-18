@@ -408,7 +408,6 @@
             <img src={item.image} alt={item.name} />
             <div className="slot-label">
               <strong>{item.name}</strong>
-              {item.color || item.category}
             </div>
             {onReplace && (
               <button
@@ -427,13 +426,13 @@
                   height: 26,
                   borderRadius: '50%',
                   border: 'none',
-                  background: 'rgba(91,75,219,.92)',
-                  color: '#fff',
+                  background: '#efeaff',
+                  color: '#5b4bdb',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 2px 6px rgba(91,75,219,.35)',
+                  boxShadow: '0 1px 4px rgba(91,75,219,.2)',
                   padding: 0,
                   zIndex: 2,
                 }}
@@ -2513,27 +2512,22 @@
           picks={outfit.selected_items || []}
           onReplace={onReplace}
           footer={
-            outfit._source === 'backend-ai'
-              ? '智能推荐 · 平面搭配效果图'
-              : outfit._source === 'local-fallback'
-              ? '智能推荐 · 平面搭配效果图'
-              : '为你从衣橱挑选 · 平面搭配效果图'
+            [
+              outfit._source === 'backend-ai' || outfit._source === 'local-fallback'
+                ? '智能推荐'
+                : '为你从衣橱挑选',
+              weather && weather.weatherLabel
+                ? (weather.temperature != null ? weather.temperature + '°C · ' : '') +
+                  weather.weatherLabel
+                : null,
+              style,
+              scene,
+            ]
+              .filter(Boolean)
+              .join(' · ')
           }
           forwardRef={artRef}
         />
-        <div
-          className="detail-param-tags"
-          style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '2px 0 12px' }}
-        >
-          {weather && weather.weatherLabel && (
-            <span style={chipStyle}>
-              {(weather.temperature != null ? weather.temperature + '°C · ' : '') +
-                weather.weatherLabel}
-            </span>
-          )}
-          {style && <span style={chipStyle}>{style}</span>}
-          {scene && <span style={chipStyle}>{scene}</span>}
-        </div>
         {(outfit.summary || outfit.color_reason || outfit.style_reason) && (
           <p
             className="detail-summary"
