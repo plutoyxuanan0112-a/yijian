@@ -7,6 +7,14 @@
   const { useState, useEffect, useMemo, useRef, useCallback } = React;
   const S = window.YijianStore;
 
+  // 搭配总结长度控制：超过 60 字截断加省略号；不足 40 字保留原文，不补充。
+  const clampSummary = (text) => {
+    const str = String(text || '').trim();
+    const chars = Array.from(str);
+    if (chars.length > 60) return chars.slice(0, 60).join('') + '…';
+    return str;
+  };
+
   // ============== 通用小组件 ==============
   const StatusBar = () => {
     const [t, setT] = useState(fmtTime());
@@ -246,101 +254,6 @@
 
   const Toast = ({ text }) =>
     text ? <div className="toast">{text}</div> : null;
-
-  const WheelColumn = ({ items, value, onChange, formatLabel }) => {
-    const ref = useRef(null);
-    const ITEM_H = 40;
-    const idx = Math.max(0, items.indexOf(value));
-    useEffect(() => {
-      if (ref.current) ref.current.scrollTop = idx * ITEM_H;
-    }, [idx]);
-    const onScroll = () => {
-      if (!ref.current) return;
-      const i = Math.round(ref.current.scrollTop / ITEM_H);
-      const clamped = Math.min(items.length - 1, Math.max(0, i));
-      if (items[clamped] !== value) onChange(items[clamped]);
-    };
-    return (
-      <div className="wheel-col">
-        <div className="wheel-highlight" />
-        <div className="wheel-scroll" ref={ref} onScroll={onScroll}>
-          <div className="wheel-pad" />
-          {items.map((it) => (
-            <button
-              type="button"
-              key={it}
-              className={'wheel-item' + (it === value ? ' active' : '')}
-              onClick={() => {
-                if (ref.current) ref.current.scrollTop = items.indexOf(it) * ITEM_H;
-                onChange(it);
-              }}
-            >
-              {formatLabel ? formatLabel(it) : it}
-            </button>
-          ))}
-          <div className="wheel-pad" />
-        </div>
-      </div>
-    );
-  };
-
-  const YearMonthWheel = ({ year, month, minYear, maxYear, onConfirm, onClose }) => {
-    const years = useMemo(() => {
-      const arr = [];
-      for (let y = minYear; y <= maxYear; y += 1) arr.push(y);
-      return arr;
-    }, [minYear, maxYear]);
-    const months = useMemo(() => Array.from({ length: 12 }, (_, i) => i), []);
-    const [tempYear, setTempYear] = useState(year);
-    const [tempMonth, setTempMonth] = useState(month);
-    const [yearQuery, setYearQuery] = useState('');
-    const jumpYear = (raw) => {
-      setYearQuery(raw);
-      const n = parseInt(raw, 10);
-      if (Number.isFinite(n) && n >= minYear && n <= maxYear) setTempYear(n);
-    };
-    return (
-      <div className="wheel-sheet-mask" onClick={onClose}>
-        <div className="wheel-sheet" onClick={(e) => e.stopPropagation()}>
-          <div className="wheel-sheet-head">
-            <button type="button" className="wheel-cancel" onClick={onClose}>取消</button>
-            <span className="wheel-title">选择年月</span>
-            <button
-              type="button"
-              className="wheel-done"
-              onClick={() => onConfirm(tempYear, tempMonth)}
-            >
-              完成
-            </button>
-          </div>
-          <div className="wheel-search">
-            <input
-              className="input"
-              type="number"
-              inputMode="numeric"
-              placeholder="输入年份跳转，如 2024"
-              value={yearQuery}
-              onChange={(e) => jumpYear(e.target.value)}
-            />
-          </div>
-          <div className="wheel-body">
-            <WheelColumn
-              items={years}
-              value={tempYear}
-              onChange={setTempYear}
-              formatLabel={(y) => y + ' 年'}
-            />
-            <WheelColumn
-              items={months}
-              value={tempMonth}
-              onChange={setTempMonth}
-              formatLabel={(m) => m + 1 + ' 月'}
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const EmptyState = ({ title, tip, big, action }) => (
     <div className="empty">
@@ -594,66 +507,30 @@
         </div>
 
         {outfit && !outfit.missing_piece && (
-          <div className="look-card">
-            <Flatlay
-              picks={outfit.selected_items || []}
-              title={outfit.title}
-              meta={
-                weather
-                  ? weather.temperature +
-                    '°C · ' +
-                    weather.weatherLabel +
-                    ' · ' +
-                    style +
-                    ' / ' +
-                    scene
-                  : style + ' / ' + scene
-              }
-              footer={
-                outfit._source === 'backend-ai'
-                  ? '智能推荐 · 从你的真实衣橱挑选'
-                  : outfit._source === 'local-fallback'
-                  ? '智能推荐 · 从你的真实衣橱挑选'
-                  : '为你从衣橱挑选'
-              }
-            />
-            <div className="reason-list">
-              <div className="reason-row">
-                <div className="k">风格</div>
-                <div className="v">{outfit.style_reason}</div>
-              </div>
-              <div className="reason-row">
-                <div className="k">天气</div>
-                <div className="v">{outfit.weather_reason}</div>
-              </div>
-              <div className="reason-row">
-                <div className="k">场景</div>
-                <div className="v">{outfit.scene_reason}</div>
-              </div>
-              <div className="reason-row">
-                <div className="k">配色</div>
-                <div className="v">{outfit.color_reason}</div>
-              </div>
-              {outfit.avoid && (
-                <div className="reason-row reason-avoid">
-                  <div className="k">今天不建议</div>
-                  <div className="v">{outfit.avoid}</div>
-                </div>
-              )}
+          <div
+            className="look-card-compact"
+            onClick={() => window.dispatchEvent(new Event('yijian:open-detail'))}
+          >
+            <div className="look-card-compact-thumb">
+              {(outfit.selected_items || [])
+                .slice(0, 4)
+                .map((p, i) =>
+                  p.image ? <img key={i} src={p.image} alt={p.name} /> : null,
+                )}
             </div>
-            <div className="outfit-action">
-              <button className="outline" onClick={onGenerate}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Icon name="refresh" size={14} /> 换一套
-                </span>
-              </button>
-              <button
-                className="primary"
-                onClick={() => window.dispatchEvent(new Event('yijian:open-detail'))}
-              >
-                查看详情 · 保存
-              </button>
+            <div className="look-card-compact-body">
+              <strong>今日搭配已生成</strong>
+              <span className="tiny">点击查看搭配详情与替换单品</span>
             </div>
+            <button
+              className="primary look-card-compact-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.dispatchEvent(new Event('yijian:open-detail'));
+              }}
+            >
+              查看
+            </button>
           </div>
         )}
 
@@ -777,12 +654,8 @@
             {picks.map((p) => p.name).join(' · ') || '空搭配'}
           </p>
           <p className="tiny">
-            {record.style} ·{' '}
-            {record.weather
-              ? record.weather.temperature +
-                '°C · ' +
-                record.weather.weatherLabel
-              : '未记录天气'}
+            {record.style}
+            {S.formatWeather(record.weather) ? ' · ' + S.formatWeather(record.weather) : ''}
           </p>
         </div>
         {onDelete && (
@@ -899,9 +772,9 @@
       setRenamingLink(link);
       setRenameValue(link?.title || '');
     };
-    const submitRename = () => {
+    const submitRename = async () => {
       if (!renamingLink) return;
-      const ok = onRenameLink && onRenameLink(renamingLink, renameValue);
+      const ok = onRenameLink && (await onRenameLink(renamingLink, renameValue));
       if (ok) {
         setRenamingLink(null);
         setRenameValue('');
@@ -1165,6 +1038,18 @@
           </div>
         </div>
 
+        <div className="year-strip" aria-label="年份筛选">
+          {yearOptions.map((y) => (
+            <button
+              key={y}
+              className={y === cursor.year ? 'active' : ''}
+              onClick={() => setCursor((prev) => ({ ...prev, year: y }))}
+            >
+              {y}
+            </button>
+          ))}
+        </div>
+
         <div className="calendar-card">
           <div className="calendar-toolbar">
             <button className="calendar-nav" onClick={() => moveMonth(-1)} aria-label="上个月">‹</button>
@@ -1212,17 +1097,39 @@
             })}
           </div>
           {pickerOpen && (
-            <YearMonthWheel
-              year={cursor.year}
-              month={cursor.month}
-              minYear={Math.min(cursor.year - 15, (yearOptions[yearOptions.length - 1] || cursor.year) - 1)}
-              maxYear={Math.max(cursor.year + 5, (yearOptions[0] || cursor.year) + 1)}
-              onConfirm={(y, m) => {
-                setCursor({ year: y, month: m });
-                setPickerOpen(false);
-              }}
-              onClose={() => setPickerOpen(false)}
-            />
+            <div className="calendar-picker-popover">
+              <div className="picker-block">
+                <div className="picker-label">年份</div>
+                <div className="picker-options">
+                  {yearOptions.map((y) => (
+                    <button
+                      key={y}
+                      className={y === cursor.year ? 'active' : ''}
+                      onClick={() => setCursor((prev) => ({ ...prev, year: y }))}
+                    >
+                      {y}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="picker-block">
+                <div className="picker-label">月份</div>
+                <div className="month-picker-grid">
+                  {Array.from({ length: 12 }).map((_, i) => (
+                    <button
+                      key={i}
+                      className={i === cursor.month ? 'active' : ''}
+                      onClick={() => {
+                        setCursor((prev) => ({ ...prev, month: i }));
+                        setPickerOpen(false);
+                      }}
+                    >
+                      {i + 1}月
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
@@ -1587,18 +1494,14 @@
     const submitSave = async () => {
       let image = useCutout && processed ? processed : original;
       let originalImg = original;
-      // 仅对本地新选择的图片（data: URL）做压缩；已托管的远程 URL 直接透传。
-      // 否则会把透明抠图 PNG 重新编码成带白底的 JPEG，表现为“使用抠图版保存后变原图”。
-      if (image && String(image).startsWith('data:')) {
-        try {
-          const mime = image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
-          image = await S.compressImage(image, 360, 0.7, mime);
-        } catch (e) {
-          /* 压缩失败也用原始 */
-        }
+      try {
+        const mime = image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+        image = await S.compressImage(image, 360, 0.7, mime);
+        originalImg = '';
+        // 编辑单品不再保留原始大图，避免存储撑爆导致衣橱/分类/删除表现不稳定。
+      } catch (e) {
+        /* 压缩失败也用原始 */
       }
-      // 编辑单品不再保留原始大图，避免存储撑爆导致衣橱/分类/删除表现不稳定。
-      originalImg = '';
       const patch = {
         name: form.name,
         category: form.category,
@@ -1658,7 +1561,7 @@
         title={editing ? '编辑单品' : item.name}
         subtitle={
           editing
-            ? ''
+            ? '让搭配更懂你的衣橱（每项可多选 + 其他）'
             : item.category +
               (displayColors !== '未填' ? ' · ' + displayColors : '') +
               (displayMaterials ? ' · ' + displayMaterials : '')
@@ -1681,22 +1584,22 @@
           )}
         </div>
         {editing && (
-          <div className="action-row item-detail-photo-actions">
+          <div className="upload-toolbar">
             <button
-              className={'solid-action ' + (useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
+              className={useCutout ? 'primary' : 'outline'}
               onClick={() => setUseCutout(true)}
               disabled={!processed}
             >
               使用抠图版
             </button>
             <button
-              className={'solid-action ' + (!useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
+              className={!useCutout ? 'primary' : 'outline'}
               onClick={() => setUseCutout(false)}
               disabled={!original}
             >
               使用原图
             </button>
-            <button className="solid-action solid-action--quiet" onClick={chooseFile}>
+            <button className="outline" onClick={chooseFile}>
               重新上传
             </button>
           </div>
@@ -1731,17 +1634,15 @@
                 <MetaRow label="版型" value={item.fitTags.join(' / ')} />
               )}
             </div>
-            <div className="action-row item-detail-actions" style={{ marginTop: 14 }}>
+            <div className="upload-toolbar" style={{ marginTop: 14 }}>
               <button
-                className="solid-action solid-action--quiet"
+                className="outline"
                 onClick={() => onDelete && onDelete(item)}
+                style={{ color: '#a04b60' }}
               >
                 删除
               </button>
-              <button
-                className="solid-action solid-action--accent"
-                onClick={() => setEditing(true)}
-              >
+              <button className="primary" onClick={() => setEditing(true)}>
                 编辑 / 重新上传
               </button>
             </div>
@@ -1750,15 +1651,14 @@
 
         {editing && (
           <>
-            <div className="item-detail-edit-content">
-              <div className="field">
-                <label>衣物名称</label>
-                <input
-                  className="input"
-                  value={form.name || ''}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                />
-              </div>
+            <div className="field">
+              <label>衣物名称</label>
+              <input
+                className="input"
+                value={form.name || ''}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+            </div>
             <div className="field">
               <label>分类</label>
               <div className="cat-grid">
@@ -1774,34 +1674,34 @@
               </div>
             </div>
             <MultiChipField
-              label="颜色"
+              label="颜色（可多选）"
               options={S.COLOR_PALETTE}
               values={form.colors}
               otherValue={form.colorOther}
               onToggle={(v) => toggleMulti('colors', v)}
               onOtherChange={(v) => setForm({ ...form, colorOther: v })}
-              otherPlaceholder="其他"
+              otherPlaceholder="其他颜色，如：脏橘 / 燕麦白灰"
             />
             <MultiChipField
-              label="厚薄"
+              label="厚薄（可多选）"
               options={S.WARMTH}
               values={form.warmthTags}
               otherValue={form.warmthOther}
               onToggle={(v) => toggleMulti('warmthTags', v)}
               onOtherChange={(v) => setForm({ ...form, warmthOther: v })}
-              otherPlaceholder="其他"
+              otherPlaceholder="其他，如：单穿凉 / 特别透气"
             />
             <MultiChipField
-              label="材质"
+              label="材质（可多选，帮助识别季节 / 场合）"
               options={S.MATERIALS}
               values={form.materials}
               otherValue={form.materialOther}
               onToggle={(v) => toggleMulti('materials', v)}
               onOtherChange={(v) => setForm({ ...form, materialOther: v })}
-              otherPlaceholder="其他"
+              otherPlaceholder="其他材质，如：科技面料 / 麂皮"
             />
             <div className="field">
-              <label>廓形</label>
+              <label>廓形（可多选）</label>
               <div className="chips">
                 {S.SILHOUETTES.map((s) => (
                   <button
@@ -1815,34 +1715,34 @@
               </div>
             </div>
             <MultiChipField
-              label="风格"
+              label="风格（可多选）"
               options={S.STYLE_TAGS}
               values={form.styleTags}
               otherValue={form.styleOther}
               onToggle={(v) => toggleMulti('styleTags', v)}
               onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-              otherPlaceholder="其他"
+              otherPlaceholder="其他风格，如：山系 / 中式"
             />
             <MultiChipField
-              label="场景"
+              label="场景（可多选）"
               options={S.SCENE_TAGS}
               values={form.sceneTags}
               otherValue={form.sceneOther}
               onToggle={(v) => toggleMulti('sceneTags', v)}
               onOtherChange={(v) => setForm({ ...form, sceneOther: v })}
-              otherPlaceholder="其他"
+              otherPlaceholder="其他场景，如：拍照 / 见客户"
             />
             <MultiChipField
-              label="季节"
+              label="季节（可多选）"
               options={S.SEASON_TAGS}
               values={form.seasonTags}
               otherValue={form.seasonOther}
               onToggle={(v) => toggleMulti('seasonTags', v)}
               onOtherChange={(v) => setForm({ ...form, seasonOther: v })}
-              otherPlaceholder="其他"
+              otherPlaceholder="其他，如：早春 / 深秋"
             />
             <div className="field">
-              <label>版型标签</label>
+              <label>版型标签（可多选）</label>
               <div className="chips">
                 {S.FIT_TAGS.map((t) => (
                   <button
@@ -1856,20 +1756,22 @@
               </div>
             </div>
             <div className="field">
-              <label>我的补充描述</label>
+              <label>我的补充描述（可自由写，将纳入搭配参考）</label>
               <textarea
                 className="input"
-                placeholder=""
+                placeholder="例如：这件是奶奶送的、比较正式；或者：只有约会才想穿"
                 rows={3}
                 value={form.customNotes || ''}
                 onChange={(e) => setForm({ ...form, customNotes: e.target.value })}
               />
             </div>
             <div className="item-detail-desc" style={{ marginTop: 4 }}>
+              <div className="tiny" style={{ color: 'var(--muted)', marginBottom: 4 }}>
+                系统会用这段"识别描述"参与搭配推荐
+              </div>
               <div>{displayDesc}</div>
             </div>
-            </div>
-            <div className="upload-toolbar upload-toolbar--sticky" style={{ marginTop: 14 }}>
+            <div className="upload-toolbar" style={{ marginTop: 14 }}>
               <button
                 className="outline"
                 onClick={() => {
@@ -1993,7 +1895,7 @@
             ? '选择一张真实衣物照片，将自动抠图'
             : step === 'preview'
             ? '预览抠图效果'
-            : ''
+            : '让衣见更好地了解这件衣服（每一项都可多选）'
         }
         onClose={onClose}
       >
@@ -2118,7 +2020,7 @@
               </div>
             </div>
             <div className="field">
-              <label>补充说明</label>
+              <label>补充说明（可选，会一起参考）</label>
               <textarea
                 className="input"
                 placeholder="例如：春秋穿 / 起球了 / 妈妈送的 / 只搭牛仔"
@@ -2135,64 +2037,64 @@
               style={{ width: '100%', marginTop: 4 }}
               onClick={() => setShowAdvanced((v) => !v)}
             >
-              {showAdvanced ? '收起' : '更多'}
+              {showAdvanced ? '收起更多信息' : '更多信息（可多选）'}
             </button>
 
             {showAdvanced && (
               <>
                 <MultiChipField
-                  label="颜色"
+                  label="颜色（可多选）"
                   options={S.COLOR_PALETTE}
                   values={form.colors}
                   otherValue={form.colorOther}
                   onToggle={(v) => toggleMulti('colors', v)}
                   onOtherChange={(v) => setForm({ ...form, colorOther: v })}
-                  otherPlaceholder="其他"
+                  otherPlaceholder="其他颜色，如：脏橘 / 燕麦白灰"
                 />
                 <MultiChipField
-                  label="厚薄"
+                  label="厚薄（可多选，例如 薄 + 中等）"
                   options={S.WARMTH}
                   values={form.warmthTags}
                   otherValue={form.warmthOther}
                   onToggle={(v) => toggleMulti('warmthTags', v)}
                   onOtherChange={(v) => setForm({ ...form, warmthOther: v })}
-                  otherPlaceholder="其他"
+                  otherPlaceholder="其他，如：单穿凉 / 特别透气"
                 />
                 <MultiChipField
-                  label="材质"
+                  label="材质（可多选）"
                   options={S.MATERIALS}
                   values={form.materials}
                   otherValue={form.materialOther}
                   onToggle={(v) => toggleMulti('materials', v)}
                   onOtherChange={(v) => setForm({ ...form, materialOther: v })}
-                  otherPlaceholder="其他"
+                  otherPlaceholder="其他材质，如：科技面料 / 麂皮"
                 />
                 <MultiChipField
-                  label="风格"
+                  label="风格（可多选）"
                   options={S.STYLE_TAGS}
                   values={form.styleTags}
                   otherValue={form.styleOther}
                   onToggle={(v) => toggleMulti('styleTags', v)}
                   onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-                  otherPlaceholder="其他"
+                  otherPlaceholder="其他风格，如：山系 / 中式"
                 />
                 <MultiChipField
-                  label="场景"
+                  label="场景（可多选）"
                   options={S.SCENE_TAGS}
                   values={form.sceneTags}
                   otherValue={form.sceneOther}
                   onToggle={(v) => toggleMulti('sceneTags', v)}
                   onOtherChange={(v) => setForm({ ...form, sceneOther: v })}
-                  otherPlaceholder="其他"
+                  otherPlaceholder="其他场景，如：拍照 / 见客户"
                 />
                 <MultiChipField
-                  label="季节"
+                  label="季节（可多选）"
                   options={S.SEASON_TAGS}
                   values={form.seasonTags}
                   otherValue={form.seasonOther}
                   onToggle={(v) => toggleMulti('seasonTags', v)}
                   onOtherChange={(v) => setForm({ ...form, seasonOther: v })}
-                  otherPlaceholder="其他"
+                  otherPlaceholder="其他，如：早春 / 深秋"
                 />
               </>
             )}
@@ -2300,7 +2202,7 @@
           />
         </div>
         <div className="field">
-          <label>标签</label>
+          <label>标签（空格 / 逗号分隔）</label>
           <input
             className="input"
             placeholder="例如：简约 通勤"
@@ -2348,14 +2250,60 @@
     </div>
   );
 
+  // ============== 通用应用内弹窗（替代原生 confirm / alert / prompt）==============
+  const AppDialog = ({ dialog, onCancel, onConfirm }) => {
+    const [val, setVal] = useState((dialog && dialog.defaultValue) || '');
+    useEffect(() => {
+      setVal((dialog && dialog.defaultValue) || '');
+    }, [dialog]);
+    if (!dialog) return null;
+    const mode = dialog.mode || 'confirm';
+    return (
+      <div className="modal-mask" onClick={mode === 'alert' ? () => onConfirm(true) : onCancel}>
+        <div className="confirm-popover" onClick={(e) => e.stopPropagation()}>
+          {dialog.title && <div className="confirm-popover-title">{dialog.title}</div>}
+          {dialog.message && <div className="confirm-popover-message">{dialog.message}</div>}
+          {mode === 'prompt' && (
+            <input
+              className="input dialog-input"
+              autoFocus
+              value={val}
+              onChange={(e) => setVal(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') onConfirm(val);
+                if (e.key === 'Escape') onCancel();
+              }}
+              placeholder={dialog.placeholder || ''}
+            />
+          )}
+          <div className="confirm-popover-actions">
+            {mode !== 'alert' && (
+              <button className="ghost" onClick={onCancel}>
+                {dialog.cancelText || '取消'}
+              </button>
+            )}
+            <button
+              className={dialog.tone === 'danger' ? 'danger-outline' : 'dialog-confirm-btn'}
+              onClick={() => onConfirm(mode === 'prompt' ? val : true)}
+            >
+              {dialog.confirmText || '确认'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // ============== Outfit Detail Sheet ==============
   const OutfitDetailSheet = ({
     outfit,
     weather,
     style,
     scene,
+    generating,
     onClose,
     onReplace,
+    onRegenerate,
     onSave,
     saveText,
   }) => {
@@ -2433,26 +2381,18 @@
       }
     };
 
+    const paramTags = [S.formatWeather(weather), style, scene].filter(Boolean);
+    const rawSummary =
+      outfit.summary ||
+      [outfit.style_reason, outfit.color_reason].filter(Boolean).join('，');
+    const summary = clampSummary(rawSummary);
+
     return (
-      <Sheet
-        title={outfit.title}
-        subtitle={
-          (weather ? weather.temperature + '°C · ' + weather.weatherLabel + ' · ' : '') +
-          style +
-          ' / ' +
-          scene
-        }
-        onClose={onClose}
-      >
+      <Sheet title={outfit.title} onClose={onClose} variant="mid">
         <Flatlay
           picks={outfit.selected_items || []}
           title={outfit.title}
-          meta={
-            (weather ? weather.temperature + '°C · ' + weather.weatherLabel + ' · ' : '') +
-            style +
-            ' / ' +
-            scene
-          }
+          meta={paramTags.join(' · ')}
           footer={
             outfit._source === 'backend-ai'
               ? '智能推荐 · 平面搭配效果图'
@@ -2462,60 +2402,78 @@
           }
           forwardRef={artRef}
         />
-        <div className="reason-list">
-          <div className="reason-row">
-            <div className="k">风格</div>
-            <div className="v">{outfit.style_reason}</div>
-          </div>
-          <div className="reason-row">
-            <div className="k">天气</div>
-            <div className="v">{outfit.weather_reason}</div>
-          </div>
-          <div className="reason-row">
-            <div className="k">场景</div>
-            <div className="v">{outfit.scene_reason}</div>
-          </div>
-          <div className="reason-row">
-            <div className="k">配色</div>
-            <div className="v">{outfit.color_reason}</div>
-          </div>
-          {outfit.avoid && (
-            <div className="reason-row reason-avoid">
-              <div className="k">今天不建议</div>
-              <div className="v">{outfit.avoid}</div>
-            </div>
-          )}
-        </div>
 
-        <h2 style={{ marginTop: 18 }}>本套单品</h2>
-        <div className="wardrobe-grid" style={{ marginBottom: 12 }}>
-          {(outfit.selected_items || []).map((p, i) => (
-            <div
-              key={p.id + '-' + i}
-              className="item-card"
-              onClick={() => onReplace && onReplace(p)}
-            >
-              <div className="item-photo">
-                {p.image && <img src={p.image} alt={p.name} />}
+        {paramTags.length > 0 && (
+          <div className="param-tags">
+            {paramTags.map((t, i) => (
+              <span key={i} className="param-tag">
+                {t}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {summary && <p className="outfit-summary">{summary}</p>}
+
+        <h2 style={{ marginTop: 16 }}>本套单品</h2>
+        {generating ? (
+          <div className="outfit-skeleton">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="skeleton-card">
+                <div className="skeleton-photo" />
+                <div className="skeleton-line" />
               </div>
-              <div className="item-name">{p.name}</div>
-              <div className="item-tag">
-                {p.category} · 点击替换
+            ))}
+          </div>
+        ) : (
+          <div
+            className="wardrobe-grid item-grid-replaceable"
+            style={{ marginBottom: 12 }}
+          >
+            {(outfit.selected_items || []).map((p, i) => (
+              <div key={p.id + '-' + i} className="item-card">
+                <div className="item-photo">
+                  {p.image && <img src={p.image} alt={p.name} />}
+                </div>
+                <div className="item-name">{p.name}</div>
+                {p.category && <div className="item-tag">{p.category}</div>}
+                <button
+                  className="item-replace-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReplace && onReplace(p);
+                  }}
+                  aria-label={'替换' + (p.category || '单品')}
+                >
+                  换
+                </button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         <div className="outfit-action">
-          <button className="outline" onClick={downloadCard}>
+          <button className="outline" onClick={onRegenerate} disabled={generating}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="download" size={14} /> 保存效果图
+              {generating ? (
+                <span className="btn-spinner" aria-hidden="true" />
+              ) : (
+                <Icon name="refresh" size={14} />
+              )}
+              {generating ? '生成中…' : '换一套'}
             </span>
           </button>
-          <button className="primary" onClick={onSave}>
-            {saveText || '保存穿搭到记录'}
+          <button className="primary" onClick={onSave} disabled={generating}>
+            {saveText || '保存'}
           </button>
         </div>
+        <button
+          type="button"
+          className="detail-download-link"
+          onClick={downloadCard}
+        >
+          <Icon name="download" size={12} /> 保存效果图
+        </button>
       </Sheet>
     );
   };
@@ -2562,12 +2520,7 @@
           record.style +
           ' / ' +
           record.scene +
-          (record.weather
-            ? ' · ' +
-              record.weather.temperature +
-              '°C · ' +
-              record.weather.weatherLabel
-            : '')
+          (S.formatWeather(record.weather) ? ' · ' + S.formatWeather(record.weather) : '')
         }
         onClose={onClose}
       >
@@ -2577,6 +2530,9 @@
           meta={record.date}
           footer={record.date ? '你的穿搭日记' : ''}
         />
+        {record.outfit?.summary && (
+          <p className="outfit-summary">{record.outfit.summary}</p>
+        )}
         <div className="reason-list">
           {record.outfit?.style_reason && (
             <div className="reason-row">
@@ -2618,7 +2574,7 @@
   };
 
   // ============== Profile Sheet ==============
-  const ProfileSheet = ({ profile, onClose, onSave, onToast }) => {
+  const ProfileSheet = ({ profile, onClose, onSave, onToast, onAskConfirm }) => {
     const isAuthed = profile.authStatus === 'demo_logged_in' && profile.email;
 
     // ============ 已登录：资料编辑视图 ============
@@ -2629,6 +2585,7 @@
           onClose={onClose}
           onSave={onSave}
           onToast={onToast}
+          onAskConfirm={onAskConfirm}
         />
       );
     }
@@ -2659,16 +2616,18 @@
       // 以后端为准，避免同一设备换账号时数据串号。
       S.clearLocalUserData();
       const u = remote.user || {};
-      onSave({
-        ...profile,
-        email: u.email || email.trim(),
-        name: u.display_name || profile.name || '衣见的主理人',
-        avatar: u.avatar != null ? u.avatar : profile.avatar,
-        bio: u.bio != null ? u.bio : profile.bio,
-        authStatus: 'demo_logged_in',
-        backendUserId: u.id,
-      });
-      try { await S.syncAllFromBackend(); } catch { /* 同步失败时后端不可达，保持本地为空，不展示旧账号数据 */ }
+      // 兼容后端字段：昵称 nickname/display_name、头像 avatar_url/avatar
+      const merged = S.mergeRemoteProfile(
+        { ...profile, email: u.email || email.trim(), authStatus: 'demo_logged_in' },
+        u,
+      );
+      onSave(merged);
+      try {
+        await S.syncAllFromBackend();
+        // 登录成功后立即再同步一次资料，确保首页昵称、头像刷新
+        const fresh = await S.syncProfileFromBackend();
+        if (fresh) onSave({ ...fresh, authStatus: 'demo_logged_in' });
+      } catch { /* 同步失败时后端不可达，保持本地为空，不展示旧账号数据 */ }
       onToast && onToast(fallbackMessage);
     };
 
@@ -2813,12 +2772,19 @@
         >
           {busy ? '提交中…' : (mode === 'register' ? '创建账号' : '登录')}
         </button>
+
+        <div className="auth-hint">
+          <div className="auth-hint-title">登录后会保存你的衣橱</div>
+          <div className="auth-hint-body">
+            你的衣物、搭配和穿搭日记会跟随账号保存，之后可以继续回来查看和编辑。
+          </div>
+        </div>
       </Sheet>
     );
   };
 
   // 已登录：资料编辑（头像 / 用户名 / 简介 / 改密码 / 退出登录）
-  const ProfileEditView = ({ profile, onClose, onSave, onToast }) => {
+  const ProfileEditView = ({ profile, onClose, onSave, onToast, onAskConfirm }) => {
     const [form, setForm] = useState({
       avatar: profile.avatar || '',
       name: profile.name || '',
@@ -2827,37 +2793,6 @@
     });
     const [nameEditing, setNameEditing] = useState(false);
     const [changePwOpen, setChangePwOpen] = useState(false);
-    const [revealEmail, setRevealEmail] = useState(false);
-
-    const maskEmail = (s) => {
-      const email = (s || '').trim();
-      if (!email) return '';
-      const at = email.indexOf('@');
-      if (at <= 1) return email;
-      const head = email.slice(0, 2);
-      const tail = email.slice(at);
-      return head + '***' + tail;
-    };
-
-    const EmailEye = ({ off }) => (
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M2.5 12c2.3-4.7 6-7 9.5-7s7.2 2.3 9.5 7c-2.3 4.7-6 7-9.5 7s-7.2-2.3-9.5-7z"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        />
-        <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-        {off && (
-          <path d="M4 20L20 4" stroke="currentColor" strokeWidth="1.8" />
-        )}
-      </svg>
-    );
     const [oldPw, setOldPw] = useState('');
     const [newPw, setNewPw] = useState('');
     const [newPw2, setNewPw2] = useState('');
@@ -2938,8 +2873,17 @@
         bio: (form.bio || '').trim(),
       });
     };
-    const logout = () => {
-      if (!window.confirm('确认退出登录？本机将清空当前账号的衣橱和日记展示，重新登录后再从云端读取。')) return;
+    const logout = async () => {
+      const ok = onAskConfirm
+        ? await onAskConfirm({
+            title: '确认退出登录？',
+            message: '本机将清空当前账号的衣橱和日记展示，重新登录后再从云端读取。',
+            confirmText: '退出登录',
+            cancelText: '取消',
+            tone: 'danger',
+          })
+        : true;
+      if (!ok) return;
       onSave({ ...profile, authStatus: 'none', _logout: true });
       onToast && onToast('已退出登录');
     };
@@ -2947,7 +2891,7 @@
     return (
       <Sheet
         title="个人资料"
-        subtitle=""
+        subtitle="打理属于你的衣见"
         onClose={onClose}
       >
         <input
@@ -2980,21 +2924,7 @@
             <div className="profile-hero-name">
               {form.name || '衣见的主理人'}
             </div>
-            <div className="profile-hero-meta profile-email-row">
-              <span
-                className="profile-email-text"
-              >
-                {revealEmail ? form.email : maskEmail(form.email)}
-              </span>
-              <button
-                type="button"
-                className="profile-email-eye"
-                onClick={() => setRevealEmail((v) => !v)}
-                aria-label={revealEmail ? '隐藏邮箱' : '显示邮箱'}
-              >
-                <EmailEye off={!revealEmail} />
-              </button>
-            </div>
+            <div className="profile-hero-meta">{form.email}</div>
           </div>
         </div>
 
@@ -3027,18 +2957,8 @@
         {/* 邮箱 */}
         <div className="profile-row">
           <div className="profile-row-k">登录邮箱</div>
-          <div className="profile-row-v profile-row-v-static profile-email-row">
-            <span className="profile-email-text">
-              {revealEmail ? form.email : maskEmail(form.email) || '—'}
-            </span>
-            <button
-              type="button"
-              className="profile-email-eye"
-              onClick={() => setRevealEmail((v) => !v)}
-              aria-label={revealEmail ? '隐藏邮箱' : '显示邮箱'}
-            >
-              <EmailEye off={!revealEmail} />
-            </button>
+          <div className="profile-row-v profile-row-v-static">
+            <span>{form.email || '—'}</span>
           </div>
         </div>
 
@@ -3125,19 +3045,24 @@
           />
         </div>
 
-        <div className="action-row profile-actions">
-          <button
-            className="solid-action solid-action--accent"
-            onClick={saveAll}
-          >
-            保存
-          </button>
-          <button
-            className="solid-action solid-action--quiet"
-            onClick={logout}
-          >
-            退出登录
-          </button>
+
+
+        <button
+          className="primary"
+          style={{ width: '100%', marginTop: 6 }}
+          onClick={saveAll}
+        >
+          保存
+        </button>
+        <button
+          className="outline"
+          style={{ width: '100%', marginTop: 8, color: '#a04b60' }}
+          onClick={logout}
+        >
+          退出登录
+        </button>
+        <div className="tiny center mt-2" style={{ color: 'var(--muted)' }}>
+          你的账号与衣橱会跟随当前登录状态保存，之后可以继续回来查看和编辑。
         </div>
       </Sheet>
     );
@@ -3502,6 +3427,7 @@
   };
 
   window.YijianUI = {
+    AppDialog,
     StatusBar,
     Icon,
     WeatherIcon,

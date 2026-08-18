@@ -47,10 +47,6 @@
     if (token) localStorage.setItem(K.API_TOKEN, token);
     else localStorage.removeItem(K.API_TOKEN);
   }
-  // 请求超时兜底：后端冷启动 / 不可达时，fetch 默认会一直挂起，
-  // 导致上层 await 永不 resolve（登录按钮卡在「提交中…」）。
-  // 用 AbortController 给每个请求加超时，超时后主动 abort，让上层 catch/finally 能执行。
-  const API_TIMEOUT_MS = 20000;
   async function apiFetch(path, options) {
     const isFormData = options && options.body instanceof FormData;
     const headers = isFormData
@@ -58,29 +54,7 @@
       : { 'Content-Type': 'application/json', ...((options && options.headers) || {}) };
     const token = getApiToken();
     if (token) headers.Authorization = 'Bearer ' + token;
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timer = controller ? setTimeout(() => controller.abort(), API_TIMEOUT_MS) : null;
-    let res;
-    try {
-      res = await fetch(getApiBase() + path, {
-        ...(options || {}),
-        headers,
-        ...(controller ? { signal: controller.signal } : {}),
-      });
-    } catch (e) {
-      if (timer) clearTimeout(timer);
-      if (e && (e.name === 'AbortError')) {
-        const err = new Error('网络超时，请检查网络或稍后再试');
-        err.status = 0;
-        err.code = 'TIMEOUT';
-        throw err;
-      }
-      const err = new Error('网络连接失败，请检查网络或稍后再试');
-      err.status = 0;
-      err.code = 'NETWORK';
-      throw err;
-    }
-    if (timer) clearTimeout(timer);
+    const res = await fetch(getApiBase() + path, { ...(options || {}), headers });
     let body = null;
     try { body = await res.json(); } catch { body = null; }
     if (!res.ok) {
@@ -493,18 +467,58 @@
     return candidates.find((x) => haystack.includes(x)) || '简约通勤';
   }
 
+  // 清洗后端推荐文案里泄露的技术词（如 "id=5" / "选择 id=5"），只保留可读名称。
+  function cleanRecommendationText(text) {
+    if (!text) return '';
+    return String(text)
+      .replace(/选择\s*id\s*[=＝:：]?\s*\d+/gi, '')
+      .replace(/id\s*[=＝:：]\s*\d+/gi, '')
+      .replace(/[（(]\s*[）)]/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/([，,、。.])\s*(?=[，,、。.])/g, '')
+      .replace(/^[\s，,、。.]+/, '')
+      .trim();
+  }
+  // 天气展示：字符串直接展示；对象则取 temperature / weatherLabel 组合。
+  function formatWeather(w) {
+    if (!w) return '';
+    if (typeof w === 'string') return w.trim();
+    const t = (w.temperature !== undefined && w.temperature !== null && w.temperature !== '') ? (w.temperature + '°C') : '';
+    const label = w.weatherLabel || w.summary || '';
+    return [t, label].filter(Boolean).join(' · ');
+  }
+  // 从推荐文案里提取中文单品名（兜底：后端没存 selected_clothing_ids 时用）。
+  function parseItemNamesFromText(text) {
+    const raw = String(text || '');
+    const names = [];
+    const re = /([\u4e00-\u9fa5A-Za-z0-9]{1,8}(?:外套|大衣|风衣|夹克|羽绒服|毛衣|针织衫|衬衫|T恤|卫衣|裤|半身裙|连衣裙|裙|鞋|靴|包|帽|围巾|西装))/g;
+    let m;
+    while ((m = re.exec(raw)) !== null) {
+      const n = m[1].trim();
+      if (n && !names.includes(n)) names.push(n);
+      if (names.length >= 6) break;
+    }
+    return names;
+  }
   function mapBackendRecord(row) {
+    const ids = Array.isArray(row.selected_clothing_ids) ? row.selected_clothing_ids : [];
+    let selected_items = ids.map((cid) => ({ id: 'api-' + cid, backendId: Number(cid) }));
+    if (!selected_items.length) {
+      // 后端未保存单品 id 时，从文案里解析中文名兜底展示
+      selected_items = parseItemNamesFromText(row.recommendation_text).map((name, i) => ({ id: 'name-' + row.id + '-' + i, name }));
+    }
     return {
       id: 'api-rec-' + row.id,
       backendId: row.id,
       date: row.created_at ? row.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
       style: inferRecordStyle(row.recommendation_text, row.scene),
       scene: row.scene,
+      // weather：后端存的是字符串，直接保留；展示时用 formatWeather 兼容字符串 / 对象
       weather: row.weather,
       outfit: {
         title: row.scene + '穿搭记录',
-        summary: row.recommendation_text,
-        selected_items: [],
+        summary: cleanRecommendationText(row.recommendation_text),
+        selected_items,
       },
       createdAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
     };
@@ -629,38 +643,28 @@
     save(K_PROFILE, p);
     return p;
   }
-  function mergeRemoteProfile(remote) {
-    const current = getProfile();
-    const source = remote && (remote.profile || remote.user)
-      ? { ...(remote.user || {}), ...(remote.profile || {}) }
-      : (remote || {});
-    const merged = {
-      ...current,
-      name: source.display_name != null ? source.display_name : current.name,
-      avatar: source.avatar != null ? source.avatar : current.avatar,
-      bio: source.bio != null ? source.bio : current.bio,
-      email: source.email != null ? source.email : current.email,
-      authStatus: 'demo_logged_in',
-      backendUserId: source.id != null
-        ? source.id
-        : (source.user_id != null ? source.user_id : current.backendUserId),
+  // 把后端返回的用户对象合并进本地 profile。
+  // 兼容后端字段名：昵称同时认 nickname / display_name；头像同时认 avatar_url / avatar。
+  function mergeRemoteProfile(prev, source) {
+    const p = prev || getProfile();
+    const src = source || {};
+    const name = src.nickname || src.display_name || p.name || '衣见的主理人';
+    const avatar = src.avatar_url || src.avatar || p.avatar || '';
+    return {
+      ...p,
+      name,
+      avatar,
+      email: src.email || p.email || '',
+      backendUserId: src.id != null ? src.id : p.backendUserId,
     };
-    return saveProfile(merged);
   }
+  // 从后端拉取当前登录用户资料并合并到本地，返回合并后的 profile。
   async function syncProfileFromBackend() {
-    const data = await apiFetch('/api/v1/profile');
-    return mergeRemoteProfile(data);
-  }
-  async function updateProfileRemote(profile) {
-    const data = await apiFetch('/api/v1/profile', {
-      method: 'PUT',
-      body: JSON.stringify({
-        display_name: profile.name,
-        avatar: profile.avatar || '',
-        bio: profile.bio || '',
-      }),
-    });
-    return mergeRemoteProfile(data);
+    const data = await authMe();
+    const u = (data && data.user) || {};
+    const merged = mergeRemoteProfile(getProfile(), u);
+    saveProfile(merged);
+    return merged;
   }
   // 该用户在本机的所有「数据缓存」key（不含 token / profile / 站点配置 API_BASE / AI_CFG）。
   // 登录后「先清本地再从后端同步」、以及退出登录时都会用到，避免换账号串数据。
@@ -1969,19 +1973,32 @@
           }),
         });
         const wardrobeByBackendId = new Map((input.wardrobeItems || []).map((x) => [x.backendId || (String(x.id || '').startsWith('api-') ? Number(String(x.id).slice(4)) : null), x]));
-        const selected = (data.selected_clothing_ids || []).map((id) => {
+        let selected = (data.selected_clothing_ids || []).map((id) => {
           const item = wardrobeByBackendId.get(Number(id));
           return item ? { id: item.id, backendId: Number(id), name: item.name, category: item.category, reason: 'DeepSeek 推荐选中' } : null;
         }).filter(Boolean);
+        // 季节过滤：气温 >= 25℃ 时剔除厚外套（羽绒 / 羊绒 / 西装呢 / 标记为"厚"的外套），避免夏天推荐厚外套
+        const temp = (input.weather && typeof input.weather === 'object') ? Number(input.weather.temperature) : NaN;
+        if (!Number.isNaN(temp) && temp >= 25) {
+          selected = selected.filter((s) => {
+            if (s.category !== '外套') return true;
+            const full = wardrobeByBackendId.get(Number(s.backendId)) || {};
+            const hay = [s.name, full.warmth, full.material, ...(full.warmthTags || []), ...(full.materials || []), ...(full.styleTags || []), full.customNotes]
+              .filter(Boolean).join(' ');
+            return !/(厚|羽绒|羊绒|西装呢)/.test(hay);
+          });
+        }
+        const cleanText = cleanRecommendationText(data.recommendation_text || data.recommendation || '');
+        const cleanSummary = cleanRecommendationText(data.summary || '');
         const result = {
-          title: data.summary || outfitTitle(input.style, input.scene, input.weather || DEFAULT_WEATHER),
-          summary: data.recommendation_text || data.recommendation || '',
+          title: cleanSummary || outfitTitle(input.style, input.scene, input.weather || DEFAULT_WEATHER),
+          summary: cleanText,
           selected_items: selected,
-          style_reason: data.summary || '',
+          style_reason: cleanSummary || '',
           weather_reason: '',
           scene_reason: '',
-          color_reason: data.recommendation_text || data.recommendation || '',
-          tips: Array.isArray(data.tips) ? data.tips : [],
+          color_reason: cleanText,
+          tips: Array.isArray(data.tips) ? data.tips.map(cleanRecommendationText) : [],
           creator_recommendation_tags: [input.style, input.scene].filter(Boolean),
           ai_provider: data.provider,
           ai_model: data.model,
@@ -2172,8 +2189,6 @@
     // profile
     getProfile,
     saveProfile,
-    syncProfileFromBackend,
-    updateProfileRemote,
     clearUserSession,
     clearLocalUserData,
     validateEmail,
@@ -2184,6 +2199,10 @@
     authLogin,
     authMe,
     syncAllFromBackend,
+    mergeRemoteProfile,
+    syncProfileFromBackend,
+    cleanRecommendationText,
+    formatWeather,
     getApiBase,
     setApiBase,
     getApiToken,
