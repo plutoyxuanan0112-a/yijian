@@ -521,8 +521,8 @@
           title: '删除这条穿搭记录？',
           message: (r.date || '这条') + ' 的穿搭记录删除后不可恢复。',
           confirmText: '删除',
-          onConfirm: () => {
-            S.deleteOutfit(r.id);
+          onConfirm: async () => {
+            await S.deleteOutfitRemote(r.id);
             setRecords(S.getOutfits());
             setConfirmSheet(null);
             setOpenSheet((cur) => (cur === 'record' ? null : cur));

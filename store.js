@@ -563,6 +563,22 @@
   function deleteOutfit(id) {
     saveOutfits(getOutfits().filter((x) => x.id !== id));
   }
+  async function deleteOutfitRemote(id) {
+    // id 格式可能是 'api-rec-123' 或纯数字字符串
+    const backendId = String(id).startsWith('api-rec-')
+      ? Number(String(id).slice(8))
+      : Number(id);
+    if (!backendId || isNaN(backendId)) {
+      deleteOutfit(id);
+      return;
+    }
+    try {
+      await apiFetch('/api/v1/outfit-records/' + backendId, { method: 'DELETE' });
+    } catch (e) {
+      console.warn('删除穿搭记录失败', e);
+    }
+    deleteOutfit(id); // 本地也删
+  }
 
   // ------------ Links (Inspire library) ------------
   function getLinks() {
@@ -1012,23 +1028,22 @@
           try {
             const { latitude, longitude, accuracy } = pos.coords;
             const forecastRes = await fetch(
-              'https://api.open-meteo.com/v1/forecast?latitude=' +
+              'https://api.openweathermap.org/data/2.5/weather?lat=' +
                 latitude +
-                '&longitude=' +
+                '&lon=' +
                 longitude +
-                '&current=temperature_2m,precipitation,wind_speed_10m,weather_code&timezone=auto',
+                '&appid=92bdd76fde73a20f48096cb2da5a24ce&units=metric&lang=zh_cn',
             );
             if (!forecastRes.ok) throw new Error('weather_bad');
-            const j = await forecastRes.json();
-            const cur = j.current || {};
+            const data = await forecastRes.json();
             const cityName = await reverseGeocode(latitude, longitude);
             const w = {
-              temperature: Math.round(cur.temperature_2m ?? 22),
-              precipitation: cur.precipitation ?? 0,
-              windSpeed: cur.wind_speed_10m ?? 0,
-              weatherLabel: weatherCodeMap[cur.weather_code] || '多云',
-              warmthNeed: warmthNeedFor(cur.temperature_2m ?? 22),
-              city: cityName || (j.timezone || '当前位置').split('/').pop().replace(/_/g, ' '),
+              temperature: Math.round(data.main.temp),
+              precipitation: data.rain?.['1h'] ?? data.snow?.['1h'] ?? 0,
+              windSpeed: data.wind?.speed ?? 0,
+              weatherLabel: data.weather?.[0]?.description ?? '多云',
+              warmthNeed: warmthNeedFor(data.main.temp),
+              city: cityName || data.name,
               lat: latitude,
               lon: longitude,
               accuracy: accuracy ? Math.round(accuracy) : null,
@@ -2231,6 +2246,7 @@
     saveOutfitRecordRemote,
     syncOutfitsFromBackend,
     deleteOutfit,
+    deleteOutfitRemote,
     // links
     getLinks,
     addLink,

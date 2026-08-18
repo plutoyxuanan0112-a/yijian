@@ -2448,23 +2448,12 @@
     return (
       <Sheet
         title={outfit.title}
-        subtitle={
-          (weather ? weather.temperature + '°C · ' + weather.weatherLabel + ' · ' : '') +
-          style +
-          ' / ' +
-          scene
-        }
         onClose={onClose}
       >
         <Flatlay
           picks={outfit.selected_items || []}
           title={outfit.title}
-          meta={
-            (weather ? weather.temperature + '°C · ' + weather.weatherLabel + ' · ' : '') +
-            style +
-            ' / ' +
-            scene
-          }
+          meta={style + ' / ' + scene}
           footer={
             outfit._source === 'backend-ai'
               ? '智能推荐 · 平面搭配效果图'
@@ -2494,6 +2483,10 @@
           >
             {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
               .replace(/\s+/g, ' ')
+              .replace(/\(?\bid\s*=\s*\d+\)?/gi, '')
+              .replace(/选择\s*id\s*=\s*\d+/gi, '')
+              .replace(/id[:：]\s*\d+/gi, '')
+              .replace(/\[\d+\]/g, '')
               .trim()
               .slice(0, 60)}
           </p>
@@ -2559,10 +2552,24 @@
           </span>
         </button>
         <div className="outfit-action">
-          <button className="outline" onClick={onRegenerate}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="refresh" size={14} /> 换一套
-            </span>
+          <button
+            onClick={onRegenerate}
+            title="换一套"
+            style={{
+              background: 'none',
+              border: '1.5px solid #ccc',
+              borderRadius: '50%',
+              width: 36,
+              height: 36,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#999',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <Icon name="refresh" size={16} />
           </button>
           <button className="primary" onClick={onSave}>
             {saveText || '保存'}
