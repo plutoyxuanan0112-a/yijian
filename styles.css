@@ -2238,7 +2238,7 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   aspect-ratio:1;
   border:none;
   border-radius:15px;
-  background:rgba(255,255,255,.42);
+  background:#fff;
   color:#44375c;
   font-weight:800;
   font-size:13px;
@@ -2246,42 +2246,25 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   align-items:center;
   justify-content:center;
   box-shadow:inset 0 0 0 1px rgba(134,111,200,.08);
-  transition:transform .16s ease, background .16s ease, box-shadow .16s ease;
+  transition:transform .16s ease, background .16s ease, box-shadow .16s ease, color .16s ease;
 }
 .calendar-day:active{transform:scale(.95)}
 .calendar-day.muted{
   color:#c5bccf;
-  background:rgba(255,255,255,.22);
+  background:rgba(255,255,255,.7);
 }
 .calendar-day.today .calendar-day-num{
   color:#6b55ca;
 }
 .calendar-day.selected{
   color:#fff;
-  background:linear-gradient(145deg,#8069df,#b793f3);
-  box-shadow:0 10px 22px rgba(120,90,210,.28);
+  background:#5b4bdb;
+  box-shadow:0 10px 22px rgba(91,75,219,.28);
 }
+.calendar-day.selected .calendar-day-num,
 .calendar-day.selected.today .calendar-day-num{color:#fff}
 .calendar-day.has-record:not(.selected){
-  background:rgba(247,243,255,.86);
-}
-.calendar-dot{
-  position:absolute;
-  right:4px;
-  bottom:4px;
-  min-width:15px;
-  height:15px;
-  padding:0 4px;
-  border-radius:999px;
-  background:rgba(112,89,201,.16);
-  color:#6a55c7;
-  font-size:9px;
-  line-height:15px;
-  font-weight:900;
-}
-.calendar-day.selected .calendar-dot{
-  color:#7258c8;
-  background:rgba(255,255,255,.88);
+  background:#efeaff;
 }
 .day-diary-panel{
   margin-top:14px;
@@ -2334,7 +2317,7 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .wheel-sheet{
   width:100%;max-width:480px;
   background:#fff;
-  border-radius:22px 22px 0 0;
+  border-radius:22px;
   padding:8px 16px calc(20px + env(safe-area-inset-bottom));
   box-shadow:0 -10px 40px rgba(60,40,110,.2);
 }

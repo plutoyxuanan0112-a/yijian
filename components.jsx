@@ -789,9 +789,18 @@
             还没有保存的穿搭日记。生成一套并保存，就能在这里看到。
           </div>
         ) : (
-          recentRecords.slice(0, 2).map((r) => (
-            <MiniRecord key={r.id} record={r} />
-          ))
+          <>
+            {recentRecords.slice(0, 2).map((r) => (
+              <MiniRecord key={r.id} record={r} />
+            ))}
+            {recentRecords.length > 2 && (
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
+                <button className="outline" onClick={() => onNav('records')}>
+                  查看更多
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     );
@@ -1245,7 +1254,6 @@
                   }}
                 >
                   <span className="calendar-day-num">{d.day}</span>
-                  {dayRecords.length > 0 && <span className="calendar-dot">{dayRecords.length}</span>}
                 </button>
               );
             })}
