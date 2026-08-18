@@ -4,12 +4,11 @@
  * 编排全局状态、页面切换、Sheet 打开关闭、Toast、生成穿搭闭环
  */
 (function () {
-  const { useState, useEffect, useMemo, useCallback, useRef } = React;
+  const { useState, useEffect, useMemo, useCallback } = React;
   const S = window.YijianStore;
   const U = window.YijianUI;
 
   const {
-    AppDialog,
     StatusBar,
     Icon,
     Toast,
@@ -58,31 +57,6 @@
     const [deleteTarget, setDeleteTarget] = useState(null);
     // Toast
     const [toast, setToastMsg] = useState('');
-    // 通用应用内弹窗（confirm / prompt 的自定义实现，替代浏览器原生弹窗）
-    const [dialog, setDialog] = useState(null);
-    const dialogResolveRef = useRef(null);
-    const runDialog = useCallback(
-      (opts) =>
-        new Promise((resolve) => {
-          dialogResolveRef.current = resolve;
-          setDialog(opts);
-        }),
-      [],
-    );
-    const askConfirm = useCallback(
-      (opts) => runDialog({ mode: 'confirm', ...opts }),
-      [runDialog],
-    );
-    const askPrompt = useCallback(
-      (opts) => runDialog({ mode: 'prompt', defaultValue: '', ...opts }),
-      [runDialog],
-    );
-    const resolveDialog = useCallback((result) => {
-      const r = dialogResolveRef.current;
-      dialogResolveRef.current = null;
-      setDialog(null);
-      if (r) r(result);
-    }, []);
 
     const showToast = useCallback((m) => {
       setToastMsg(m);
@@ -114,10 +88,13 @@
           return;
         }
         try {
-          const me = await S.syncProfileFromBackend();
-          if (alive && me) setProfile(me);
-          const fresh = await S.syncAllFromBackend();
+          await S.authMe();
+          const [fresh, syncedProfile] = await Promise.all([
+            S.syncAllFromBackend(),
+            S.syncProfileFromBackend().catch(() => null),
+          ]);
           if (!alive) return;
+          if (syncedProfile) setProfile(syncedProfile);
           setWardrobe(fresh.wardrobe || []);
           setRecords(fresh.outfits || []);
           setLinks(S.getLinks());
@@ -206,7 +183,6 @@
           })
           .filter((x) => x && x.image);
         setOutfit(result);
-        if (result && !result.missing_piece) setOpenSheet('detail');
         // v15：普通用户不感知 AI/回退/服务商，只给结果反馈
         if (result._source === 'backend-ai' || result._source === 'local-fallback') {
           showToast('已为你搭配完成');
@@ -233,7 +209,6 @@
           })
           .filter((x) => x && x.image);
         setOutfit(fb);
-        if (fb && !fb.missing_piece) setOpenSheet('detail');
       } finally {
         setGenerating(false);
       }
@@ -365,7 +340,7 @@
           if (e && e.code === 'STORAGE_FULL') {
             showToast('本地空间不足：已存衣物过多，请先删除几件后再试');
           } else {
-            showToast('保存失败，请重试（可能是浏览器隐私模式）');
+            showToast('保存失败，请重试');
           }
         }
       },
@@ -405,10 +380,12 @@
         try {
           const isLoggedIn = profile && profile.authStatus === 'demo_logged_in';
           if (isLoggedIn) {
-            const updated = await S.updateWardrobeItemRemote(id, patch);
+            await S.updateWardrobeItemRemote(id, patch);
             const fresh = await S.syncWardrobeFromBackend();
             setWardrobe(fresh);
-            setSelectedItem(fresh.find((x) => x.id === id || x.backendId === updated?.backendId) || updated || null);
+            // 保存成功后关闭编辑弹窗、回到衣橱列表，不再用 find 兜底（会误命中第一件单品）。
+            setSelectedItem(null);
+            setOpenSheet(null);
             showToast('已更新');
             return;
           }
@@ -420,7 +397,8 @@
           }
           const fresh = S.getWardrobe();
           setWardrobe(fresh);
-          setSelectedItem(fresh.find((x) => x.id === id) || null);
+          setSelectedItem(null);
+          setOpenSheet(null);
           showToast('已更新');
         } catch (e) {
           console.warn('Update item failed', e);
@@ -450,35 +428,16 @@
       },
       [showToast],
     );
-    const handleDeleteLink = useCallback(
-      async (link) => {
-        const ok = await askConfirm({
-          title: '删除这条灵感？',
-          message: '删除后将无法恢复。',
-          confirmText: '删除',
-          cancelText: '取消',
-          tone: 'danger',
-        });
-        if (!ok) return;
-        S.deleteLink(link.id);
-        setLinks(S.getLinks());
-      },
-      [askConfirm],
-    );
+    const handleDeleteLink = useCallback((link) => {
+      if (!window.confirm('删除这条灵感？')) return;
+      S.deleteLink(link.id);
+      setLinks(S.getLinks());
+    }, []);
     const handleRenameLink = useCallback(
-      async (link, title) => {
+      (link, title) => {
         if (!link) return false;
-        const nextTitle =
-          title === undefined
-            ? await askPrompt({
-                title: '给这条灵感取个名字',
-                defaultValue: link.title || '',
-                confirmText: '保存',
-                cancelText: '取消',
-                placeholder: '例如：春日通勤配色',
-              })
-            : title;
-        if (nextTitle === null || nextTitle === undefined) return false;
+        const nextTitle = title === undefined ? window.prompt('给这条灵感取个名字', link.title || '') : title;
+        if (nextTitle === null) return false;
         const updated = S.renameLink(link.id, nextTitle);
         if (!updated) {
           showToast('名字不能为空');
@@ -488,7 +447,7 @@
         showToast('已重命名');
         return true;
       },
-      [showToast, askPrompt],
+      [showToast],
     );
     const handleCopyLink = useCallback(
       (link) => {
@@ -545,25 +504,18 @@
 
     // 删除记录
     const handleDeleteRecord = useCallback(
-      async (r) => {
-        const ok = await askConfirm({
-          title: '删除这条穿搭记录？',
-          message: '删除后将无法恢复。',
-          confirmText: '删除',
-          cancelText: '取消',
-          tone: 'danger',
-        });
-        if (!ok) return;
+      (r) => {
+        if (!window.confirm('删除这条穿搭记录？')) return;
         S.deleteOutfit(r.id);
         setRecords(S.getOutfits());
         showToast('已删除记录');
       },
-      [showToast, askConfirm],
+      [showToast],
     );
 
     // 保存个人资料 / 账号状态（v13：邮箱登录也走这里）
     const handleSaveProfile = useCallback(
-      (p) => {
+      async (p) => {
         const prev = profile;
         if (p && p._logout) {
           const cleared = S.clearUserSession();
@@ -582,6 +534,22 @@
         // 登录 / 注册后：不关闭 sheet（AuthView 会自动切到 ProfileEditView）；仅在真正保存资料时关闭
         const authChanged = prev.authStatus !== saved.authStatus;
         const pwChanged = prev.passwordHash !== saved.passwordHash;
+        if (saved.authStatus === 'demo_logged_in' && !authChanged) {
+          try {
+            const remoteProfile = await S.updateProfileRemote(saved);
+            setProfile(remoteProfile);
+          } catch (e) {
+            // 本地资料已先保存；若后端不支持资料接口（404），以本地为准，不打扰用户。
+            if (e && e.status === 404) {
+              setOpenSheet(null);
+              showToast('已保存个人资料');
+              return;
+            }
+            // 其他云端失败（网络 / 5xx）时保留编辑结果与当前编辑视图。
+            showToast('资料暂未同步，请稍后重试');
+            return;
+          }
+        }
         if (authChanged || pwChanged) {
           // 账号变动：让 AuthView / ProfileEditView 自己发 toast，主 App 不再重复提示
           return;
@@ -730,13 +698,11 @@
               weather={weather}
               style={style}
               scene={scene}
-              generating={generating}
               onClose={() => setOpenSheet(null)}
               onReplace={(p) => {
                 setReplaceTarget(p);
                 setOpenSheet('replace');
               }}
-              onRegenerate={doGenerate}
               onSave={handleSaveOutfit}
             />
           )}
@@ -773,7 +739,6 @@
               onClose={() => setOpenSheet(null)}
               onSave={handleSaveProfile}
               onToast={showToast}
-              onAskConfirm={askConfirm}
             />
           )}
           {openSheet === 'creatorsAll' && (
@@ -802,13 +767,6 @@
               cancelText="取消"
               onClose={() => setDeleteTarget(null)}
               onConfirm={confirmDeleteItem}
-            />
-          )}
-          {dialog && (
-            <AppDialog
-              dialog={dialog}
-              onCancel={() => resolveDialog(dialog.mode === 'prompt' ? null : false)}
-              onConfirm={(val) => resolveDialog(val)}
             />
           )}
           <Toast text={toast} />
