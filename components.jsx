@@ -214,7 +214,7 @@
       >
         <button
           type="button"
-          className="select-trigger"
+          className={'select-trigger' + (value ? '' : ' placeholder')}
           onClick={(e) => {
             e.stopPropagation();
             setOpen(!open);
@@ -231,7 +231,7 @@
                 aria-selected={o === value}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onChange(o);
+                  onChange(o === value ? '' : o);
                   setOpen(false);
                 }}
               >
@@ -1678,7 +1678,6 @@
               {displayMaterials && <MetaRow label="材质" value={displayMaterials} />}
               {displaySilhouettes && <MetaRow label="廓形" value={displaySilhouettes} />}
               <MetaRow label="风格" value={displayStyles} />
-              <MetaRow label="场景" value={displayScenes} />
               <MetaRow label="季节" value={displaySeasons} />
               {item.fitTags && item.fitTags.length > 0 && (
                 <MetaRow label="版型" value={item.fitTags.join(' / ')} />
@@ -1774,15 +1773,6 @@
               otherValue={form.styleOther}
               onToggle={(v) => toggleMulti('styleTags', v)}
               onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-              otherPlaceholder="其他"
-            />
-            <MultiChipField
-              label="场景"
-              options={S.SCENE_TAGS}
-              values={form.sceneTags}
-              otherValue={form.sceneOther}
-              onToggle={(v) => toggleMulti('sceneTags', v)}
-              onOtherChange={(v) => setForm({ ...form, sceneOther: v })}
               otherPlaceholder="其他"
             />
             <MultiChipField
@@ -2127,15 +2117,6 @@
                   otherValue={form.styleOther}
                   onToggle={(v) => toggleMulti('styleTags', v)}
                   onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-                  otherPlaceholder="其他"
-                />
-                <MultiChipField
-                  label="场景"
-                  options={S.SCENE_TAGS}
-                  values={form.sceneTags}
-                  otherValue={form.sceneOther}
-                  onToggle={(v) => toggleMulti('sceneTags', v)}
-                  onOtherChange={(v) => setForm({ ...form, sceneOther: v })}
                   otherPlaceholder="其他"
                 />
                 <MultiChipField

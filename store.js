@@ -725,8 +725,8 @@
   // ------------ Preferences ------------
   function getPreferences() {
     return load(K.PREF, {
-      style: '简约',
-      scene: '通勤',
+      style: '',
+      scene: '',
       aiEndpoint: '',
     });
   }
@@ -2217,25 +2217,23 @@
   ];
   const STYLE_TAGS = [
     '简约',
-    'Clean fit',
     '韩系',
     '法式',
-    '运动',
-    '甜酷',
     '学院',
     '复古',
-    '户外',
-    '极简',
+    '甜酷',
+    '运动风',
+    '户外机能',
   ];
   const SCENE_TAGS = [
     '通勤',
     '约会',
     '旅行',
-    '周末',
-    '运动',
+    '周末休闲',
+    '运动健身',
     '聚会',
     '居家',
-    '正式场合',
+    '正式',
   ];
   const SEASON_TAGS = ['春', '夏', '秋', '冬'];
   const WARMTH = ['薄', '中等', '厚'];
