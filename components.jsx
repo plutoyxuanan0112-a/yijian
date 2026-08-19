@@ -285,60 +285,47 @@
   };
 
   const YearMonthWheel = ({ year, month, minYear, maxYear, onConfirm, onClose }) => {
-    const years = useMemo(() => {
-      const arr = [];
-      for (let y = minYear; y <= maxYear; y += 1) arr.push(y);
-      return arr;
-    }, [minYear, maxYear]);
-    const months = useMemo(() => Array.from({ length: 12 }, (_, i) => i), []);
     const [tempYear, setTempYear] = useState(year);
-    const [tempMonth, setTempMonth] = useState(month);
-    const [yearQuery, setYearQuery] = useState('');
-    const jumpYear = (raw) => {
-      setYearQuery(raw);
-      const n = parseInt(raw, 10);
-      if (Number.isFinite(n) && n >= minYear && n <= maxYear) setTempYear(n);
+    const monthNames = ['1 月','2 月','3 月','4 月','5 月','6 月','7 月','8 月','9 月','10 月','11 月','12 月'];
+    const stepYear = (delta) => {
+      const next = tempYear + delta;
+      if (next >= minYear && next <= maxYear) setTempYear(next);
     };
     return (
-      <div className="wheel-sheet-mask" onClick={onClose}>
-        <div className="wheel-sheet" onClick={(e) => e.stopPropagation()}>
-          <div className="wheel-sheet-head">
-            <button type="button" className="wheel-cancel" onClick={onClose}>取消</button>
-            <span className="wheel-title">选择年月</span>
+      <>
+        <div className="ym-pop-mask" onClick={onClose} />
+        <div className="ym-pop" onClick={(e) => e.stopPropagation()}>
+          <div className="ym-pop-head">
             <button
               type="button"
-              className="wheel-done"
-              onClick={() => onConfirm(tempYear, tempMonth)}
-            >
-              完成
-            </button>
+              className="ym-nav"
+              onClick={() => stepYear(-1)}
+              disabled={tempYear <= minYear}
+              aria-label="上一年"
+            >‹</button>
+            <span className="ym-year">{tempYear} 年</span>
+            <button
+              type="button"
+              className="ym-nav"
+              onClick={() => stepYear(1)}
+              disabled={tempYear >= maxYear}
+              aria-label="下一年"
+            >›</button>
           </div>
-          <div className="wheel-search">
-            <input
-              className="input"
-              type="number"
-              inputMode="numeric"
-              placeholder="输入年份跳转，如 2024"
-              value={yearQuery}
-              onChange={(e) => jumpYear(e.target.value)}
-            />
-          </div>
-          <div className="wheel-body">
-            <WheelColumn
-              items={years}
-              value={tempYear}
-              onChange={setTempYear}
-              formatLabel={(y) => y + ' 年'}
-            />
-            <WheelColumn
-              items={months}
-              value={tempMonth}
-              onChange={setTempMonth}
-              formatLabel={(m) => m + 1 + ' 月'}
-            />
+          <div className="ym-month-grid">
+            {monthNames.map((label, m) => (
+              <button
+                type="button"
+                key={m}
+                className={'ym-month' + (tempYear === year && m === month ? ' active' : '')}
+                onClick={() => onConfirm(tempYear, m)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+      </>
     );
   };
 
@@ -494,6 +481,7 @@
     onGenerate,
     generating,
     outfit,
+    recentRecords,
     creators,
     onOpenCreator,
     onOpenCreatorsAll,
@@ -624,64 +612,6 @@
           </button>
         </div>
 
-        {outfit && !outfit.missing_piece && (
-          <div className="look-card">
-            <Flatlay
-              picks={outfit.selected_items || []}
-              meta={
-                weather
-                  ? weather.temperature +
-                    '°C · ' +
-                    weather.weatherLabel +
-                    ' · ' +
-                    style +
-                    ' / ' +
-                    scene
-                  : style + ' / ' + scene
-              }
-              footer={
-                outfit._source === 'backend-ai'
-                  ? '智能推荐 · 从你的真实衣橱挑选'
-                  : outfit._source === 'local-fallback'
-                  ? '智能推荐 · 从你的真实衣橱挑选'
-                  : '为你从衣橱挑选'
-              }
-            />
-            {(outfit.summary || outfit.color_reason || outfit.style_reason) && (
-              <p
-                className="look-card-summary"
-                style={{ margin: '10px 2px 0', fontSize: 13, lineHeight: 1.6, color: '#4b4b57' }}
-              >
-                {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
-                  .replace(/选择\s*id\s*[=:：]?\s*\d+/gi, '')
-                  .replace(/id\s*[=:：]?\s*\d+/gi, '')
-                  .replace(/\[\d+\]/g, '')
-                  .replace(/[（(]\s*[）)]/g, '')
-              .replace(/未填写/g, '')
-              .replace(/主色调：\s*[·\s]*，形成同色系或邻近色关系。?/g, '')
-              .replace(/主色调：\s*[·\s]*[，。]?/g, '')
-                  .replace(/\s+/g, ' ')
-                  .replace(/\s+([，。、；：！？])/g, '$1')
-                  .trim()
-                  .slice(0, 60)}
-              </p>
-            )}
-            <div className="outfit-action">
-              <button className="outline" onClick={onGenerate}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <Icon name="refresh" size={14} /> 换一套
-                </span>
-              </button>
-              <button
-                className="primary"
-                onClick={() => window.dispatchEvent(new Event('yijian:open-detail'))}
-              >
-                保存
-              </button>
-            </div>
-          </div>
-        )}
-
         {outfit && outfit.missing_piece && (
           <EmptyState
             big="◐"
@@ -696,6 +626,24 @@
               </button>
             }
           />
+        )}
+
+        {recentRecords && recentRecords.length > 0 && (
+          <>
+            <div className="section-head">
+              <h2>穿搭日记</h2>
+              <button className="link" onClick={() => onNav('records')}>
+                查看全部 ›
+              </button>
+            </div>
+            {recentRecords.slice(0, 2).map((r) => (
+              <MiniRecord
+                key={r.id}
+                record={r}
+                onClick={() => onNav('records')}
+              />
+            ))}
+          </>
         )}
 
         <div className="section-head">
@@ -1161,7 +1109,6 @@
             <div className="eyebrow">Wardrobe Journal</div>
             <h1 className="h1-hero">穿搭日记</h1>
           </div>
-          <button className="calendar-today" onClick={jumpToToday}>今天</button>
         </div>
 
         <div className="calendar-summary-card">
