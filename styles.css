@@ -2422,6 +2422,18 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
   color:#fff;background:#5b4bdb;
   box-shadow:0 8px 18px rgba(91,75,219,.28);
 }
+.ym-pop-wheel{padding:6px 14px 12px}
+.ym-pop-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 2px 4px;
+}
+.ym-pop-bar .wheel-title{font-size:15px;font-weight:700;color:#2b2145}
+.ym-pop-bar .wheel-cancel,
+.ym-pop-bar .wheel-done{
+  border:0;background:transparent;font-size:15px;font-weight:600;padding:6px 4px;
+}
+.ym-pop-bar .wheel-cancel{color:#8577a8}
+.ym-pop-bar .wheel-done{color:#7058d9}
 
 .diary-summary-grid{
   display:grid;
