@@ -2218,11 +2218,12 @@
         .split(/[,，\s]+/)
         .map((x) => x.trim())
         .filter(Boolean);
+      const name = note.trim();
       onSave({
         url: v,
-        note: note.trim(),
+        note: '',
         tags,
-        title: S.guessTitleFromUrl(v),
+        title: name || S.guessTitleFromUrl(v),
       });
     };
     return (
@@ -2244,10 +2245,10 @@
           />
         </div>
         <div className="field">
-          <label>备注</label>
+          <label>名字</label>
           <textarea
             className="input"
-            placeholder="例如：春天通勤配色 / 想找类似的针织"
+            placeholder="给这条灵感起个名字，例如：韩系风格参考（留空则自动命名）"
             value={note}
             onChange={(e) => setNote(e.target.value)}
           />
