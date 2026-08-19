@@ -204,6 +204,50 @@
     return dedupe([...asArr(item.seasonTags), item.seasonOther]);
   }
 
+  // —— 将「厚薄/材质/廓形/版型」等后端无对应列的属性编码进 notes 字段 ——
+  // 约定格式（竖线分隔，中文冒号）：真正的备注 | 厚薄:中等 | 材质:棉,涤纶 | 廓形:宽松 | 版型:直筒
+  const NOTES_ATTR_DEFS = [
+    { label: '厚薄', key: 'warmthTags', get: (it) => itemWarmths(it) },
+    { label: '材质', key: 'materials', get: (it) => itemMaterials(it) },
+    { label: '廓形', key: 'silhouettes', get: (it) => itemSilhouettes(it) },
+    { label: '版型', key: 'fitTags', get: (it) => dedupe(asArr(it.fitTags)) },
+  ];
+  const NOTES_ATTR_LABEL_MAP = { '厚薄': 'warmthTags', '材质': 'materials', '廓形': 'silhouettes', '版型': 'fitTags' };
+
+  // 生成后端 notes：用户真正的备注 + 属性摘要（仅在对应数组非空时追加该段）
+  function buildNotesWithAttrs(item) {
+    const base = String(item.customNotes || '').trim();
+    const segs = [];
+    NOTES_ATTR_DEFS.forEach(({ label, get }) => {
+      const vals = dedupe(get(item) || []);
+      if (vals.length) segs.push(label + ':' + vals.join(','));
+    });
+    if (!segs.length) return base;
+    return base ? base + ' | ' + segs.join(' | ') : segs.join(' | ');
+  }
+
+  // 从后端 notes 中拆出 customNotes 与四类属性数组；老数据（无前缀）安全回退，customNotes 保持原样
+  function parseNotesAttrs(notes) {
+    const raw = String(notes || '');
+    const result = { customNotes: raw, warmthTags: [], materials: [], silhouettes: [], fitTags: [] };
+    if (!raw) return result;
+    const parts = raw.split(' | ');
+    const noteParts = [];
+    let attrStarted = false;
+    parts.forEach((part) => {
+      const m = part.match(/^(厚薄|材质|廓形|版型):([\s\S]*)$/);
+      if (m) {
+        attrStarted = true;
+        const key = NOTES_ATTR_LABEL_MAP[m[1]];
+        result[key] = dedupe(m[2].split(/[,，、]/).map((s) => s.trim()).filter(Boolean));
+      } else {
+        noteParts.push(part);
+      }
+    });
+    result.customNotes = attrStarted ? noteParts.join(' | ') : raw;
+    return result;
+  }
+
   // 兼容老数据：读出时补齐新字段的默认值，避免 undefined
   function normalizeItem(item) {
     if (!item) return item;
@@ -262,15 +306,21 @@
 
   function mapBackendClothing(row) {
     const notes = row.notes ? String(row.notes) : '';
+    // 从 notes 中还原「厚薄/材质/廓形/版型」属性与用户真正的备注
+    const parsed = parseNotesAttrs(notes);
     return normalizeItem({
       id: 'api-' + row.id,
       backendId: row.id,
       name: row.name,
       category: row.category,
-      colors: row.color ? [row.color] : [],
+      colors: row.color ? String(row.color).split(/[、,，/ ]+/).filter(Boolean) : [],
       seasonTags: row.season ? String(row.season).split(/[、,，/ ]+/).filter(Boolean) : [],
       styleTags: row.style_tags ? String(row.style_tags).split(/[、,，/ ]+/).filter(Boolean) : [],
-      customNotes: notes,
+      warmthTags: parsed.warmthTags,
+      materials: parsed.materials,
+      silhouettes: parsed.silhouettes,
+      fitTags: parsed.fitTags,
+      customNotes: parsed.customNotes,
       image: resolveBackendImageUrl(row.image_url),
       createdAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
       updatedAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
@@ -322,7 +372,7 @@
       color: itemColors(full).join('、') || '',
       season: itemSeasons(full).join('、') || '四季',
       style_tags: itemStyles(full).join('、'),
-      notes: full.customNotes || full.description || '',
+      notes: buildNotesWithAttrs(full),
       image_url: remoteImageUrl || (nonDataImageUrl || null),
     };
     const data = await apiFetch('/api/v1/clothes', { method: 'POST', body: JSON.stringify(payload) });
@@ -432,10 +482,10 @@
     const payload = {
       name: String(merged.name || '').trim() || '未命名单品',
       category: String(merged.category || '').trim() || '上衣',
-      color: String(merged.color || '').trim() || '',
-      season: String(merged.season || '').trim() || '四季',
-      style_tags: (merged.styleTags || []).join(',') || '',
-      notes: String(merged.customNotes || '').trim() || '',
+      color: itemColors(merged).join('、') || '',
+      season: itemSeasons(merged).join('、') || '四季',
+      style_tags: itemStyles(merged).join('、') || '',
+      notes: buildNotesWithAttrs(merged),
       image_url: imageUrl || null,
     };
 
