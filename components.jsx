@@ -854,9 +854,9 @@
       setRenamingLink(link);
       setRenameValue(link?.title || '');
     };
-    const submitRename = () => {
+    const submitRename = async () => {
       if (!renamingLink) return;
-      const ok = onRenameLink && onRenameLink(renamingLink, renameValue);
+      const ok = onRenameLink && (await onRenameLink(renamingLink, renameValue));
       if (ok) {
         setRenamingLink(null);
         setRenameValue('');

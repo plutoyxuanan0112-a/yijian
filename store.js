@@ -587,8 +587,71 @@
   function saveLinks(list) {
     save(K.LINKS, list);
   }
-  function addLink(link) {
+  // 后端灵感记录 → 前端结构（带 backendId，id 前缀 api-lnk- 便于识别云端条目）
+  function mapBackendLink(row) {
+    let tags = [];
+    const raw = row.tags;
+    if (Array.isArray(raw)) tags = raw;
+    else if (typeof raw === 'string' && raw.trim()) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) tags = parsed;
+      } catch {
+        tags = [];
+      }
+    }
+    return {
+      id: 'api-lnk-' + row.id,
+      backendId: row.id,
+      url: row.url,
+      title: row.title || guessTitleFromUrl(row.url),
+      note: row.note || '',
+      tags,
+      createdAt: row.created_at ? (Date.parse(row.created_at) || Date.now()) : Date.now(),
+    };
+  }
+  function linkBackendId(id) {
+    const s = String(id || '');
+    if (s.startsWith('api-lnk-')) {
+      const n = Number(s.slice(8));
+      return Number.isFinite(n) ? n : null;
+    }
+    return null;
+  }
+  // 从云端拉取全部灵感，覆盖本地缓存
+  async function syncLinksFromBackend() {
+    if (!getApiToken()) return getLinks();
+    const data = await apiFetch('/api/v1/links');
+    const items = (data.items || []).map(mapBackendLink);
+    saveLinks(items);
+    return items;
+  }
+  async function addLink(link) {
     if (!link || !link.url) return null;
+    // 已登录：优先写入云端，成功后同步本地缓存
+    if (getApiToken()) {
+      try {
+        const data = await apiFetch('/api/v1/links', {
+          method: 'POST',
+          body: JSON.stringify({
+            url: link.url,
+            title: link.title || guessTitleFromUrl(link.url),
+            note: link.note || '',
+            tags: link.tags || [],
+          }),
+        });
+        const mapped = mapBackendLink(data.item);
+        const list = getLinks().filter(
+          (x) => x.id !== mapped.id && x.backendId !== mapped.backendId,
+        );
+        list.unshift(mapped);
+        saveLinks(list);
+        return mapped;
+      } catch (e) {
+        console.warn('保存灵感到云端失败，暂存本地', e);
+      }
+    }
+    // 未登录 / 云端失败：本地兜底
     const list = getLinks();
     const full = {
       id: link.id || uid('lnk'),
@@ -598,16 +661,35 @@
       tags: link.tags || [],
       createdAt: link.createdAt || Date.now(),
     };
-    list.push(full);
+    list.unshift(full);
     saveLinks(list);
     return full;
   }
-  function deleteLink(id) {
+  async function deleteLink(id) {
+    const backendId = linkBackendId(id);
+    if (backendId && getApiToken()) {
+      try {
+        await apiFetch('/api/v1/links/' + backendId, { method: 'DELETE' });
+      } catch (e) {
+        console.warn('删除云端灵感失败', e);
+      }
+    }
     saveLinks(getLinks().filter((x) => x.id !== id));
   }
-  function renameLink(id, title) {
+  async function renameLink(id, title) {
     const nextTitle = String(title || '').trim();
     if (!id || !nextTitle) return null;
+    const backendId = linkBackendId(id);
+    if (backendId && getApiToken()) {
+      try {
+        await apiFetch('/api/v1/links/' + backendId, {
+          method: 'PUT',
+          body: JSON.stringify({ title: nextTitle }),
+        });
+      } catch (e) {
+        console.warn('重命名云端灵感失败', e);
+      }
+    }
     let updated = null;
     const list = getLinks().map((x) => {
       if (x.id !== id) return x;
@@ -764,8 +846,15 @@
     return apiFetch('/api/v1/auth/me');
   }
   async function syncAllFromBackend() {
-    const [wardrobe, outfits] = await Promise.all([syncWardrobeFromBackend(), syncOutfitsFromBackend()]);
-    return { wardrobe, outfits };
+    const [wardrobe, outfits, links] = await Promise.all([
+      syncWardrobeFromBackend(),
+      syncOutfitsFromBackend(),
+      syncLinksFromBackend().catch((e) => {
+        console.warn('同步灵感失败', e);
+        return getLinks();
+      }),
+    ]);
+    return { wardrobe, outfits, links };
   }
 
   // ------------ Geolocation permission ------------
@@ -2278,6 +2367,7 @@
     authLogin,
     authMe,
     syncAllFromBackend,
+    syncLinksFromBackend,
     getApiBase,
     setApiBase,
     getApiToken,

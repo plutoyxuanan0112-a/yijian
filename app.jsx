@@ -99,7 +99,7 @@
           if (syncedProfile) setProfile(syncedProfile);
           setWardrobe(fresh.wardrobe || []);
           setRecords(fresh.outfits || []);
-          setLinks(S.getLinks());
+          setLinks(fresh.links || S.getLinks());
         } catch (e) {
           if (!alive) return;
           S.clearUserSession();
@@ -422,8 +422,8 @@
 
     // 链接保存
     const handleSaveLink = useCallback(
-      (link) => {
-        const saved = S.addLink(link);
+      async (link) => {
+        const saved = await S.addLink(link);
         if (saved) {
           setLinks(S.getLinks());
           setOpenSheet(null);
@@ -437,8 +437,8 @@
         title: '删除这条灵感？',
         message: (link.title || '这条灵感') + ' 删除后不可恢复。',
         confirmText: '删除',
-        onConfirm: () => {
-          S.deleteLink(link.id);
+        onConfirm: async () => {
+          await S.deleteLink(link.id);
           setLinks(S.getLinks());
           setConfirmSheet(null);
           showToast('已删除灵感');
@@ -446,11 +446,11 @@
       });
     }, [showToast]);
     const handleRenameLink = useCallback(
-      (link, title) => {
+      async (link, title) => {
         if (!link) return false;
         const nextTitle = title === undefined ? window.prompt('给这条灵感取个名字', link.title || '') : title;
         if (nextTitle === null) return false;
-        const updated = S.renameLink(link.id, nextTitle);
+        const updated = await S.renameLink(link.id, nextTitle);
         if (!updated) {
           showToast('名字不能为空');
           return false;
