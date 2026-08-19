@@ -2206,7 +2206,7 @@
   const SaveLinkSheet = ({ onClose, onSave, defaultStyle }) => {
     const [url, setUrl] = useState('');
     const [note, setNote] = useState('');
-    const [tagInput, setTagInput] = useState(defaultStyle || '');
+    const [tagInput, setTagInput] = useState('');
     const [err, setErr] = useState('');
     const submit = () => {
       const v = url.trim();
