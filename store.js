@@ -319,7 +319,7 @@
     const payload = {
       name: full.name,
       category: full.category,
-      color: itemColors(full).join('、') || '未填写',
+      color: itemColors(full).join('、') || '',
       season: itemSeasons(full).join('、') || '四季',
       style_tags: itemStyles(full).join('、'),
       notes: full.customNotes || full.description || '',
@@ -432,7 +432,7 @@
     const payload = {
       name: String(merged.name || '').trim() || '未命名单品',
       category: String(merged.category || '').trim() || '上衣',
-      color: String(merged.color || '').trim() || '未填写',
+      color: String(merged.color || '').trim() || '',
       season: String(merged.season || '').trim() || '四季',
       style_tags: (merged.styleTags || []).join(',') || '',
       notes: String(merged.customNotes || '').trim() || '',
@@ -1990,7 +1990,9 @@
     return scene + ' 场景下需要既得体又不拘束，所选单品兼顾正式感和舒适度。';
   }
   function whyColor(picks) {
-    const colors = picks.map((x) => x.color).filter(Boolean);
+    const colors = picks
+      .map((x) => (x && x.color != null ? String(x.color).trim() : ''))
+      .filter((c) => c && c !== '未填写');
     if (!colors.length) return '以低饱和度为基调，避免色彩打架。';
     return '主色调：' + colors.slice(0, 3).join(' · ') + '，形成同色系或邻近色关系。';
   }

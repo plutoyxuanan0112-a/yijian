@@ -494,7 +494,6 @@
     onGenerate,
     generating,
     outfit,
-    recentRecords,
     creators,
     onOpenCreator,
     onOpenCreatorsAll,
@@ -544,28 +543,12 @@
                 <WeatherIcon weather={weather} />
               )}
             </span>
-            {!geoLocating && weather && weather.isFallback && (
-              <span
-                style={{
-                  marginLeft: 6,
-                  fontSize: 11,
-                  color: '#c2410c',
-                  background: '#fff1e6',
-                  borderRadius: 6,
-                  padding: '1px 6px',
-                  alignSelf: 'center',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                默认天气
-              </span>
-            )}
             <span className="col">
               {geoLocating ? (
                 <>
-                  <strong>正在获取真实定位…</strong>
+                  <strong>定位中…</strong>
                   <span className="meta">
-                    请在浏览器弹窗中允许定位权限
+                    请允许定位
                   </span>
                 </>
               ) : weather && !weather.isFallback ? (
@@ -584,21 +567,21 @@
                 </>
               ) : geoStatus === 'denied' ? (
                 <>
-                  <strong>已拒绝定位权限</strong>
+                  <strong>定位被拒</strong>
                   <span className="meta">
-                    在浏览器设置里恢复权限后可再试；此刻使用默认天气
+                    可在设置中恢复权限
                   </span>
                 </>
               ) : geoStatus === 'no_support' ? (
                 <>
-                  <strong>当前浏览器不支持定位</strong>
-                  <span className="meta">使用默认天气 22°C · 晴</span>
+                  <strong>不支持定位</strong>
+                  <span className="meta">使用默认天气</span>
                 </>
               ) : geoStatus === 'insecure' ? (
                 <>
-                  <strong>浏览器已屏蔽定位</strong>
+                  <strong>定位不可用</strong>
                   <span className="meta">
-                    你现在是 file:// 打开的，请用「启动衣见.command」
+                    请用启动脚本打开
                   </span>
                 </>
               ) : geoStatus === 'error' ||
@@ -610,13 +593,13 @@
                     {weather ? weather.temperature + '°C · ' + weather.weatherLabel : '定位失败'}
                   </strong>
                   <span className="meta">
-                    定位失败，显示默认天气 · 可点击重试
+                    点击重试
                   </span>
                 </>
               ) : (
                 <>
                   <strong>获取当地天气</strong>
-                  <span className="meta">点击允许定位，显示实时温度</span>
+                  <span className="meta">点击允许定位</span>
                 </>
               )}
             </span>
@@ -674,6 +657,9 @@
                   .replace(/id\s*[=:：]?\s*\d+/gi, '')
                   .replace(/\[\d+\]/g, '')
                   .replace(/[（(]\s*[）)]/g, '')
+              .replace(/未填写/g, '')
+              .replace(/主色调：\s*[·\s]*，形成同色系或邻近色关系。?/g, '')
+              .replace(/主色调：\s*[·\s]*[，。]?/g, '')
                   .replace(/\s+/g, ' ')
                   .replace(/\s+([，。、；：！？])/g, '$1')
                   .trim()
@@ -777,31 +763,6 @@
             </div>
           ))}
         </div>
-
-        <div className="section-head">
-          <h2>最近的穿搭</h2>
-          <button className="link" onClick={() => onNav('records')}>
-            全部日记 ›
-          </button>
-        </div>
-        {recentRecords.length === 0 ? (
-          <div className="tiny center" style={{ padding: 12 }}>
-            还没有保存的穿搭日记。生成一套并保存，就能在这里看到。
-          </div>
-        ) : (
-          <>
-            {recentRecords.slice(0, 2).map((r) => (
-              <MiniRecord key={r.id} record={r} />
-            ))}
-            {recentRecords.length > 2 && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginTop: 10 }}>
-                <button className="outline" onClick={() => onNav('records')}>
-                  查看更多
-                </button>
-              </div>
-            )}
-          </>
-        )}
       </div>
     );
   };
@@ -2546,6 +2507,9 @@
               .replace(/id\s*[=:：]?\s*\d+/gi, '')
               .replace(/\[\d+\]/g, '')
               .replace(/[（(]\s*[）)]/g, '')
+              .replace(/未填写/g, '')
+              .replace(/主色调：\s*[·\s]*，形成同色系或邻近色关系。?/g, '')
+              .replace(/主色调：\s*[·\s]*[，。]?/g, '')
               .replace(/\s+/g, ' ')
               .replace(/\s+([，。、；：！？])/g, '$1')
               .trim()
