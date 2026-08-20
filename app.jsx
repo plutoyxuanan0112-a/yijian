@@ -39,10 +39,10 @@
     const [wardrobe, setWardrobe] = useState(() => (hasToken() ? S.getWardrobe() : []));
     const [records, setRecords] = useState(() => (hasToken() ? S.getOutfits() : []));
     const [links, setLinks] = useState(() => (hasToken() ? S.getLinks() : []));
-    const [prefs, setPrefs] = useState(() => (hasToken() ? S.getPreferences() : { style: '简约', scene: '通勤', aiEndpoint: '' }));
+    const [prefs, setPrefs] = useState(() => (hasToken() ? S.getPreferences() : { style: '', scene: '', aiEndpoint: '' }));
     // 生成的当前搭配
-    const [style, setStyle] = useState(prefs.style || '简约');
-    const [scene, setScene] = useState(prefs.scene || '通勤');
+    const [style, setStyle] = useState(prefs.style || '');
+    const [scene, setScene] = useState(prefs.scene || '');
     const [weather, setWeather] = useState(() => (hasToken() ? S.getStoredWeather() : null));
     const [geoStatus, setGeoStatus] = useState('idle'); // idle | ok | denied | unavailable | timeout | no_support | insecure | weather_error
     const [geoLocating, setGeoLocating] = useState(false);
@@ -514,6 +514,17 @@
       [outfit, replaceTarget, showToast],
     );
 
+    // 删除整套里的某个单品（任务 D：不想要的包/配饰等可直接去掉，删除后仍能正常保存到日记）
+    const handleRemoveItem = useCallback(
+      (target) => {
+        if (!outfit || !target) return;
+        const remaining = (outfit.selected_items || []).filter((p) => p && p.id !== target.id);
+        setOutfit({ ...outfit, selected_items: remaining });
+        showToast('已移除 ' + (target.category || '单品'));
+      },
+      [outfit, showToast],
+    );
+
     // 删除记录
     const handleDeleteRecord = useCallback(
       (r) => {
@@ -724,8 +735,10 @@
                 setReplaceTarget(p);
                 setOpenSheet('replace');
               }}
+              onRemove={handleRemoveItem}
               onRegenerate={doGenerate}
               onSave={handleSaveOutfit}
+              generating={generating}
             />
           )}
           {openSheet === 'replace' && (

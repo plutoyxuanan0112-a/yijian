@@ -159,7 +159,19 @@
   //   - 写入时同步把 arrays[0] 回填到 legacy 单值字段，保证卡片 / 记录 / 打分老代码可继续读。
 
   const asArr = (v) => (Array.isArray(v) ? v : v ? [v] : []);
-  const dedupe = (arr) => Array.from(new Set(arr.filter(Boolean).map((s) => String(s).trim()).filter(Boolean)));
+  // 展示层占位/无意义 token：这些值不应进入任何属性展示数组（历史脏数据在展示时自动过滤）
+  const PLACEHOLDER_TOKENS = new Set(['未填写', '未填']);
+  const isPlaceholderToken = (s) => !s || PLACEHOLDER_TOKENS.has(s);
+  // 过滤 falsy / 空白 / 占位符，trim 后按值去重（保持首次出现顺序）
+  const dedupe = (arr) =>
+    Array.from(
+      new Set(
+        arr
+          .filter(Boolean)
+          .map((s) => String(s).trim())
+          .filter((s) => !isPlaceholderToken(s)),
+      ),
+    );
 
   // 依据结构化字段生成一段"系统推荐描述"，给 AI/规则推荐读取的语义线索
   function buildSystemDescription(item) {
@@ -181,6 +193,9 @@
     return parts.filter(Boolean).join(' · ');
   }
 
+  // 具体季节 token（用于判断是否需要剔除默认值「四季」）
+  const SEASON_CONCRETE = ['春', '夏', '秋', '冬'];
+
   // —— 读取多选字段（同时合并 legacy 单值与 xxxOther 自由输入）——
   function itemColors(item) {
     return dedupe([...asArr(item.colors), item.color, item.colorOther]);
@@ -201,7 +216,11 @@
     return dedupe([...asArr(item.sceneTags), item.sceneOther]);
   }
   function itemSeasons(item) {
-    return dedupe([...asArr(item.seasonTags), item.seasonOther]);
+    // 合并数组字段、legacy 单值(season) 与「其他」自由输入；占位符已在 dedupe 中过滤
+    const arr = dedupe([...asArr(item.seasonTags), item.season, item.seasonOther]);
+    // 「四季」为默认值：仅当没有任何具体季节(春/夏/秋/冬)时才回退展示，否则剔除避免与具体季节并存
+    const hasConcrete = arr.some((s) => s !== '四季' && SEASON_CONCRETE.some((c) => s.includes(c)));
+    return hasConcrete ? arr.filter((s) => s !== '四季') : arr;
   }
 
   // —— 将「厚薄/材质/廓形/版型」等后端无对应列的属性编码进 notes 字段 ——
@@ -313,9 +332,9 @@
       backendId: row.id,
       name: row.name,
       category: row.category,
-      colors: row.color ? String(row.color).split(/[、,，/ ]+/).filter(Boolean) : [],
-      seasonTags: row.season ? String(row.season).split(/[、,，/ ]+/).filter(Boolean) : [],
-      styleTags: row.style_tags ? String(row.style_tags).split(/[、,，/ ]+/).filter(Boolean) : [],
+      colors: row.color ? String(row.color).split(/[、,，/]+/).filter(Boolean) : [],
+      seasonTags: row.season ? String(row.season).split(/[、,，/]+/).filter(Boolean) : [],
+      styleTags: row.style_tags ? String(row.style_tags).split(/[、,，/]+/).filter(Boolean) : [],
       warmthTags: parsed.warmthTags,
       materials: parsed.materials,
       silhouettes: parsed.silhouettes,
@@ -2174,8 +2193,9 @@
           return item ? { id: item.id, backendId: Number(id), name: item.name, category: item.category, image: item.image, color: item.color, reason: 'DeepSeek 推荐选中' } : null;
         }).filter(Boolean);
         const result = {
-          title: data.summary || outfitTitle(input.style, input.scene, input.weather || DEFAULT_WEATHER),
-          summary: data.recommendation_text || data.recommendation || '',
+          title: outfitTitle(input.style, input.scene, input.weather || DEFAULT_WEATHER),
+          // Task B：展示用「总结」优先取后端简洁完整的 summary（2~3句），而非可能很长的 recommendation_text
+          summary: data.summary || data.recommendation_text || data.recommendation || '',
           selected_items: selected,
           style_reason: data.summary || '',
           weather_reason: '',

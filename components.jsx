@@ -363,7 +363,7 @@
   };
 
   // Flat-lay 效果图：给出 selected_items（含 image / category）
-  const Flatlay = ({ picks, title, meta, footer, forwardRef, onReplace }) => {
+  const Flatlay = ({ picks, title, meta, footer, forwardRef, onReplace, onRemove }) => {
     const byCat = useMemo(() => {
       const map = { top: null, bottom: null, shoes: null, outer: null, bag: null };
       picks.forEach((p) => {
@@ -425,6 +425,39 @@
                 <Icon name="refresh" size={14} />
               </button>
             )}
+            {onRemove && (
+              <button
+                type="button"
+                aria-label={'删除' + (item.category || '单品')}
+                title="删掉这件"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(item);
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 6,
+                  left: 6,
+                  width: 26,
+                  height: 26,
+                  borderRadius: '50%',
+                  border: 'none',
+                  background: '#fdecec',
+                  color: '#c2410c',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 4px rgba(194,64,12,.2)',
+                  padding: 0,
+                  fontSize: 16,
+                  lineHeight: 1,
+                  zIndex: 2,
+                }}
+              >
+                ×
+              </button>
+            )}
           </>
         ) : (
           <span className="empty-slot">{hint}</span>
@@ -452,8 +485,9 @@
           {cell('top', byCat.top, '上衣')}
           {cell('bottom-item', byCat.bottom, '下装/裙装')}
           {cell('shoes', byCat.shoes, '鞋履')}
-          {cell('outer', byCat.outer, '外套')}
-          {(byCat.bag || picks.length > 4) &&
+          {/* Task D：可编辑模式(onRemove)下，空的外套/包袋槽位不再强制占位，数量可变 */}
+          {(byCat.outer || !onRemove) && cell('outer', byCat.outer, '外套')}
+          {(byCat.bag || (!onRemove && picks.length > 4)) &&
             cell('bag', byCat.bag, '包袋/配饰')}
         </div>
         {footer && (
@@ -2291,9 +2325,11 @@
     scene,
     onClose,
     onReplace,
+    onRemove,
     onRegenerate,
     onSave,
     saveText,
+    generating,
   }) => {
     const artRef = useRef(null);
     const chipStyle = {
@@ -2407,6 +2443,7 @@
         <Flatlay
           picks={outfit.selected_items || []}
           onReplace={onReplace}
+          onRemove={onRemove}
           footer={
             [
               outfit._source === 'backend-ai' || outfit._source === 'local-fallback'
@@ -2440,7 +2477,8 @@
               .replace(/\s+/g, ' ')
               .replace(/\s+([，。、；：！？])/g, '$1')
               .trim()
-              .slice(0, 60)}
+              /* Task B：放宽硬截断，容纳简洁但完整的总结（2~3句），避免话没说完 */
+              .slice(0, 200)}
           </p>
         )}
         {outfit.avoid && (
@@ -2463,9 +2501,9 @@
           </span>
         </button>
         <div className="outfit-action">
-          <button className="outline" onClick={onRegenerate}>
+          <button className="outline" onClick={onRegenerate} disabled={generating}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="refresh" size={14} /> 换一套
+              <Icon name="refresh" size={14} /> {generating ? '生成中…' : '换一套'}
             </span>
           </button>
           <button className="primary" onClick={onSave}>
