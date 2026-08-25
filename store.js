@@ -1924,6 +1924,25 @@
     if (!hasShoes) missing.push('鞋履');
     return missing;
   }
+  // Task 2：场景/风格做「归一化 + 包含式」匹配。
+  // UI 里的场景是「周末休闲/运动健身/正式」等，而单品标签常是「周末/运动/正式场合」，
+  // 直接 === 比较会永远匹配不上 → 评分恒定 → 换场景没区别。这里去掉修饰词后互相 includes。
+  function normTag(x) {
+    return String(x || '')
+      .replace(/(风|系|感)$/g, '')
+      .replace(/(休闲|健身|场合|机能|其他|日常)/g, '')
+      .trim();
+  }
+  function looseIncludes(tags, value) {
+    const nv = normTag(value);
+    if (!nv) return false;
+    return (tags || []).some((t) => {
+      const nt = normTag(t);
+      if (!nt) return false;
+      return nt === nv || nt.includes(nv) || nv.includes(nt);
+    });
+  }
+
   // 给单品打分（v13：多选字段与自由输入都参与）
   function scoreItem(item, ctx) {
     let s = 0;
@@ -1934,9 +1953,9 @@
     const warmths = itemWarmths(item);
     const materials = itemMaterials(item);
 
-    if (styles.includes(ctx.style)) s += 3;
-    if (scenes.includes(ctx.scene)) s += 3;
-    if (item.fitTags?.some((t) => t === ctx.style || t === ctx.scene)) s += 1;
+    if (looseIncludes(styles, ctx.style)) s += 3;
+    if (looseIncludes(scenes, ctx.scene)) s += 3;
+    if (item.fitTags?.some((t) => looseIncludes([t], ctx.style) || looseIncludes([t], ctx.scene))) s += 1;
 
     // 季节
     const month = new Date().getMonth() + 1;
@@ -1985,8 +2004,10 @@
       (item.styleOther || '') + ' ' +
       (item.sceneOther || '');
     if (desc) {
-      if (desc.includes(ctx.style)) s += 1;
-      if (desc.includes(ctx.scene)) s += 1;
+      const nStyle = normTag(ctx.style);
+      const nScene = normTag(ctx.scene);
+      if (nStyle && (desc.includes(ctx.style) || desc.includes(nStyle))) s += 1;
+      if (nScene && (desc.includes(ctx.scene) || desc.includes(nScene))) s += 1;
       // 天气敏感词
       if (ctx.weather?.temperature >= 26 && /(轻薄|凉快|夏|透气)/.test(desc)) s += 1;
       if (ctx.weather?.temperature <= 8 && /(保暖|厚|冬)/.test(desc)) s += 1;
@@ -1999,9 +2020,21 @@
     const scored = items
       .map((x) => ({ x, s: scoreItem(x, ctx) }))
       .sort((a, b) => b.s - a.s);
-    // 从得分最高的前几件里随机取，保证「换一套」每次都有变化，又不失合理性
-    const topN = scored.slice(0, Math.min(3, scored.length));
-    return topN[Math.floor(Math.random() * topN.length)].x;
+    // Task 2：扩大候选池 + 加权真随机，避免每次只在 top3 里挑导致「换一套」高度重复。
+    // 候选 = 与最高分差距 4 分以内的单品；不足 5 件时至少取前 5 件（或全部）。
+    const top = scored[0].s;
+    let pool = scored.filter((it) => it.s >= top - 4);
+    const minPool = Math.min(scored.length, 5);
+    if (pool.length < minPool) pool = scored.slice(0, minPool);
+    // 加权：分数越高概率略高，但低分也有机会 → 组合更多样、每次可能不同。
+    const weights = pool.map((it) => Math.max(1, it.s - (top - 4) + 1));
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total;
+    for (let i = 0; i < pool.length; i++) {
+      r -= weights[i];
+      if (r <= 0) return pool[i].x;
+    }
+    return pool[pool.length - 1].x;
   }
   function localRuleOutfit(input) {
     const items = input.wardrobeItems || [];

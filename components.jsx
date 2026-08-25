@@ -363,37 +363,23 @@
   };
 
   // Flat-lay 效果图：给出 selected_items（含 image / category）
-  const Flatlay = ({ picks, title, meta, footer, forwardRef, onReplace, onRemove }) => {
-    const byCat = useMemo(() => {
-      const map = { top: null, bottom: null, shoes: null, outer: null, bag: null };
-      picks.forEach((p) => {
-        if (!map.top && p.category === '上衣') map.top = p;
-        else if (
-          !map.bottom &&
-          (p.category === '下装' ||
-            p.category === '裙装' ||
-            p.category === '连体')
-        )
-          map.bottom = p;
-        else if (!map.shoes && p.category === '鞋履') map.shoes = p;
-        else if (!map.outer && p.category === '外套') map.outer = p;
-        else if (
-          !map.bag &&
-          (p.category === '包袋' || p.category === '配饰')
-        )
-          map.bag = p;
-      });
-      return map;
-    }, [picks]);
+  const Flatlay = ({ picks, title, meta, footer, forwardRef, onReplace, onRemove, onAdd }) => {
+    // Task 1：不再按固定 5 类槽位塞单品，改为按实际返回的 selected_items 动态渲染。
+    const items = useMemo(
+      () => (Array.isArray(picks) ? picks.filter(Boolean) : []),
+      [picks],
+    );
 
-    const cell = (slotClass, item, hint) => (
-      <div className={'slot ' + slotClass}>
-        {item ? (
-          <>
-            <img src={item.image} alt={item.name} />
-            <div className="slot-label">
-              <strong>{item.name}</strong>
-            </div>
+    const cell = (item, key) => (
+      <div className="slot" key={key}>
+        {item.image ? (
+          <img src={item.image} alt={item.name} />
+        ) : (
+          <span className="empty-slot">{item.category || '单品'}</span>
+        )}
+        <div className="slot-label">
+          <strong>{item.name || item.category || '单品'}</strong>
+        </div>
             {onReplace && (
               <button
                 type="button"
@@ -458,10 +444,6 @@
                 ×
               </button>
             )}
-          </>
-        ) : (
-          <span className="empty-slot">{hint}</span>
-        )}
       </div>
     );
 
@@ -482,13 +464,41 @@
           </div>
         )}
         <div className="flatlay">
-          {cell('top', byCat.top, '上衣')}
-          {cell('bottom-item', byCat.bottom, '下装/裙装')}
-          {cell('shoes', byCat.shoes, '鞋履')}
-          {/* Task D：可编辑模式(onRemove)下，空的外套/包袋槽位不再强制占位，数量可变 */}
-          {(byCat.outer || !onRemove) && cell('outer', byCat.outer, '外套')}
-          {(byCat.bag || (!onRemove && picks.length > 4)) &&
-            cell('bag', byCat.bag, '包袋/配饰')}
+          {items.length === 0 && (
+            <div className="slot" style={{ gridColumn: '1 / -1' }}>
+              <span className="empty-slot">
+                {onAdd
+                  ? '这套还没有单品，点下方「+ 添加单品」从衣橱挑选'
+                  : '暂无单品'}
+              </span>
+            </div>
+          )}
+          {items.map((it, idx) =>
+            cell(it, it && it.id != null ? 'pick-' + it.id : 'pick-' + idx),
+          )}
+          {onAdd && (
+            <button
+              type="button"
+              className="slot slot-add"
+              onClick={onAdd}
+              aria-label="添加单品"
+              title="从衣橱添加一件"
+              style={{
+                cursor: 'pointer',
+                border: '1px dashed #b9aef0',
+                background: 'rgba(255,255,255,.4)',
+                color: '#5b4bdb',
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+              }}
+            >
+              + 添加单品
+            </button>
+          )}
         </div>
         {footer && (
           <div className="tiny mt-3" style={{ color: 'var(--muted)', fontSize: 11 }}>
@@ -2326,6 +2336,7 @@
     onClose,
     onReplace,
     onRemove,
+    onAdd,
     onRegenerate,
     onSave,
     saveText,
@@ -2444,6 +2455,7 @@
           picks={outfit.selected_items || []}
           onReplace={onReplace}
           onRemove={onRemove}
+          onAdd={onAdd}
           footer={
             [
               outfit._source === 'backend-ai' || outfit._source === 'local-fallback'
@@ -2539,6 +2551,43 @@
                 item={it}
                 onClick={() => onPick(it)}
               />
+            ))}
+          </div>
+        )}
+      </Sheet>
+    );
+  };
+
+  // ============== Add Item Sheet（任务 1：从衣橱追加一件到当前搭配） ==============
+  const AddItemSheet = ({ wardrobe, existingIds, onClose, onPick }) => {
+    const [cat, setCat] = useState('全部');
+    const cats = ['全部', ...S.CATEGORIES];
+    const taken = new Set(existingIds || []);
+    const pool = (wardrobe || []).filter((x) => !taken.has(x.id));
+    const alts = cat === '全部' ? pool : pool.filter((x) => x.category === cat);
+    return (
+      <Sheet title="添加单品" subtitle="从衣橱挑选一件加入这套搭配" onClose={onClose}>
+        <div className="tabs">
+          {cats.map((c) => (
+            <button
+              key={c}
+              className={'tab ' + (c === cat ? 'selected' : '')}
+              onClick={() => setCat(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        {alts.length === 0 ? (
+          <EmptyState
+            big="◐"
+            title="没有可添加的单品"
+            tip="换个类别，或回到衣橱上传更多单品后再来添加。"
+          />
+        ) : (
+          <div className="wardrobe-grid">
+            {alts.map((it) => (
+              <ItemCard key={it.id} item={it} onClick={() => onPick(it)} />
             ))}
           </div>
         )}
@@ -3529,6 +3578,7 @@
     SaveLinkSheet,
     OutfitDetailSheet,
     ReplaceSheet,
+    AddItemSheet,
     RecordDetailSheet,
     ShareSheet,
     ProfileSheet,

@@ -21,6 +21,7 @@
     SaveLinkSheet,
     OutfitDetailSheet,
     ReplaceSheet,
+    AddItemSheet,
     RecordDetailSheet,
     ShareSheet,
     ProfileSheet,
@@ -525,6 +526,38 @@
       [outfit, showToast],
     );
 
+    // 任务 1：从衣橱添加一件到当前搭配（push 进 selected_items，添加后仍可正常保存）
+    const handleAddPick = useCallback(
+      (newItem) => {
+        if (!outfit || !newItem) return;
+        const already = (outfit.selected_items || []).some((p) => p && p.id === newItem.id);
+        if (already) {
+          showToast('这件已经在这套搭配里了');
+          setOpenSheet('detail');
+          return;
+        }
+        const added = {
+          id: newItem.id,
+          name: newItem.name,
+          category: newItem.category,
+          image: newItem.image,
+          color: newItem.color,
+          reason:
+            '手动添加的 ' +
+            (newItem.category || '单品') +
+            '，风格 ' +
+            (newItem.styleTags || []).join(' / '),
+        };
+        setOutfit({
+          ...outfit,
+          selected_items: [...(outfit.selected_items || []), added],
+        });
+        setOpenSheet('detail');
+        showToast('已添加 ' + (newItem.category || '单品'));
+      },
+      [outfit, showToast],
+    );
+
     // 删除记录
     const handleDeleteRecord = useCallback(
       (r) => {
@@ -736,6 +769,7 @@
                 setOpenSheet('replace');
               }}
               onRemove={handleRemoveItem}
+              onAdd={() => setOpenSheet('add')}
               onRegenerate={doGenerate}
               onSave={handleSaveOutfit}
               generating={generating}
@@ -750,6 +784,14 @@
                 setOpenSheet('detail');
               }}
               onPick={handleReplacePick}
+            />
+          )}
+          {openSheet === 'add' && (
+            <AddItemSheet
+              wardrobe={wardrobe}
+              existingIds={(outfit?.selected_items || []).map((p) => p && p.id)}
+              onClose={() => setOpenSheet('detail')}
+              onPick={handleAddPick}
             />
           )}
           {openSheet === 'record' && (

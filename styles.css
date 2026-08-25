@@ -201,6 +201,7 @@ h2{font-size:18px;margin:20px 0 10px;letter-spacing:-.02em;font-weight:600;color
   display:flex;
   align-items:center;
 }
+.select-trigger.placeholder{color:var(--muted);font-weight:500}
 .select-trigger:after{
   content:"";
   position:absolute;
