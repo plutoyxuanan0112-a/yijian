@@ -35,6 +35,21 @@
     );
   }
 
+  // 把穿搭记录里的 weather（可能是结构化对象 / 摘要字符串 / null）安全拼成展示文案。
+  // 老记录没存温度/天气时，返回空串或已有摘要，绝不输出 "undefined°C · undefined"。
+  function formatRecordWeather(w) {
+    if (!w) return '';
+    if (typeof w === 'string') {
+      const str = w.trim();
+      return str && str !== '未知' ? str : '';
+    }
+    const parts = [];
+    if (w.temperature != null && w.temperature !== '') parts.push(w.temperature + '°C');
+    if (w.weatherLabel) parts.push(w.weatherLabel);
+    if (!parts.length && w.summary) return String(w.summary);
+    return parts.join(' · ');
+  }
+
   const Icon = ({ name, size = 20 }) => {
     const s = size;
     const props = {
@@ -777,11 +792,7 @@
           </p>
           <p className="tiny">
             {record.style} ·{' '}
-            {record.weather
-              ? record.weather.temperature +
-                '°C · ' +
-                record.weather.weatherLabel
-              : '未记录天气'}
+            {formatRecordWeather(record.weather) || '未记录天气'}
           </p>
         </div>
         {onDelete && (
@@ -2473,6 +2484,31 @@
           }
           forwardRef={artRef}
         />
+        {(() => {
+          // 推荐来源小标签：帮助判断本次到底走了 AI 还是本地规则，样式低调。
+          const src = outfit._source || outfit.source;
+          const isAI = src === 'backend-ai' || src === 'ai';
+          const label = isAI ? 'AI 生成' : '本地规则';
+          return (
+            <div
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                fontSize: 11,
+                lineHeight: 1.4,
+                color: isAI ? '#5b4bdb' : '#8a8a99',
+                background: isAI ? '#efeaff' : '#f2f2f5',
+                border: '1px solid ' + (isAI ? '#e0d8ff' : '#e6e6ec'),
+                borderRadius: 999,
+                padding: '2px 8px',
+                margin: '0 0 10px',
+              }}
+            >
+              {label}
+            </div>
+          );
+        })()}
         {(outfit.summary || outfit.color_reason || outfit.style_reason) && (
           <p
             className="detail-summary"
@@ -2605,11 +2641,8 @@
           record.style +
           ' / ' +
           record.scene +
-          (record.weather
-            ? ' · ' +
-              record.weather.temperature +
-              '°C · ' +
-              record.weather.weatherLabel
+          (formatRecordWeather(record.weather)
+            ? ' · ' + formatRecordWeather(record.weather)
             : '')
         }
         onClose={onClose}

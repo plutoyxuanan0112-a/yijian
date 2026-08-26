@@ -562,6 +562,37 @@
     return candidates.find((x) => haystack.includes(x)) || '简约通勤';
   }
 
+  // 记录用天气：保存时把结构化天气对象序列化成 JSON 存进后端 weather 字段，
+  // 读取时再还原成对象；老记录只有摘要字符串时也能兼容，避免详情页出现 undefined°C。
+  function serializeRecordWeather(weather) {
+    if (weather && typeof weather === 'object') {
+      return JSON.stringify({
+        temperature: weather.temperature != null ? weather.temperature : null,
+        weatherLabel: weather.weatherLabel || null,
+        city: weather.city || null,
+        precipitation: weather.precipitation != null ? weather.precipitation : 0,
+        warmthNeed: weather.warmthNeed || null,
+        summary: weather.summary || null,
+      });
+    }
+    if (typeof weather === 'string' && weather.trim()) return weather.trim();
+    return '未知';
+  }
+  function parseRecordWeather(raw) {
+    if (raw == null) return null;
+    if (typeof raw === 'object') return raw;
+    const str = String(raw).trim();
+    if (!str || str === '未知') return null;
+    if (str.startsWith('{')) {
+      try {
+        const obj = JSON.parse(str);
+        if (obj && typeof obj === 'object') return obj;
+      } catch (e) { /* 非 JSON，按老记录摘要处理 */ }
+    }
+    // 老记录：只有一段摘要字符串，没有结构化温度
+    return { temperature: null, weatherLabel: null, summary: str };
+  }
+
   function mapBackendRecord(row) {
     // 后端 outfit_records 里存了 selected_clothing_ids（后端单品 id 数组）。
     // 以前这里写死 selected_items: []，导致穿搭记录里看不到任何单品图片。
@@ -591,7 +622,7 @@
       date: row.created_at ? row.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10),
       style: inferRecordStyle(row.recommendation_text, row.scene),
       scene: row.scene,
-      weather: row.weather,
+      weather: parseRecordWeather(row.weather),
       selected_clothing_ids: selectedItems.map((x) => x.backendId),
       outfit: {
         title: row.scene + '穿搭记录',
@@ -617,7 +648,7 @@
       body: JSON.stringify({
         recommendation_text: text,
         scene: record.scene || '日常通勤',
-        weather: typeof record.weather === 'string' ? record.weather : (record.weather?.summary || '未知'),
+        weather: serializeRecordWeather(record.weather),
         selected_clothing_ids: selected,
         ai_provider: record.outfit?.ai_provider || null,
         ai_model: record.outfit?.ai_model || null,
@@ -1943,6 +1974,46 @@
     });
   }
 
+  // ── 场景-品类/风格 适配打分 ──
+  // 让"什么场景适合什么衣服"真正影响评分：运动场景排斥连衣裙/正装/高跟，偏好运动风与运动鞋；
+  // 正式/通勤场景排斥运动风。约会/休闲/周末保持宽松（返回 0）。
+  function isSportyItem(item, styles, name) {
+    const st = (styles || []).join(' ');
+    return /运动|户外|机能/.test(st) ||
+      /运动|卫衣|T恤|t恤|球鞋|跑鞋|运动鞋|运动裤|瑜伽|健身|冲锋衣|速干/.test(String(name || ''));
+  }
+  function sceneAdaptScore(item, scene, styles, materials) {
+    const raw = String(scene || '');
+    const ns = normTag(raw);
+    if (!ns && !raw) return 0;
+    const cat = item.category || '';
+    const name = String(item.name || '');
+    const styleText = (styles || []).join(' ');
+    const isDressy = cat === '裙装' || cat === '连体';
+    const isFormalStyle = /正式|正装|通勤|商务|优雅|气质|简约|职业/.test(styleText);
+    const isHeel = /高跟|细跟|尖头|皮鞋/.test(name);
+    const sporty = isSportyItem(item, styles, name);
+    // 运动 / 运动健身 场景
+    if (/运动|健身/.test(ns) || raw.includes('运动') || raw.includes('健身')) {
+      let d = 0;
+      if (sporty) d += 5;                                   // 运动风/运动单品 加权
+      if (cat === '鞋履' && /运动|球鞋|跑鞋|老爹鞋/.test(name)) d += 3; // 运动鞋 加权
+      if (isDressy) d -= 8;                                 // 连衣裙/连体 大幅降权（几乎排除）
+      if (isFormalStyle) d -= 4;                            // 正式/正装风格 降权
+      if (isHeel) d -= 6;                                   // 高跟/皮鞋 排除
+      return d;
+    }
+    // 正式 / 通勤 / 出差 / 商务 场景
+    if (/正式|通勤|出差|商务/.test(ns) || raw.includes('正式') || raw.includes('通勤') || raw.includes('出差')) {
+      let d = 0;
+      if (isFormalStyle) d += 3;                            // 简约/正装/优雅 加权
+      if (sporty) d -= 4;                                   // 运动风/过于休闲 降权
+      return d;
+    }
+    // 约会 / 休闲 / 周末 / 度假 等：保持宽松
+    return 0;
+  }
+
   // 给单品打分（v13：多选字段与自由输入都参与）
   function scoreItem(item, ctx) {
     let s = 0;
@@ -1956,6 +2027,9 @@
     if (looseIncludes(styles, ctx.style)) s += 3;
     if (looseIncludes(scenes, ctx.scene)) s += 3;
     if (item.fitTags?.some((t) => looseIncludes([t], ctx.style) || looseIncludes([t], ctx.scene))) s += 1;
+
+    // 场景-品类/风格 适配（运动排斥连衣裙/正装/高跟，正式排斥运动风等）
+    s += sceneAdaptScore(item, ctx.scene, styles, materials);
 
     // 季节
     const month = new Date().getMonth() + 1;
@@ -2111,6 +2185,25 @@
       category: x.category,
       reason: whyPicked(x, ctx),
     }));
+    // 场景诚实性检查：若衣橱缺少适合该场景的单品，如实注明并给出补充建议，
+    // 不硬把明显不搭的单品（如运动场景里的连衣裙）说成合适。
+    let sceneNote = '';
+    const nScene = normTag(scene);
+    if (/运动|健身/.test(nScene) || scene.includes('运动') || scene.includes('健身')) {
+      const hasSporty = picks.some((p) => isSportyItem(p, itemStyles(p), p.name));
+      const hasDressy = picks.some((p) => p.category === '裙装' || p.category === '连体');
+      if (!hasSporty || hasDressy) {
+        sceneNote =
+          '衣橱缺少适合运动的单品，暂用' +
+          (hasDressy ? '连衣裙 / 连体等非运动单品' : '现有单品') +
+          '替代，建议补充运动上衣、运动裤与运动鞋。';
+      }
+    } else if (/正式|通勤|出差|商务/.test(nScene) || scene.includes('正式') || scene.includes('通勤') || scene.includes('出差')) {
+      const tooCasual = picks.some((p) => isSportyItem(p, itemStyles(p), p.name));
+      if (tooCasual) {
+        sceneNote = '衣橱偏休闲/运动，暂无更正式的单品，建议补充简约或正装类单品以更贴合该场景。';
+      }
+    }
     const avoid =
       weather.precipitation > 0
         ? '雨天不建议穿浅色皮鞋 / 麂皮 / 帆布鞋'
@@ -2122,12 +2215,13 @@
       selected_items,
       style_reason: whyStyle(picks, style),
       weather_reason: whyWeather(picks, weather),
-      scene_reason: whyScene(picks, scene),
-      color_reason: whyColor(picks),
+      scene_reason: whyScene(picks, scene) + (sceneNote ? ' ' + sceneNote : ''),
+      color_reason: (sceneNote ? sceneNote + ' ' : '') + whyColor(picks),
       avoid,
       missing_piece: '',
       creator_recommendation_tags: [style, scene, picks[0]?.styleTags?.[0]].filter(Boolean),
       _source: 'local',
+      source: 'local',
     };
   }
   function whyPicked(item, ctx) {
@@ -2239,6 +2333,7 @@
           ai_provider: data.provider,
           ai_model: data.model,
           _source: 'backend-ai',
+          source: data.source || 'ai',
           _provider: data.provider,
           _model: data.model,
           _latencyMs: Date.now() - started,
@@ -2248,6 +2343,7 @@
       } catch (e) {
         const local = localRuleOutfit(input);
         local._source = 'local-fallback';
+        local.source = 'local-fallback';
         local._error = (e && e.message) || String(e);
         logAICall({ at: Date.now(), source: 'local-fallback', provider: 'backend', model: '', ok: false, latencyMs: Date.now() - started, message: '后端 AI 推荐不可用，已回退本地规则：' + local._error });
         return local;
