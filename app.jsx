@@ -78,6 +78,13 @@
       };
     }, [outfit, showToast]);
 
+    // Render 免费实例冷启动探活：App 启动时静默唤醒后端，避免用户点「生成」时才触发 30~60s 冷启动
+    useEffect(() => {
+      try {
+        fetch(S.getApiBase() + '/', { method: 'GET' }).catch(() => {});
+      } catch (e) {}
+    }, []);
+
     // 登录后从后端同步当前账号的数据；未登录时保持空衣橱，不展示本机历史缓存。
     useEffect(() => {
       let alive = true;

@@ -51,7 +51,7 @@
   // 导致上层 await 永不 resolve（登录按钮卡在「提交中…」）。
   // 用 AbortController 给每个请求加超时，超时后主动 abort，让上层 catch/finally 能执行。
   const API_TIMEOUT_MS = 20000;
-  async function apiFetch(path, options) {
+  async function apiFetch(path, options, timeoutMs) {
     const isFormData = options && options.body instanceof FormData;
     const headers = isFormData
       ? { ...((options && options.headers) || {}) }
@@ -59,7 +59,7 @@
     const token = getApiToken();
     if (token) headers.Authorization = 'Bearer ' + token;
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    const timer = controller ? setTimeout(() => controller.abort(), API_TIMEOUT_MS) : null;
+    const timer = controller ? setTimeout(() => controller.abort(), (typeof timeoutMs === 'number' ? timeoutMs : API_TIMEOUT_MS)) : null;
     let res;
     try {
       res = await fetch(getApiBase() + path, {
@@ -2306,12 +2306,14 @@
             style_preference: input.style || '简洁、实穿',
             extra_request: input.extra || input.extraRequest || '',
           }),
-        });
+        }, 65000);
         // 后端做了穿搭硬规则后验校验：不通过时返回 { error:'outfit_invalid' }，
         // 这里主动抛错，走下面 catch 的本地规则兜底，保证一定给用户一套可用搭配。
-        if (data && data.error === 'outfit_invalid') {
-          const err = new Error('AI 推荐不符合穿搭规则：' + (data.detail || ''));
-          err.code = 'OUTFIT_INVALID';
+        if (data && data.error) {
+          const code = String(data.error || '').trim();
+          const msg = code === 'outfit_invalid' ? ('AI 推荐不符合穿搭规则：' + (data.detail || '')) : ('AI 推荐失败：' + code);
+          const err = new Error(msg);
+          err.code = code || 'AI_ERROR';
           throw err;
         }
         const wardrobeByBackendId = new Map((input.wardrobeItems || []).map((x) => [x.backendId || (String(x.id || '').startsWith('api-') ? Number(String(x.id).slice(4)) : null), x]));

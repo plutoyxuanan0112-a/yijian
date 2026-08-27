@@ -667,6 +667,14 @@
           >
             {generating ? '生成中…' : '生成今日穿搭'}
           </button>
+
+{generating && (
+  <div
+    style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}
+  >
+    首次生成可能较慢（约 1 分钟），请耐心等待…
+  </div>
+)}
         </div>
 
         {outfit && outfit.missing_piece && (
@@ -2558,6 +2566,14 @@
             {saveText || '保存'}
           </button>
         </div>
+
+{generating && (
+  <div
+    style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}
+  >
+    首次生成可能较慢（约 1 分钟），请耐心等待…
+  </div>
+)}
       </Sheet>
     );
   };
