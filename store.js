@@ -2512,7 +2512,39 @@
     return res.json();
   }
 
+  // ============== 博主推荐 . 风格行为埋点 & 数据获取 ==============
+  async function recordStyleBehavior(styleTag, actionType) {
+    if (!styleTag) return;
+    try {
+      await apiFetch('/api/v1/user/style-behavior', {
+        method: 'POST',
+        body: JSON.stringify({ style_tag: styleTag, action_type: actionType }),
+      });
+    } catch (e) {}
+  }
+  async function fetchBloggerRecommendations() {
+    try {
+      const data = await apiFetch('/api/v1/bloggers/recommendations');
+      return (data && (data.items || data.bloggers || data.recommendations)) || (Array.isArray(data) ? data : []);
+    } catch (e) {
+      return [];
+    }
+  }
+  async function fetchBloggers(tag) {
+    try {
+      const path = tag ? '/api/v1/bloggers?tag=' + encodeURIComponent(tag) : '/api/v1/bloggers';
+      const data = await apiFetch(path);
+      return (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
+    } catch (e) {
+      return [];
+    }
+  }
+
   window.YijianStore = {
+    recordStyleBehavior,
+    fetchBloggerRecommendations,
+    fetchBloggers,
+
     // wardrobe
     getWardrobe,
     saveWardrobe,

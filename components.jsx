@@ -393,7 +393,7 @@
           <span className="empty-slot">{item.category || '单品'}</span>
         )}
         <div className="slot-label">
-          <strong>{item.name || item.category || '单品'}</strong>
+          <strong>{(item.name && item.name !== '未填写') ? item.name : (item.category || '单品')}</strong>
         </div>
             {onReplace && (
               <button
@@ -412,13 +412,13 @@
                   height: 26,
                   borderRadius: '50%',
                   border: 'none',
-                  background: '#efeaff',
-                  color: '#5b4bdb',
+                  background: '#ede9fe',
+                  color: '#7c3aed',
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 1px 4px rgba(91,75,219,.2)',
+                  boxShadow: '0 1px 4px rgba(124,58,237,.2)',
                   padding: 0,
                   zIndex: 2,
                 }}
@@ -727,9 +727,6 @@
 
         <div className="section-head">
           <h2>为你推荐博主</h2>
-          <button className="link" onClick={onOpenCreatorsAll}>
-            查看更多 ›
-          </button>
         </div>
         <div>
           {creators.slice(0, 2).map((c) => (
@@ -767,7 +764,7 @@
                 查看全部 ›
               </button>
             </div>
-            {recentRecords.slice(0, 2).map((r) => (
+            {recentRecords.slice(0, 1).map((r) => (
               <MiniRecord
                 key={r.id}
                 record={r}
@@ -796,7 +793,7 @@
             {record.date} · {record.scene}
           </strong>
           <p>
-            {picks.map((p) => p.name).join(' · ') || '空搭配'}
+            {picks.map((p) => (p.name && p.name !== '未填写') ? p.name : (p.category || '单品')).join(' · ') || '空搭配'}
           </p>
           <p className="tiny">
             {record.style} ·{' '}
@@ -1371,6 +1368,7 @@
       { key: 'home', label: '首页', icon: 'home' },
       { key: 'wardrobe', label: '衣橱', icon: 'closet' },
       { key: 'inspire', label: '灵感', icon: 'sparkle' },
+      { key: 'blogger', label: '博主', icon: 'star' },
       { key: 'records', label: '日记', icon: 'clock' },
     ];
     return (
@@ -2285,6 +2283,12 @@
             onChange={(e) => {
               setUrl(e.target.value);
               setErr('');
+            }}
+            onBlur={(e) => {
+              const v = e.target.value.trim();
+              if (v && !note.trim()) {
+                setNote(S.guessTitleFromUrl(v));
+              }
             }}
           />
         </div>
@@ -3608,6 +3612,106 @@
     );
   };
 
+  // ============== 博主推荐 ==============
+  const STYLE_COLORS = {
+    '通勤': '#6366f1', '优雅知性': '#8b5cf6', '韩系': '#ec4899', '简约': '#64748b',
+    '复古': '#b45309', '甜美': '#f472b6', '户外运动': '#059669', '中性': '#334155',
+    '美式': '#dc2626', '甜酷': '#7c3aed', '日系': '#0891b2',
+  };
+
+  const BloggerCard = ({ blogger }) => {
+    if (!blogger) return null;
+    const name = blogger.name || '博主';
+    const initial = name.charAt(0) || '博';
+    let tags = blogger.tags;
+    if (!Array.isArray(tags)) {
+      try { tags = JSON.parse(tags || '[]'); } catch (e) { tags = []; }
+    }
+    if (!Array.isArray(tags)) tags = [];
+    const color = STYLE_COLORS[tags[0]] || '#a78bfa';
+    const url = blogger.profile_url || blogger.url || '';
+    const openHome = () => { if (url) window.open(url, '_blank', 'noopener'); };
+    return (
+      <div className="blogger-card" onClick={openHome}>
+        <div className="blogger-avatar" style={{ background: color }}>{initial}</div>
+        <div className="blogger-info">
+          <div className="blogger-name">{name}</div>
+          <div className="blogger-tags">
+            {tags.map((t, i) => {
+              const c = STYLE_COLORS[t] || '#a78bfa';
+              return (
+                <span key={i} className="tag-chip" style={{ background: c + '22', color: c }}>{t}</span>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const BloggerPage = () => {
+    const [tab, setTab] = useState('reco');
+    const [reco, setReco] = useState([]);
+    const [all, setAll] = useState([]);
+    const [activeStyle, setActiveStyle] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+      let alive = true;
+      setLoading(true);
+      S.fetchBloggerRecommendations()
+        .then((list) => { if (alive) setReco((list || []).slice(0, 20)); })
+        .finally(() => { if (alive) setLoading(false); });
+      return () => { alive = false; };
+    }, []);
+
+    useEffect(() => {
+      if (tab !== 'all') return;
+      let alive = true;
+      setLoading(true);
+      S.fetchBloggers(activeStyle)
+        .then((list) => { if (alive) setAll(list || []); })
+        .finally(() => { if (alive) setLoading(false); });
+      return () => { alive = false; };
+    }, [tab, activeStyle]);
+
+    const styleKeys = Object.keys(STYLE_COLORS);
+    const list = tab === 'reco' ? reco : all;
+
+    return (
+      <div className="blogger-page">
+        <div className="blogger-tab-bar">
+          <button className={'blogger-tab ' + (tab === 'reco' ? 'active' : '')} onClick={() => setTab('reco')}>猜你喜欢</button>
+          <button className={'blogger-tab ' + (tab === 'all' ? 'active' : '')} onClick={() => setTab('all')}>全部</button>
+        </div>
+        {tab === 'all' && (
+          <div className="style-filter-bar">
+            <button className={'style-filter-chip ' + (activeStyle === '' ? 'active' : '')} onClick={() => setActiveStyle('')}>全部</button>
+            {styleKeys.map((k) => (
+              <button
+                key={k}
+                className={'style-filter-chip ' + (activeStyle === k ? 'active' : '')}
+                style={activeStyle === k ? { background: STYLE_COLORS[k], color: '#fff', borderColor: STYLE_COLORS[k] } : { color: STYLE_COLORS[k] }}
+                onClick={() => setActiveStyle(k)}
+              >{k}</button>
+            ))}
+          </div>
+        )}
+        {loading ? (
+          <div className="blogger-list">
+            {[0, 1, 2, 3, 4].map((i) => (<div key={i} className="blogger-skeleton" />))}
+          </div>
+        ) : list.length === 0 ? (
+          <div className="blogger-empty">暂无推荐，先去添加穿搭吧～</div>
+        ) : (
+          <div className="blogger-list">
+            {list.map((b, i) => (<BloggerCard key={(b && (b.id || b.profile_url)) || i} blogger={b} />))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   window.YijianUI = {
     StatusBar,
     Icon,
@@ -3622,6 +3726,8 @@
     InspirePage,
     RecordsPage,
     BottomNav,
+    BloggerCard,
+    BloggerPage,
     Sheet,
     UploadSheet,
     SaveLinkSheet,

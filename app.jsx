@@ -17,6 +17,7 @@
     InspirePage,
     RecordsPage,
     BottomNav,
+    BloggerPage,
     UploadSheet,
     SaveLinkSheet,
     OutfitDetailSheet,
@@ -169,6 +170,7 @@
         return;
       }
       setGenerating(true);
+      S.recordStyleBehavior(style, 'choose_style');
       let w = weather;
       if (!w) w = S.DEFAULT_WEATHER;
       try {
@@ -301,6 +303,7 @@
         showToast('已保存到日记');
       }
       setRecords(S.getOutfits());
+      S.recordStyleBehavior(style, 'save_outfit');
       setOpenSheet(null);
       return saved;
     }, [isLoggedIn, remindLogin, outfit, weather, scene, style, showToast]);
@@ -436,6 +439,8 @@
           setLinks(S.getLinks());
           setOpenSheet(null);
           showToast('已保存到灵感库');
+          const _tags = (link && link.tags) || [];
+          _tags.forEach((t) => S.recordStyleBehavior(t, 'save_inspiration'));
         }
       },
       [showToast],
@@ -515,11 +520,12 @@
           color_reason: outfit.color_reason + '（已替换 ' + newItem.category + '）',
         };
         setOutfit(updated);
+        S.recordStyleBehavior(style, 'replace_item');
         setReplaceTarget(null);
         setOpenSheet('detail');
         showToast('已替换 ' + newItem.category);
       },
-      [outfit, replaceTarget, showToast],
+      [outfit, replaceTarget, style, showToast],
     );
 
     // 删除整套里的某个单品（任务 D：不想要的包/配饰等可直接去掉，删除后仍能正常保存到日记）
@@ -714,6 +720,7 @@
             onOpen={openRecordDetail}
           />
         );
+      if (page === 'blogger') return <BloggerPage />;
       return null;
     };
 
