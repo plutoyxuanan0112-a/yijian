@@ -195,6 +195,34 @@
             <path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14l-5-4.5 6.5-.5L12 3Z" />
           </svg>
         );
+      case 'back':
+        return (
+          <svg {...props}>
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
+        );
+      case 'close':
+        return (
+          <svg {...props}>
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        );
+      case 'rows':
+        return (
+          <svg {...props}>
+            <rect x="4" y="5.5" width="16" height="5.4" rx="1.4" />
+            <rect x="4" y="13" width="16" height="5.4" rx="1.4" />
+          </svg>
+        );
+      case 'grid':
+        return (
+          <svg {...props}>
+            <rect x="4.5" y="4.5" width="6.2" height="6.2" rx="1.2" />
+            <rect x="13.3" y="4.5" width="6.2" height="6.2" rx="1.2" />
+            <rect x="4.5" y="13.3" width="6.2" height="6.2" rx="1.2" />
+            <rect x="13.3" y="13.3" width="6.2" height="6.2" rx="1.2" />
+          </svg>
+        );
       default:
         return null;
     }
@@ -725,36 +753,7 @@
           </div>
         )}
 
-        <div className="section-head">
-          <h2>为你推荐博主</h2>
-        </div>
-        <div>
-          {creators.slice(0, 2).map((c) => (
-            <div key={c.id} className="creator-card">
-              <div className="creator-avatar">{c.avatar}</div>
-              <div className="creator-body">
-                <div className="creator-name-row">
-                  <strong>{c.name}</strong>
-                  <CreatorLinkBadge creator={c} />
-                </div>
-                <div className="meta">
-                  {c.platform}
-                  {c.handle ? ' · ' + c.handle : ''} ·{' '}
-                  {c.styleTags.slice(0, 2).join(' / ')}
-                </div>
-                <div className="desc">{c.description}</div>
-                {c.fallbackNote && (
-                  <div className="creator-fallback-note">
-                    ⚠ {c.fallbackNote}
-                  </div>
-                )}
-              </div>
-              <button className="save-pill" onClick={() => onOpenCreator(c)}>
-                去看看
-              </button>
-            </div>
-          ))}
-        </div>
+        <HomeBloggerRail onOpenStyleBrowse={() => onNav('styleBrowse')} />
 
         {recentRecords && recentRecords.length > 0 && (
           <>
@@ -896,132 +895,89 @@
   };
 
   // ============== Inspire Page ==============
+  // 灵感落地页（概览）：按风格逛预览 + 我的收藏预览。完整板块见 StyleBrowsePage / CollectionsPage。
   const InspirePage = ({
-    creators,
     links,
+    inspireTag,
+    setInspireTag,
     onOpenSaveLink,
-    onOpenCreator,
-    onOpenCreatorsAll,
-    onDeleteLink,
-    onRenameLink,
-    onCopyLink,
+    onNav,
   }) => {
-    const pressTimer = useRef(null);
-    const [renamingLink, setRenamingLink] = useState(null);
-    const [renameValue, setRenameValue] = useState('');
-    const openRename = (link) => {
-      clearPressTimer();
-      setRenamingLink(link);
-      setRenameValue(link?.title || '');
+    const [preview, setPreview] = useState([]);
+    const [pending, setPending] = useState(null);
+    const styleKeys = Object.keys(STYLE_COLORS);
+    useEffect(() => {
+      let alive = true;
+      S.fetchBloggers(inspireTag).then((l) => {
+        if (alive) setPreview((l || []).slice(0, 2));
+      });
+      return () => {
+        alive = false;
+      };
+    }, [inspireTag]);
+    const doConfirm = () => {
+      const bg = pending;
+      setPending(null);
+      if (!bg) return;
+      setPreview((prev) => prev.filter((x) => x !== bg));
+      const tag = normTags(bg)[0] || inspireTag;
+      if (tag) S.recordStyleBehavior(tag, 'dislike_style');
     };
-    const submitRename = async () => {
-      if (!renamingLink) return;
-      const ok = onRenameLink && (await onRenameLink(renamingLink, renameValue));
-      if (ok) {
-        setRenamingLink(null);
-        setRenameValue('');
-      }
-    };
-    const clearPressTimer = () => {
-      if (pressTimer.current) {
-        window.clearTimeout(pressTimer.current);
-        pressTimer.current = null;
-      }
-    };
-    const startLongPress = (link) => {
-      clearPressTimer();
-      pressTimer.current = window.setTimeout(() => {
-        pressTimer.current = null;
-        openRename(link);
-      }, 560);
-    };
-
+    const savedPreview = links.slice().reverse().slice(0, 2);
     return (
-    <div className="page">
-      <div className="sub">留下每一个让你心动的搭配</div>
-      <h1 className="h1-hero">灵感与收藏</h1>
+      <div className="page">
+        <div className="bl-section-head" style={{ marginTop: 8 }}>
+          <h2 className="bl-h2">按风格逛</h2>
+          <button className="bl-link" onClick={() => onNav('styleBrowse')}>
+            查看更多 <Icon name="chevron" size={13} />
+          </button>
+        </div>
+        <div className="bl-chips">
+          {styleKeys.map((t) => (
+            <button
+              key={t}
+              className={'bl-chip' + (t === inspireTag ? ' active' : '')}
+              onClick={() => setInspireTag(t)}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {preview.length === 0 ? (
+            <div className="blogger-empty">这个风格暂时没有博主～</div>
+          ) : (
+            preview.map((bg, i) => (
+              <BloggerSingleCard
+                key={(bg && (bg.id || bg.profile_url)) || i}
+                blogger={bg}
+                onOpen={() => openBloggerHome(bg)}
+                onDislike={() => setPending(bg)}
+              />
+            ))
+          )}
+        </div>
 
-      <div className="hero">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)' }}>
-              从外部平台保存
-            </div>
-            <div className="tiny mt-2" style={{ marginTop: 4 }}>
-              复制小红书 / 抖音 / 淘宝链接，一键存进灵感库
-            </div>
-          </div>
+        <div className="bl-section-head">
+          <h2 className="bl-h2">我的收藏</h2>
           <button className="primary" onClick={onOpenSaveLink}>
             <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
               <Icon name="plus" size={14} /> 保存
             </span>
           </button>
         </div>
-      </div>
-
-      <div className="section-head">
-        <h2>风格博主推荐</h2>
-        <button className="link" onClick={onOpenCreatorsAll}>
-          查看全部博主 ›
-        </button>
-      </div>
-      {creators.slice(0, 3).map((c) => (
-        <div key={c.id} className="creator-card">
-          <div className="creator-avatar">{c.avatar}</div>
-          <div className="creator-body">
-            <div className="creator-name-row">
-              <strong>{c.name}</strong>
-              <CreatorLinkBadge creator={c} />
-            </div>
-            <div className="meta">
-              {c.platform}
-              {c.handle ? ' · ' + c.handle : ''} ·{' '}
-              {c.styleTags.join(' / ')}
-            </div>
-            <div className="desc">{c.description}</div>
-            {c.fallbackNote && (
-              <div className="creator-fallback-note">
-                ⚠ {c.fallbackNote}
-              </div>
-            )}
-          </div>
-          <button className="save-pill" onClick={() => onOpenCreator(c)}>
-            去看看
-          </button>
-        </div>
-      ))}
-
-      <div className="section-head">
-        <h2>我的Pick</h2>
-        <span className="tiny">{links.length} 条</span>
-      </div>
-      {links.length === 0 ? (
-        <EmptyState
-          big="✦"
-          title="还没有保存的灵感"
-          tip="看到喜欢的小红书 / 抖音 / 淘宝内容，粘贴链接进来。"
-        />
-      ) : (
-        links
-          .slice()
-          .reverse()
-          .map((l) => (
-            <div
-              key={l.id}
-              className="link-card"
-              onContextMenu={(e) => {
-                e.preventDefault();
-                openRename(l);
-              }}
-              onTouchStart={() => startLongPress(l)}
-              onTouchMove={clearPressTimer}
-              onTouchEnd={clearPressTimer}
-              onTouchCancel={clearPressTimer}
-            >
+        {savedPreview.length === 0 ? (
+          <EmptyState
+            big="✦"
+            title="还没有保存的灵感"
+            tip="看到喜欢的小红书 / 抖音 / 淘宝内容，粘贴链接进来。"
+          />
+        ) : (
+          savedPreview.map((l) => (
+            <div key={l.id} className="link-card" onClick={() => onNav('collections')}>
               <strong>{l.title}</strong>
               <span className="url">{l.url}</span>
-              {l.note && <div className="note">{l.note}</div>}
-              {l.tags?.length > 0 && (
+              {l.tags && l.tags.length > 0 && (
                 <div className="link-tags">
                   {l.tags.map((t) => (
                     <span key={t} className="link-tag">
@@ -1030,71 +986,19 @@
                   ))}
                 </div>
               )}
-              <div className="link-card-row">
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button
-                    className="icon-btn"
-                    onClick={() => onCopyLink(l)}
-                    aria-label="复制链接"
-                  >
-                    <Icon name="copy" size={14} />
-                  </button>
-                  <a
-                    className="icon-btn"
-                    href={l.url}
-                    target="_blank"
-                    rel="noopener"
-                    aria-label="打开链接"
-                  >
-                    <Icon name="link" size={14} />
-                  </a>
-                </div>
-                <button
-                  className="tiny"
-                  style={{ color: 'var(--accent)', fontWeight: 600, marginRight: 10 }}
-                  onClick={() => openRename(l)}
-                >
-                  重命名
-                </button>
-                <button
-                  className="tiny"
-                  style={{ color: '#a04b60', fontWeight: 600 }}
-                  onClick={() => onDeleteLink(l)}
-                >
-                  删除
-                </button>
-              </div>
             </div>
           ))
-      )}
-
-      {renamingLink && (
-        <div className="modal-mask" onClick={() => setRenamingLink(null)}>
-          <div className="rename-popover" onClick={(e) => e.stopPropagation()}>
-            <div className="sheet-title">重命名灵感</div>
-            <input
-              className="input"
-              value={renameValue}
-              autoFocus
-              onChange={(e) => setRenameValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') submitRename();
-                if (e.key === 'Escape') setRenamingLink(null);
-              }}
-              placeholder="例如：春日通勤配色"
-            />
-            <div className="rename-actions">
-              <button className="ghost" onClick={() => setRenamingLink(null)}>
-                取消
-              </button>
-              <button className="primary" onClick={submitRename}>
-                保存
-              </button>
-            </div>
-          </div>
+        )}
+        <div className="bl-more-row">
+          <button className="bl-link" onClick={() => onNav('collections')}>
+            查看更多 <Icon name="chevron" size={13} />
+          </button>
         </div>
-      )}
-    </div>
+
+        {pending && (
+          <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
+        )}
+      </div>
     );
   };
 
@@ -1368,7 +1272,6 @@
       { key: 'home', label: '首页', icon: 'home' },
       { key: 'wardrobe', label: '衣橱', icon: 'closet' },
       { key: 'inspire', label: '灵感', icon: 'sparkle' },
-      { key: 'blogger', label: '博主', icon: 'star' },
       { key: 'records', label: '日记', icon: 'clock' },
     ];
     return (
@@ -3619,93 +3522,474 @@
     '美式': '#dc2626', '甜酷': '#7c3aed', '日系': '#0891b2',
   };
 
-  const BloggerCard = ({ blogger }) => {
-    if (!blogger) return null;
-    const name = blogger.name || '博主';
-    const initial = name.charAt(0) || '博';
-    let tags = blogger.tags;
+  // ---- 博主视觉卡：数据处理小工具 ----
+  const FLOWH = [210, 260, 190, 240, 220, 250, 200, 230];
+  const normTags = (b) => {
+    let tags = b && b.tags;
     if (!Array.isArray(tags)) {
-      try { tags = JSON.parse(tags || '[]'); } catch (e) { tags = []; }
+      try {
+        tags = JSON.parse(tags || '[]');
+      } catch (e) {
+        tags = [];
+      }
     }
-    if (!Array.isArray(tags)) tags = [];
-    const color = STYLE_COLORS[tags[0]] || '#a78bfa';
-    const url = blogger.profile_url || blogger.url || '';
-    const openHome = () => { if (url) window.open(url, '_blank', 'noopener'); };
+    return Array.isArray(tags) ? tags.filter(Boolean) : [];
+  };
+  const initialOf = (name) => (name || '博').charAt(0) || '博';
+  const styleColor = (tag) => STYLE_COLORS[tag] || '#a78bfa';
+  const coverList = (b) => {
+    if (!b) return [];
+    const cands = b.covers || b.images || b.cover_images || b.photos || b.thumbnails;
+    let arr = Array.isArray(cands) ? cands.filter(Boolean) : [];
+    const single = b.cover || b.image || b.thumbnail;
+    if (!arr.length && single) arr = [single];
+    return arr;
+  };
+  const openBloggerHome = (b) => {
+    const url = b && (b.profile_url || b.url);
+    if (url) window.open(url, '_blank', 'noopener');
+  };
+
+  const BloggerCover = ({ src, color, initial, className, style }) => {
+    if (src) {
+      return (
+        <img
+          className={'bl-cover ' + (className || '')}
+          src={src}
+          style={style}
+          alt=""
+        />
+      );
+    }
     return (
-      <div className="blogger-card" onClick={openHome}>
-        <div className="blogger-avatar" style={{ background: color }}>{initial}</div>
-        <div className="blogger-info">
-          <div className="blogger-name">{name}</div>
-          <div className="blogger-tags">
-            {tags.map((t, i) => {
-              const c = STYLE_COLORS[t] || '#a78bfa';
-              return (
-                <span key={i} className="tag-chip" style={{ background: c + '22', color: c }}>{t}</span>
-              );
-            })}
+      <div
+        className={'bl-cover ph ' + (className || '')}
+        style={{ ...(style || {}), background: 'linear-gradient(135deg,' + color + 'cc,' + color + '77)' }}
+      >
+        {initial}
+      </div>
+    );
+  };
+
+  const DislikeBtn = ({ onClick, small }) => (
+    <button
+      className={'bl-dislike' + (small ? ' sm' : '')}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label="不感兴趣"
+    >
+      <Icon name="close" size={small ? 11 : 13} />
+    </button>
+  );
+
+  // 不感兴趣二次确认弹窗（小号居中）
+  const DislikeDialog = ({ onCancel, onConfirm }) => (
+    <div className="bl-mask" onClick={onCancel}>
+      <div className="bl-dialog" onClick={(e) => e.stopPropagation()}>
+        <h4>不感兴趣？</h4>
+        <p>将减少推荐该类风格的博主</p>
+        <div className="bl-acts">
+          <button className="bl-cancel" onClick={onCancel}>
+            取消
+          </button>
+          <button className="bl-confirm" onClick={onConfirm}>
+            确认
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // 单列卡：三宫格略图 + 头像 + 名称 + 风格备注 +「去看看」
+  const BloggerSingleCard = ({ blogger, onOpen, onDislike }) => {
+    const b = blogger;
+    if (!b) return null;
+    const name = b.name || '博主';
+    const initial = initialOf(name);
+    const tags = normTags(b);
+    const color = styleColor(tags[0]);
+    const covers = coverList(b);
+    return (
+      <div className="bl-vcard">
+        <DislikeBtn onClick={onDislike} />
+        <div className="bl-vcovers" onClick={onOpen}>
+          {[0, 1, 2].map((i) => (
+            <BloggerCover key={i} src={covers[i]} color={color} initial={initial} />
+          ))}
+        </div>
+        <div className="bl-vfoot">
+          <div className="bl-vavatar" style={{ background: color }}>
+            {initial}
+          </div>
+          <div className="bl-vinfo">
+            <div className="bl-vname">{name}</div>
+            <div className="bl-vmeta">{tags.join(' / ')}</div>
+          </div>
+          <button className="bl-vgo" onClick={onOpen}>
+            去看看
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // 双列瀑布流大图卡：整卡可点
+  const BloggerFlowCard = ({ blogger, idx, onOpen, onDislike }) => {
+    const b = blogger;
+    if (!b) return null;
+    const name = b.name || '博主';
+    const initial = initialOf(name);
+    const tags = normTags(b);
+    const color = styleColor(tags[0]);
+    const covers = coverList(b);
+    const h = FLOWH[idx % FLOWH.length];
+    return (
+      <div className="bl-fcard" onClick={onOpen}>
+        <DislikeBtn onClick={onDislike} />
+        <BloggerCover src={covers[0]} color={color} initial={initial} style={{ height: h + 'px' }} />
+        <div className="bl-fcap">
+          <div className="bl-favatar" style={{ background: color }}>
+            {initial}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div className="bl-fname">{name}</div>
+            <div className="bl-ftag">{tags.join(' / ')}</div>
           </div>
         </div>
       </div>
     );
   };
 
-  const BloggerPage = () => {
-    const [tab, setTab] = useState('reco');
-    const [reco, setReco] = useState([]);
-    const [all, setAll] = useState([]);
-    const [activeStyle, setActiveStyle] = useState('');
-    const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-      let alive = true;
-      setLoading(true);
-      S.fetchBloggerRecommendations()
-        .then((list) => { if (alive) setReco((list || []).slice(0, 20)); })
-        .finally(() => { if (alive) setLoading(false); });
-      return () => { alive = false; };
-    }, []);
-
-    useEffect(() => {
-      if (tab !== 'all') return;
-      let alive = true;
-      setLoading(true);
-      S.fetchBloggers(activeStyle)
-        .then((list) => { if (alive) setAll(list || []); })
-        .finally(() => { if (alive) setLoading(false); });
-      return () => { alive = false; };
-    }, [tab, activeStyle]);
-
-    const styleKeys = Object.keys(STYLE_COLORS);
-    const list = tab === 'reco' ? reco : all;
-
+  // 首页横滑卡：整卡可点
+  const BloggerRailCard = ({ blogger, onOpen, onDislike }) => {
+    const b = blogger;
+    if (!b) return null;
+    const name = b.name || '博主';
+    const initial = initialOf(name);
+    const tags = normTags(b);
+    const color = styleColor(tags[0]);
+    const covers = coverList(b);
     return (
-      <div className="blogger-page">
-        <div className="blogger-tab-bar">
-          <button className={'blogger-tab ' + (tab === 'reco' ? 'active' : '')} onClick={() => setTab('reco')}>猜你喜欢</button>
-          <button className={'blogger-tab ' + (tab === 'all' ? 'active' : '')} onClick={() => setTab('all')}>全部</button>
+      <div className="bl-hcard" onClick={onOpen}>
+        <DislikeBtn onClick={onDislike} small />
+        <BloggerCover src={covers[0]} color={color} initial={initial} />
+        <div className="bl-hcap">
+          <div className="bl-favatar" style={{ background: color }}>
+            {initial}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <div className="bl-hn">{name}</div>
+            <div className="bl-hm">{tags.join(' / ')}</div>
+          </div>
         </div>
-        {tab === 'all' && (
-          <div className="style-filter-bar">
-            <button className={'style-filter-chip ' + (activeStyle === '' ? 'active' : '')} onClick={() => setActiveStyle('')}>全部</button>
-            {styleKeys.map((k) => (
+      </div>
+    );
+  };
+
+  // 首页「猜你喜欢」横滑推荐行（替换原博主推荐栏）
+  const HomeBloggerRail = ({ onOpenStyleBrowse }) => {
+    const [list, setList] = useState([]);
+    const [pending, setPending] = useState(null);
+    useEffect(() => {
+      let alive = true;
+      S.fetchBloggerRecommendations().then((l) => {
+        if (alive) setList((l || []).slice(0, 20));
+      });
+      return () => {
+        alive = false;
+      };
+    }, []);
+    const doConfirm = () => {
+      const bg = pending;
+      setPending(null);
+      if (!bg) return;
+      setList((prev) => prev.filter((x) => x !== bg));
+      const tag = normTags(bg)[0];
+      if (tag) S.recordStyleBehavior(tag, 'dislike_style');
+    };
+    if (!list.length) return null;
+    return (
+      <>
+        <div className="bl-section-head">
+          <h2 className="bl-h2">猜你喜欢</h2>
+          <button className="bl-link" onClick={onOpenStyleBrowse}>
+            查看更多 <Icon name="chevron" size={13} />
+          </button>
+        </div>
+        <div className="bl-hscroll">
+          {list.map((bg, i) => (
+            <BloggerRailCard
+              key={(bg && (bg.id || bg.profile_url)) || i}
+              blogger={bg}
+              onOpen={() => openBloggerHome(bg)}
+              onDislike={() => setPending(bg)}
+            />
+          ))}
+        </div>
+        {pending && (
+          <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
+        )}
+      </>
+    );
+  };
+
+  // 「按风格逛」完整板块页：吸顶 chips + 单列/双列切换
+  const StyleBrowsePage = ({ inspireTag, setInspireTag, onNav }) => {
+    const [viewMode, setViewMode] = useState('single');
+    const [list, setList] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [pending, setPending] = useState(null);
+    const styleKeys = Object.keys(STYLE_COLORS);
+    useEffect(() => {
+      let alive = true;
+      setLoading(true);
+      S.fetchBloggers(inspireTag)
+        .then((l) => {
+          if (alive) setList(l || []);
+        })
+        .finally(() => {
+          if (alive) setLoading(false);
+        });
+      return () => {
+        alive = false;
+      };
+    }, [inspireTag]);
+    const doConfirm = () => {
+      const bg = pending;
+      setPending(null);
+      if (!bg) return;
+      setList((prev) => prev.filter((x) => x !== bg));
+      const tag = normTags(bg)[0] || inspireTag;
+      if (tag) S.recordStyleBehavior(tag, 'dislike_style');
+    };
+    return (
+      <div className="page">
+        <div className="bl-detail-sticky">
+          <div className="bl-detail-head">
+            <button className="bl-back" onClick={() => onNav('inspire')} aria-label="返回">
+              <Icon name="back" size={20} />
+            </button>
+            <h2 className="bl-h2">按风格逛</h2>
+          </div>
+          <div className="bl-chips">
+            {styleKeys.map((t) => (
               <button
-                key={k}
-                className={'style-filter-chip ' + (activeStyle === k ? 'active' : '')}
-                style={activeStyle === k ? { background: STYLE_COLORS[k], color: '#fff', borderColor: STYLE_COLORS[k] } : { color: STYLE_COLORS[k] }}
-                onClick={() => setActiveStyle(k)}
-              >{k}</button>
+                key={t}
+                className={'bl-chip' + (t === inspireTag ? ' active' : '')}
+                onClick={() => setInspireTag(t)}
+              >
+                {t}
+              </button>
             ))}
           </div>
-        )}
-        {loading ? (
-          <div className="blogger-list">
-            {[0, 1, 2, 3, 4].map((i) => (<div key={i} className="blogger-skeleton" />))}
+          <div className="bl-tools-row">
+            <span className="bl-tools-label">精选搭配</span>
+            <div className="bl-layout-toggle">
+              <button
+                className={viewMode === 'single' ? 'on' : ''}
+                onClick={() => setViewMode('single')}
+                aria-label="单列"
+              >
+                <Icon name="rows" size={18} />
+              </button>
+              <button
+                className={viewMode === 'flow' ? 'on' : ''}
+                onClick={() => setViewMode('flow')}
+                aria-label="双列"
+              >
+                <Icon name="grid" size={18} />
+              </button>
+            </div>
           </div>
-        ) : list.length === 0 ? (
-          <div className="blogger-empty">暂无推荐，先去添加穿搭吧～</div>
-        ) : (
-          <div className="blogger-list">
-            {list.map((b, i) => (<BloggerCard key={(b && (b.id || b.profile_url)) || i} blogger={b} />))}
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {loading ? (
+            <div className="blogger-empty">加载中…</div>
+          ) : list.length === 0 ? (
+            <div className="blogger-empty">这个风格暂时没有博主～</div>
+          ) : viewMode === 'flow' ? (
+            <div className="bl-flow">
+              {list.map((bg, i) => (
+                <BloggerFlowCard
+                  key={(bg && (bg.id || bg.profile_url)) || i}
+                  blogger={bg}
+                  idx={i}
+                  onOpen={() => openBloggerHome(bg)}
+                  onDislike={() => setPending(bg)}
+                />
+              ))}
+            </div>
+          ) : (
+            list.map((bg, i) => (
+              <BloggerSingleCard
+                key={(bg && (bg.id || bg.profile_url)) || i}
+                blogger={bg}
+                onOpen={() => openBloggerHome(bg)}
+                onDislike={() => setPending(bg)}
+              />
+            ))
+          )}
+        </div>
+        {pending && (
+          <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
+        )}
+      </div>
+    );
+  };
+
+  // 「我的收藏」完整板块页：吸顶标题 + 保存 + 完整收藏列表（增删改沿用）
+  const CollectionsPage = ({
+    links,
+    onOpenSaveLink,
+    onDeleteLink,
+    onRenameLink,
+    onCopyLink,
+    onNav,
+  }) => {
+    const pressTimer = useRef(null);
+    const [renamingLink, setRenamingLink] = useState(null);
+    const [renameValue, setRenameValue] = useState('');
+    const clearPressTimer = () => {
+      if (pressTimer.current) {
+        window.clearTimeout(pressTimer.current);
+        pressTimer.current = null;
+      }
+    };
+    const openRename = (link) => {
+      clearPressTimer();
+      setRenamingLink(link);
+      setRenameValue((link && link.title) || '');
+    };
+    const submitRename = async () => {
+      if (!renamingLink) return;
+      const ok = onRenameLink && (await onRenameLink(renamingLink, renameValue));
+      if (ok) {
+        setRenamingLink(null);
+        setRenameValue('');
+      }
+    };
+    const startLongPress = (link) => {
+      clearPressTimer();
+      pressTimer.current = window.setTimeout(() => {
+        pressTimer.current = null;
+        openRename(link);
+      }, 560);
+    };
+    return (
+      <div className="page">
+        <div className="bl-detail-sticky">
+          <div className="bl-detail-head">
+            <button className="bl-back" onClick={() => onNav('inspire')} aria-label="返回">
+              <Icon name="back" size={20} />
+            </button>
+            <h2 className="bl-h2">我的收藏</h2>
+            <button className="primary" onClick={onOpenSaveLink}>
+              <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+                <Icon name="plus" size={14} /> 保存
+              </span>
+            </button>
+          </div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          {links.length === 0 ? (
+            <EmptyState
+              big="✦"
+              title="还没有保存的灵感"
+              tip="看到喜欢的小红书 / 抖音 / 淘宝内容，粘贴链接进来。"
+            />
+          ) : (
+            links
+              .slice()
+              .reverse()
+              .map((l) => (
+                <div
+                  key={l.id}
+                  className="link-card"
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    openRename(l);
+                  }}
+                  onTouchStart={() => startLongPress(l)}
+                  onTouchMove={clearPressTimer}
+                  onTouchEnd={clearPressTimer}
+                  onTouchCancel={clearPressTimer}
+                >
+                  <strong>{l.title}</strong>
+                  <span className="url">{l.url}</span>
+                  {l.note && <div className="note">{l.note}</div>}
+                  {l.tags && l.tags.length > 0 && (
+                    <div className="link-tags">
+                      {l.tags.map((t) => (
+                        <span key={t} className="link-tag">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  <div className="link-card-row">
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button
+                        className="icon-btn"
+                        onClick={() => onCopyLink(l)}
+                        aria-label="复制链接"
+                      >
+                        <Icon name="copy" size={14} />
+                      </button>
+                      <a
+                        className="icon-btn"
+                        href={l.url}
+                        target="_blank"
+                        rel="noopener"
+                        aria-label="打开链接"
+                      >
+                        <Icon name="link" size={14} />
+                      </a>
+                    </div>
+                    <button
+                      className="tiny"
+                      style={{ color: 'var(--accent)', fontWeight: 600, marginRight: 10 }}
+                      onClick={() => openRename(l)}
+                    >
+                      重命名
+                    </button>
+                    <button
+                      className="tiny"
+                      style={{ color: '#a04b60', fontWeight: 600 }}
+                      onClick={() => onDeleteLink(l)}
+                    >
+                      删除
+                    </button>
+                  </div>
+                </div>
+              ))
+          )}
+        </div>
+        {renamingLink && (
+          <div className="modal-mask" onClick={() => setRenamingLink(null)}>
+            <div className="rename-popover" onClick={(e) => e.stopPropagation()}>
+              <div className="sheet-title">重命名灵感</div>
+              <input
+                className="input"
+                value={renameValue}
+                autoFocus
+                onChange={(e) => setRenameValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') submitRename();
+                  if (e.key === 'Escape') setRenamingLink(null);
+                }}
+                placeholder="例如：春日通勤配色"
+              />
+              <div className="rename-actions">
+                <button className="ghost" onClick={() => setRenamingLink(null)}>
+                  取消
+                </button>
+                <button className="primary" onClick={submitRename}>
+                  保存
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -3726,8 +4010,9 @@
     InspirePage,
     RecordsPage,
     BottomNav,
-    BloggerCard,
-    BloggerPage,
+    HomeBloggerRail,
+    StyleBrowsePage,
+    CollectionsPage,
     Sheet,
     UploadSheet,
     SaveLinkSheet,

@@ -2564,3 +2564,83 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .blogger-empty { text-align: center; color: #9a9aa8; font-size: 14px; padding: 48px 16px; }
 .blogger-skeleton { height: 68px; border-radius: 12px; background: #eee; animation: blogger-pulse 1.4s ease-in-out infinite; }
 @keyframes blogger-pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+
+/* ============ 博主推荐 v11 视觉化 ============ */
+.bl-section-head{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 12px}
+.bl-h2{font-family:"Songti SC","STSong","Noto Serif SC",Georgia,serif;font-size:21px;margin:0;letter-spacing:.01em;font-weight:600;color:var(--ink)}
+.bl-link{color:var(--purple);font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
+.bl-link svg{stroke:var(--purple);fill:none;stroke-width:2.2}
+
+/* 封面（真实图 / 占位兜底） */
+.bl-cover{display:block;object-fit:cover;background:#e7e1f2}
+.bl-cover.ph{display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.92);font-weight:700;font-size:20px}
+
+/* 猜你喜欢 横滑 */
+.bl-hscroll{display:flex;gap:12px;overflow-x:auto;padding:2px 2px 8px;margin:0 -2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.bl-hscroll::-webkit-scrollbar{display:none}
+.bl-hcard{position:relative;flex:0 0 132px;background:var(--card);border-radius:16px;overflow:hidden;border:1px solid var(--glass-border);box-shadow:0 8px 20px rgba(75,57,133,.08)}
+.bl-hcard .bl-cover{width:100%;height:150px}
+.bl-hcap{display:flex;align-items:center;gap:6px;padding:8px 9px}
+.bl-hcap .bl-favatar{width:22px;height:22px;font-size:10px}
+.bl-hn{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-hm{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 单列卡（三宫格 + 底部信息） */
+.bl-vcard{position:relative;border-radius:18px;margin-bottom:12px;padding:9px;background:var(--glass-strong);border:1px solid var(--glass-border);backdrop-filter:blur(20px) saturate(140%);-webkit-backdrop-filter:blur(20px) saturate(140%);box-shadow:var(--glass-shadow)}
+.bl-vcovers{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;border-radius:12px;overflow:hidden}
+.bl-vcovers .bl-cover{width:100%;aspect-ratio:3/4}
+.bl-vfoot{display:flex;align-items:center;gap:9px;padding:9px 3px 3px}
+.bl-vavatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,.85)}
+.bl-vinfo{flex:1;min-width:0}
+.bl-vname{font-size:14px;color:var(--ink);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-vmeta{color:var(--muted);font-size:11.5px;margin-top:2px}
+.bl-vgo{padding:6px 14px;border-radius:999px;background:rgba(112,88,223,.12);color:var(--purple);font-size:11.5px;font-weight:600;flex-shrink:0}
+
+/* 双列瀑布流 */
+.bl-flow{columns:2;column-gap:11px}
+.bl-fcard{position:relative;break-inside:avoid;margin-bottom:11px;border-radius:16px;overflow:hidden;background:var(--card);border:1px solid var(--glass-border);box-shadow:0 8px 20px rgba(75,57,133,.09)}
+.bl-fcard .bl-cover{width:100%}
+.bl-fcap{display:flex;align-items:center;gap:7px;padding:9px 10px}
+.bl-favatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-weight:700;flex-shrink:0}
+.bl-fname{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bl-ftag{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 风格 chips 横滑 */
+.bl-chips{display:flex;gap:9px;overflow-x:auto;white-space:nowrap;padding:2px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.bl-chips::-webkit-scrollbar{display:none}
+.bl-chip{flex:0 0 auto;padding:8px 16px;border-radius:99px;border:1px solid #e6e3f2;background:rgba(255,255,255,.78);font-size:13px;font-weight:600;color:#6b6480;transition:all .15s}
+.bl-chip.active{border-color:transparent;background:var(--purple);color:#fff}
+
+/* 单列/双列 布局切换图标 */
+.bl-layout-toggle{display:inline-flex;background:rgba(255,255,255,.72);border:1px solid var(--glass-border);border-radius:11px;padding:3px;gap:2px}
+.bl-layout-toggle button{width:33px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#a8a2b6;transition:all .15s}
+.bl-layout-toggle button svg{stroke:currentColor;fill:none;stroke-width:1.7}
+.bl-layout-toggle button.on{background:var(--purple);color:#fff}
+.bl-layout-toggle button.on svg{stroke:#fff}
+
+/* 详情吸顶（半透明玻璃） */
+.bl-detail-sticky{position:sticky;top:0;z-index:9;margin:0 -18px;padding:8px 18px 12px;background:linear-gradient(180deg,rgba(236,232,246,.96) 72%,rgba(236,232,246,0));backdrop-filter:blur(12px) saturate(130%);-webkit-backdrop-filter:blur(12px) saturate(130%)}
+.bl-detail-head{display:flex;align-items:center;gap:10px;padding:6px 0 10px}
+.bl-detail-head .bl-h2{flex:1}
+.bl-back{width:38px;height:38px;border-radius:50%;background:var(--glass-strong);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink-2)}
+.bl-back svg{stroke:var(--ink-2);fill:none;stroke-width:2}
+.bl-tools-row{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
+.bl-tools-label{color:var(--muted);font-size:13px}
+
+/* 不感兴趣 ✕ */
+.bl-dislike{position:absolute;top:14px;right:14px;z-index:3;width:26px;height:26px;border-radius:50%;background:rgba(30,26,44,.44);color:#fff;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.bl-dislike svg{stroke:#fff;fill:none;stroke-width:2.4}
+.bl-dislike.sm{top:8px;right:8px;width:22px;height:22px}
+
+.bl-more-row{display:flex;justify-content:flex-end;margin:4px 2px 8px}
+
+/* 不感兴趣确认弹窗（小号≈210px） */
+.bl-mask{position:absolute;inset:0;z-index:70;background:rgba(30,26,44,.42);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:34px;animation:mask-in .18s ease}
+.bl-dialog{width:auto;max-width:210px;background:#fff;border-radius:18px;padding:20px 18px 14px;box-shadow:0 24px 60px rgba(29,22,49,.32);text-align:center}
+.bl-dialog h4{margin:0 0 8px;font-size:16px;color:var(--ink);font-weight:700}
+.bl-dialog p{margin:0 0 18px;font-size:13px;color:var(--muted);line-height:1.6}
+.bl-acts{display:flex;gap:10px}
+.bl-acts button{flex:1;padding:11px 0;border-radius:12px;font-size:14px;font-weight:600}
+.bl-cancel{background:rgba(112,88,223,.08);color:var(--ink-2)}
+.bl-confirm{background:var(--purple);color:#fff}

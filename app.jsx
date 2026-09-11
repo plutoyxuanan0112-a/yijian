@@ -17,7 +17,8 @@
     InspirePage,
     RecordsPage,
     BottomNav,
-    BloggerPage,
+    StyleBrowsePage,
+    CollectionsPage,
     UploadSheet,
     SaveLinkSheet,
     OutfitDetailSheet,
@@ -37,6 +38,7 @@
     const hasToken = () => !!S.getApiToken();
     // 页面
     const [page, setPage] = useState('home');
+    const [inspireTag, setInspireTag] = useState('优雅知性');
     // 数据（未登录时一律为空，绝不把 localStorage 里的旧缓存灌进来展示）
     const [wardrobe, setWardrobe] = useState(() => (hasToken() ? S.getWardrobe() : []));
     const [records, setRecords] = useState(() => (hasToken() ? S.getOutfits() : []));
@@ -701,14 +703,30 @@
       if (page === 'inspire')
         return (
           <InspirePage
-            creators={creators}
+            links={links}
+            inspireTag={inspireTag}
+            setInspireTag={setInspireTag}
+            onOpenSaveLink={openSaveLinkSheet}
+            onNav={setPage}
+          />
+        );
+      if (page === 'styleBrowse')
+        return (
+          <StyleBrowsePage
+            inspireTag={inspireTag}
+            setInspireTag={setInspireTag}
+            onNav={setPage}
+          />
+        );
+      if (page === 'collections')
+        return (
+          <CollectionsPage
             links={links}
             onOpenSaveLink={openSaveLinkSheet}
-            onOpenCreator={openCreator}
-            onOpenCreatorsAll={() => setOpenSheet('creatorsAll')}
             onDeleteLink={handleDeleteLink}
             onRenameLink={handleRenameLink}
             onCopyLink={handleCopyLink}
+            onNav={setPage}
           />
         );
       if (page === 'records')
@@ -720,7 +738,6 @@
             onOpen={openRecordDetail}
           />
         );
-      if (page === 'blogger') return <BloggerPage />;
       return null;
     };
 
@@ -756,7 +773,10 @@
             </div>
           </div>
           <div className="content">{renderPage()}</div>
-          <BottomNav active={page} onChange={setPage} />
+          <BottomNav
+            active={page === 'styleBrowse' || page === 'collections' ? 'inspire' : page}
+            onChange={setPage}
+          />
 
           {openSheet === 'upload' && (
             <UploadSheet
