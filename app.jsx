@@ -745,6 +745,7 @@
       <div className="stage">
         <div className="phone">
           <StatusBar />
+          {!(page === 'styleBrowse' || page === 'collections') && (
           <div className="topbar">
             <div className="brand">衣见</div>
             <div className="top-actions">
@@ -772,6 +773,7 @@
               </button>
             </div>
           </div>
+          )}
           <div className="content">{renderPage()}</div>
           <BottomNav
             active={page === 'styleBrowse' || page === 'collections' ? 'inspire' : page}
