@@ -821,6 +821,21 @@
     onDeleteItem,
     onClickItem,
   }) => {
+    const [showBTT, setShowBTT] = React.useState(false);
+    const scrollTimer = React.useRef(null);
+    React.useEffect(() => {
+      const el = document.querySelector(".content");
+      if (!el) return;
+      const h = () => {
+        setShowBTT(false);
+        clearTimeout(scrollTimer.current);
+        scrollTimer.current = setTimeout(() => {
+          if (el.scrollTop > 400) setShowBTT(true);
+        }, 300);
+      };
+      el.addEventListener("scroll", h);
+      return () => { el.removeEventListener("scroll", h); clearTimeout(scrollTimer.current); };
+    }, []);
     const [cat, setCat] = useState('全部');
     const cats = ['全部', ...S.CATEGORIES];
     const filtered =
@@ -829,9 +844,15 @@
         : wardrobe.filter((x) => x.category === cat);
     return (
       <div className="page">
-        <div className="sub">
-          共 {wardrobe.length} 件真实上传单品
-        </div>
+        {showBTT && (
+          <button 
+            className="BackToTop visible" 
+            onClick={() => document.querySelector(".content").scrollTo({top: 0, behavior: "smooth"})}
+          >
+            <Icon name="chevron" size={20} />
+            TOP
+          </button>
+        )}
         <h1 className="h1-hero">我的衣橱</h1>
 
         <div className="section-head" style={{ marginTop: 12 }}>
@@ -1329,7 +1350,7 @@
     return (
       <Sheet
         title="发现博主"
-        subtitle={'按风格分组，共 ' + S.creatorLibrary.length + ' 位真实公开博主'}
+        subtitle='按风格分组的公开博主推荐'
         onClose={onClose}
       >
         <div className="explore-tabs">
@@ -3885,7 +3906,7 @@
               <Icon name="back" size={20} />
             </button>
             <h2 className="bl-h2">我的收藏</h2>
-            <button className="primary" onClick={onOpenSaveLink}>
+            <button className="primary" style={{ padding: "7px 14px", fontSize: 12.5, borderRadius: 999, boxShadow: "none" }} onClick={onOpenSaveLink}>
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                 <Icon name="plus" size={14} /> 保存
               </span>

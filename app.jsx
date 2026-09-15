@@ -745,7 +745,7 @@
       <div className="stage">
         <div className="phone">
           <StatusBar />
-          {!(page === 'styleBrowse' || page === 'collections') && (
+          {page === 'home' && (
           <div className="topbar">
             <div className="brand">衣见</div>
             <div className="top-actions">

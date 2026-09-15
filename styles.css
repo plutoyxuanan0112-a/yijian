@@ -146,7 +146,7 @@ h1.h1-hero{
   font-weight:600;
   color:var(--ink);
 }
-h2{font-family:"Songti SC","STSong","Noto Serif SC",Georgia,serif;font-size:18px;margin:20px 0 10px;letter-spacing:0;font-weight:600;color:var(--ink)}
+h2{font-family:"Songti SC","STSong","Noto Serif SC",Georgia,serif;font-size:17px;margin:20px 0 10px;letter-spacing:0;font-weight:600;color:var(--ink)}
 
 /* ============ Glass Cards ============ */
 .glass{
@@ -2569,7 +2569,7 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 
 /* ============ 博主推荐 v11 视觉化 ============ */
 .bl-section-head{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}
-.bl-h2{font-family:"Songti SC","STSong","Noto Serif SC",Georgia,serif;font-size:18px;margin:0;letter-spacing:0;font-weight:600;color:var(--ink)}
+.bl-h2{font-family:"Songti SC","STSong","Noto Serif SC",Georgia,serif;font-size:17px;margin:0;letter-spacing:0;font-weight:600;color:var(--ink)}
 .bl-section-head .primary,.bl-detail-head .primary{padding:7px 14px;font-size:12.5px;border-radius:999px;box-shadow:none}
 .bl-link{color:var(--purple);font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
 .bl-link svg{stroke:var(--purple);fill:none;stroke-width:2.2}
@@ -2646,3 +2646,18 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .bl-acts button{flex:1;padding:11px 0;border-radius:12px;font-size:14px;font-weight:600}
 .bl-cancel{background:rgba(112,88,223,.08);color:var(--ink-2)}
 .bl-confirm{background:var(--purple);color:#fff}
+
+.BackToTop { position: fixed; right: 20px; bottom: 100px; width: 48px; height: 48px; border-radius: 50%; background: var(--glass-strong); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: var(--purple); font-size: 9px; font-weight: 800; cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(20px) scale(0.8); transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.BackToTop.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.BackToTop svg { margin-bottom: -1px; transform: rotate(-90deg); }
+.BackToTop:active { transform: scale(0.92); }
+
+.BackToTop { position: fixed; right: 20px; bottom: 100px; width: 48px; height: 48px; border-radius: 50%; background: var(--glass-strong); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: var(--purple); font-size: 9px; font-weight: 800; cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(20px) scale(0.8); transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.BackToTop.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.BackToTop svg { margin-bottom: -1px; transform: rotate(-90deg); }
+.BackToTop:active { transform: scale(0.92); }
+
+.BackToTop { position: fixed; right: 20px; bottom: 100px; width: 48px; height: 48px; border-radius: 50%; background: var(--glass-strong); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: var(--purple); font-size: 9px; font-weight: 800; cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(20px) scale(0.8); transition: all 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+.BackToTop.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+.BackToTop svg { margin-bottom: -1px; transform: rotate(-90deg); }
+.BackToTop:active { transform: scale(0.92); }
