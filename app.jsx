@@ -745,36 +745,38 @@
       <div className="stage">
         <div className="phone">
           <StatusBar />
-          {page === 'home' && (
-          <div className="topbar">
-            <div className="brand">衣见</div>
-            <div className="top-actions">
-              <button
-                className="circle"
-                aria-label="转发衣见"
-                onClick={() => setOpenSheet('share')}
-              >
-                <Icon name="share" size={16} />
-              </button>
-              <button
-                className="circle profile-top-btn"
-                aria-label="个人中心"
-                onClick={() => setOpenSheet('profile')}
-              >
-                {profile.avatar ? (
-                  <img
-                    src={profile.avatar}
-                    alt="头像"
-                    className="profile-top-avatar"
-                  />
-                ) : (
-                  <Icon name="user" size={16} />
-                )}
-              </button>
-            </div>
+          <div className="content">
+            {page === 'home' && (
+              <div className="topbar topbar-inflow">
+                <div className="brand">衣见</div>
+                <div className="top-actions">
+                  <button
+                    className="circle"
+                    aria-label="转发衣见"
+                    onClick={() => setOpenSheet('share')}
+                  >
+                    <Icon name="share" size={16} />
+                  </button>
+                  <button
+                    className="circle profile-top-btn"
+                    aria-label="个人中心"
+                    onClick={() => setOpenSheet('profile')}
+                  >
+                    {profile.avatar ? (
+                      <img
+                        src={profile.avatar}
+                        alt="头像"
+                        className="profile-top-avatar"
+                      />
+                    ) : (
+                      <Icon name="user" size={16} />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+            {renderPage()}
           </div>
-          )}
-          <div className="content">{renderPage()}</div>
           <BottomNav
             active={page === 'styleBrowse' || page === 'collections' ? 'inspire' : page}
             onChange={setPage}

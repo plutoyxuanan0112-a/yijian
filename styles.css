@@ -2570,7 +2570,7 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 /* ============ 博主推荐 v11 视觉化 ============ */
 .bl-section-head{display:flex;justify-content:space-between;align-items:center;margin:18px 2px 10px}
 .bl-h2{font-family:"Songti SC","STSong","Noto Serif SC",Georgia,serif;font-size:17px;margin:0;letter-spacing:0;font-weight:600;color:var(--ink)}
-.bl-section-head .primary,.bl-detail-head .primary{padding:7px 14px;font-size:12.5px;border-radius:999px;box-shadow:none}
+.bl-section-head .primary,.bl-detail-head .primary{padding:5px 11px;font-size:11px;border-radius:999px;box-shadow:none}
 .bl-link{color:var(--purple);font-size:13px;font-weight:600;white-space:nowrap;display:inline-flex;align-items:center;gap:3px}
 .bl-link svg{stroke:var(--purple);fill:none;stroke-width:2.2}
 
@@ -2609,9 +2609,9 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .bl-ftag{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* 风格 chips 横滑 */
-.bl-chips{display:flex;gap:9px;overflow-x:auto;white-space:nowrap;padding:2px 0;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.bl-chips{display:flex;gap:9px;overflow-x:auto;white-space:nowrap;padding:0 0 2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .bl-chips::-webkit-scrollbar{display:none}
-.bl-chip{flex:0 0 auto;padding:8px 16px;border-radius:99px;border:1px solid #e6e3f2;background:rgba(255,255,255,.78);font-size:13px;font-weight:600;color:#6b6480;transition:all .15s}
+.bl-chip{flex:0 0 auto;padding:6px 13px;border-radius:99px;border:1px solid #e6e3f2;background:rgba(255,255,255,.78);font-size:11.5px;font-weight:600;color:#6b6480;transition:all .15s}
 .bl-chip.active{border-color:transparent;background:var(--purple);color:#fff}
 
 /* 单列/双列 布局切换图标 */
@@ -2622,8 +2622,8 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .bl-layout-toggle button.on svg{stroke:#fff}
 
 /* 详情吸顶（半透明玻璃） */
-.bl-detail-sticky{position:sticky;top:0;z-index:9;margin:0 -18px;padding:8px 18px 12px;background:linear-gradient(180deg,rgba(236,232,246,.96) 72%,rgba(236,232,246,0));backdrop-filter:blur(12px) saturate(130%);-webkit-backdrop-filter:blur(12px) saturate(130%)}
-.bl-detail-head{display:flex;align-items:center;gap:10px;padding:6px 0 10px}
+.bl-detail-sticky{position:sticky;top:0;z-index:9;margin:0 -18px;padding:2px 18px 8px;background:linear-gradient(180deg,rgba(236,232,246,.96) 72%,rgba(236,232,246,0));backdrop-filter:blur(12px) saturate(130%);-webkit-backdrop-filter:blur(12px) saturate(130%)}
+.bl-detail-head{display:flex;align-items:center;gap:10px;padding:2px 0 6px}
 .bl-detail-head .bl-h2{flex:1}
 .bl-back{width:38px;height:38px;border-radius:50%;background:var(--glass-strong);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--ink-2)}
 .bl-back svg{stroke:var(--ink-2);fill:none;stroke-width:2}
@@ -2661,3 +2661,49 @@ textarea.input{min-height:64px;resize:vertical;line-height:1.5}
 .BackToTop.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
 .BackToTop svg { margin-bottom: -1px; transform: rotate(-90deg); }
 .BackToTop:active { transform: scale(0.92); }
+
+
+/* ============ v18 首页「衣见」顶栏随内容滚动（不固定） ============ */
+.topbar.topbar-inflow{padding:8px 2px 4px;min-height:0}
+
+/* ============ v18 返回顶部：淡紫半透明玻璃 + 上移 + 箭头加粗 ============ */
+.BackToTop{bottom:122px;background:rgba(138,111,208,.20);border:1px solid rgba(138,111,208,.34);color:var(--purple);backdrop-filter:blur(16px) saturate(150%);-webkit-backdrop-filter:blur(16px) saturate(150%);box-shadow:0 12px 28px rgba(112,88,223,.26)}
+.BackToTop svg{transform:rotate(-90deg);stroke-width:2.8}
+
+/* ============ v18 月度摘要一行 ============ */
+.diary-month-summary{margin:10px 2px 4px;font-size:13px;color:var(--muted);letter-spacing:.01em}
+.diary-month-summary b{color:var(--purple);font-weight:700}
+
+/* ============ v18 年度 Top 表格卡片 ============ */
+.year-mini-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 2px 4px}
+.year-mini-card{border-radius:16px;padding:12px 12px 10px;background:var(--glass-strong);border:1px solid var(--glass-border);box-shadow:var(--glass-shadow);backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%)}
+.year-mini-card.tone-style{background:linear-gradient(160deg,rgba(138,111,208,.16),rgba(255,255,255,.55))}
+.year-mini-card.tone-item{background:linear-gradient(160deg,rgba(255,255,255,.72),rgba(236,232,246,.5))}
+.year-mini-card.tone-color{background:linear-gradient(160deg,rgba(200,220,255,.28),rgba(255,255,255,.55))}
+.ymc-title{font-size:12px;font-weight:700;color:var(--ink-2);margin-bottom:8px;letter-spacing:.02em}
+.ymc-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.ymc-list li{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.ymc-name{font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ymc-freq{font-size:11px;font-weight:700;color:var(--purple);flex-shrink:0}
+.ymc-empty{color:var(--muted);font-size:13px}
+
+/* ============ v18 年度泡泡可视化（漂浮/拖拽/缩放/立体玻璃球） ============ */
+.yb-wrap{position:relative;margin:12px 2px 4px;height:320px;border-radius:20px;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,rgba(138,111,208,.12),rgba(236,232,246,.35));border:1px solid var(--glass-border);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),var(--glass-shadow)}
+.yb-stage{position:absolute;inset:0;transform-origin:50% 50%;transition:transform .12s ease}
+.yb-bubble{position:absolute;left:0;top:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;will-change:transform;box-shadow:inset -6px -8px 16px rgba(60,40,110,.18),inset 6px 8px 18px rgba(255,255,255,.55),0 8px 20px rgba(75,57,133,.18)}
+.yb-bubble::after{content:"";position:absolute;top:14%;left:20%;width:34%;height:26%;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.85),rgba(255,255,255,0) 70%);pointer-events:none}
+.yb-bubble b{font-size:12px;font-weight:700;line-height:1.1;padding:0 6px;max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yb-bubble i{font-size:10px;font-style:normal;opacity:.8;margin-top:2px}
+.yb-bubble.yb-grab{cursor:grabbing;z-index:20}
+.yb-style{background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.72),rgba(138,111,208,.72) 68%);color:#fff}
+.yb-item{background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.85),rgba(224,220,240,.42) 70%);color:#4a4360;border:1px solid rgba(255,255,255,.6)}
+.yb-zoom{position:absolute;right:10px;top:10px;z-index:30;display:flex;flex-direction:column;gap:6px}
+.yb-zoom button{width:30px;height:30px;border-radius:9px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--purple);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--glass-shadow)}
+.yb-zoom button:active{transform:scale(.9)}
+.yb-hint{position:absolute;left:12px;bottom:10px;z-index:30;font-size:11px;color:var(--muted);background:rgba(255,255,255,.55);padding:3px 9px;border-radius:999px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.yb-legend{display:flex;gap:16px;justify-content:center;margin:8px 2px 2px}
+.yb-legend span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+.yb-dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+.yb-dot-style{background:rgba(138,111,208,.85)}
+.yb-dot-item{background:rgba(210,205,232,.95);border:1px solid rgba(180,175,205,.8)}
+.yb-dot-color{background:linear-gradient(135deg,#f2a4bc,#8a6fd0)}
