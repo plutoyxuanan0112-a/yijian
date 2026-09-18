@@ -16,12 +16,10 @@
     }, []);
     return (
       <div className="status">
-        <span className="status-time">{t}</span>
         <span className="status-icons">
           <span className="signal">
             <i /><i /><i /><i />
           </span>
-          <span className="battery" />
         </span>
       </div>
     );
@@ -1039,7 +1037,6 @@
       return normalizeRecordDate(last);
     });
     const [pickerOpen, setPickerOpen] = useState(false);
-    const [daySheet, setDaySheet] = useState(null);
 
     const recordsByDate = useMemo(() => {
       const map = {};
@@ -1075,10 +1072,6 @@
       () => summarizeRecords(records.filter((r) => new Date(normalizeRecordDate(r) + 'T00:00:00').getFullYear() === cursor.year)),
       [records, cursor.year],
     );
-    const yearAgg = useMemo(
-      () => aggregateYear(records.filter((r) => new Date(normalizeRecordDate(r) + 'T00:00:00').getFullYear() === cursor.year)),
-      [records, cursor.year],
-    );
 
     const moveMonth = (step) => {
       const next = new Date(cursor.year, cursor.month + step, 1);
@@ -1107,10 +1100,6 @@
           <div className="calendar-summary-text">
             {stats.topStyle ? '最常出现：' + stats.topStyle : '从第一套保存开始，衣橱会慢慢长出自己的节奏。'}
           </div>
-        </div>
-
-        <div className="section-head">
-          <h2>本月总结</h2>
         </div>
 
         <div className="calendar-card">
@@ -1151,7 +1140,6 @@
                       const next = new Date(d.key + 'T00:00:00');
                       setCursor({ year: next.getFullYear(), month: next.getMonth() });
                     }
-                    if ((recordsByDate[d.key] || []).length) setDaySheet(d.key);
                   }}
                 >
                   <span className="calendar-day-num">{d.day}</span>
@@ -1174,58 +1162,33 @@
           )}
         </div>
 
-        <div className="diary-month-summary">
-          本月共记录 <b>{monthRecordCount}</b> 套{monthSummary.topStyle ? ' · 最多风格 ' + monthSummary.topStyle : ''}
+        <div className="diary-summary-grid">
+          <DiarySummaryCard title="本月总结" summary={monthSummary} emptyText="这个月还没有穿搭记录" />
+          <DiarySummaryCard title="年度总结" summary={yearSummary} emptyText="这一年还没有穿搭记录" />
         </div>
 
-        <div className="section-head">
-          <h2>{cursor.year} 年度总结</h2>
-        </div>
-        {yearSummary.count ? (
-          <>
-            <YearBubbleField data={yearAgg.bubbles} />
-            <div className="yb-legend">
-              <span><i className="yb-dot yb-dot-style" />风格</span>
-              <span><i className="yb-dot yb-dot-item" />单品</span>
-              <span><i className="yb-dot yb-dot-color" />颜色</span>
-            </div>
-            <div className="year-mini-cards">
-              <YearMiniCard title="风格" items={yearAgg.tops.styles} tone="style" />
-              <YearMiniCard title="单品" items={yearAgg.tops.items} tone="item" />
-              <YearMiniCard title="颜色" items={yearAgg.tops.colors} tone="color" />
-            </div>
-          </>
-        ) : (
-          <EmptyState
-            big="○"
-            title="这一年还没有穿搭记录"
-            tip="保存更多穿搭，年度偏好会在这里聚合成泡泡。"
-          />
-        )}
-
-        {daySheet && (
-          <Sheet title={formatDiaryDate(daySheet)} onClose={() => setDaySheet(null)}>
-            {(recordsByDate[daySheet] || []).length === 0 ? (
-              <EmptyState
-                big="○"
-                title="这一天还没有保存穿搭"
-                tip="生成并保存一套穿搭后，它会按日期自动落在这里。"
+        <div className="day-diary-panel">
+          <div className="section-head compact">
+            <h2>{formatDiaryDate(selectedDate)}</h2>
+            <span className="tiny">{selectedRecords.length ? selectedRecords.length + ' 套' : '未记录'}</span>
+          </div>
+          {selectedRecords.length === 0 ? (
+            <EmptyState
+              big="○"
+              title="这一天还没有保存穿搭"
+              tip="生成并保存一套穿搭后，它会按日期自动落在这里。"
+            />
+          ) : (
+            selectedRecords.map((r) => (
+              <MiniRecord
+                key={r.id}
+                record={r}
+                onDelete={onDelete}
+                onClick={() => onOpen(r)}
               />
-            ) : (
-              (recordsByDate[daySheet] || []).map((r) => (
-                <MiniRecord
-                  key={r.id}
-                  record={r}
-                  onDelete={onDelete}
-                  onClick={() => {
-                    setDaySheet(null);
-                    onOpen(r);
-                  }}
-                />
-              ))
-            )}
-          </Sheet>
-        )}
+            ))
+          )}
+        </div>
       </div>
     );
   };
@@ -1319,222 +1282,8 @@
   }
   function formatDiaryDate(key) {
     const d = safeDateFromKey(key, new Date());
-    const md = d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
-    const wd = d.toLocaleDateString('zh-CN', { weekday: 'short' });
-    return md + ' ' + wd;
+    return d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
   }
-
-  // ============== 年度总结：聚合 + 泡泡可视化 ==============
-  function aggregateYear(list) {
-    const styleCount = {}, itemCount = {}, colorCount = {};
-    (list || []).forEach((r) => {
-      if (r.style) styleCount[r.style] = (styleCount[r.style] || 0) + 1;
-      (r.outfit?.selected_items || []).forEach((it) => {
-        const nm = (it.name && it.name !== '未填写') ? it.name : (it.category || '');
-        if (nm) itemCount[nm] = (itemCount[nm] || 0) + 1;
-        const raw = it.color || (it.colors && it.colors[0]) || '';
-        String(raw).split(/[、,，/\s]+/).filter(Boolean).forEach((c) => {
-          colorCount[c] = (colorCount[c] || 0) + 1;
-        });
-      });
-    });
-    const sortTop = (obj, n) =>
-      Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, n).map(([label, freq]) => ({ label, freq }));
-    const styles = sortTop(styleCount, 4);
-    const items = sortTop(itemCount, 5);
-    const colors = sortTop(colorCount, 4);
-    const bubbles = [
-      ...styles.map((d) => ({ label: d.label, freq: d.freq, cat: 'style' })),
-      ...items.map((d) => ({ label: d.label, freq: d.freq, cat: 'item' })),
-      ...colors.map((d) => ({ label: d.label, freq: d.freq, cat: 'color' })),
-    ];
-    return { bubbles, tops: { styles, items, colors } };
-  }
-
-  function colorToCss(name) {
-    const n = String(name || '');
-    const map = [
-      ['米白', '#f1e9db'], ['奶', '#f2e8d8'], ['燕麦', '#e4d8bf'], ['杏', '#e7d0af'],
-      ['卡其', '#c7ad82'], ['驼', '#c0975f'], ['棕', '#8a5a2f'], ['咖', '#6f4e37'], ['米', '#e9dcc6'],
-      ['雾蓝', '#9cb2d6'], ['藏', '#2f3a60'], ['蓝', '#5877cf'],
-      ['酒红', '#7c2b39'], ['豆沙', '#b97f86'], ['红', '#d64550'], ['粉', '#f2a4bc'],
-      ['橙', '#e6853a'], ['黄', '#e6c757'], ['绿', '#5aa373'], ['青', '#3ba99b'], ['紫', '#8a6fd0'],
-      ['银', '#c7ccd1'], ['灰', '#9aa0a6'], ['白', '#f6f6f4'], ['黑', '#2c2c31'],
-    ];
-    for (let i = 0; i < map.length; i++) {
-      if (n.indexOf(map[i][0]) >= 0) return map[i][1];
-    }
-    return '#b9aee0';
-  }
-  function readableOn(hex) {
-    const h = String(hex).replace('#', '');
-    if (h.length < 6) return '#4a4360';
-    const r = parseInt(h.slice(0, 2), 16), g = parseInt(h.slice(2, 4), 16), b = parseInt(h.slice(4, 6), 16);
-    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-    return lum > 165 ? '#4a4360' : '#ffffff';
-  }
-
-  const YearMiniCard = ({ title, items, tone }) => (
-    <div className={'year-mini-card tone-' + (tone || 'style')}>
-      <div className="ymc-title">{title}</div>
-      {items && items.length ? (
-        <ol className="ymc-list">
-          {items.slice(0, 3).map((it, i) => (
-            <li key={it.label + '-' + i}>
-              <span className="ymc-name">{it.label}</span>
-              <span className="ymc-freq">{it.freq}</span>
-            </li>
-          ))}
-        </ol>
-      ) : (
-        <div className="ymc-empty">—</div>
-      )}
-    </div>
-  );
-
-  const YearBubbleField = ({ data }) => {
-    const wrapRef = useRef(null);
-    const stageRef = useRef(null);
-    const scaleRef = useRef(1);
-    const setScaleRef = useRef(null);
-
-    const bubbleMeta = useMemo(() => {
-      const list = Array.isArray(data) ? data : [];
-      const maxFreq = list.reduce((m, d) => Math.max(m, d.freq), 1);
-      const minFreq = list.reduce((m, d) => Math.min(m, d.freq), maxFreq);
-      return list.map((d, i) => {
-        const t = (d.freq - minFreq) / Math.max(1, maxFreq - minFreq);
-        const r = 24 + t * 26;
-        return { label: d.label, cat: d.cat, freq: d.freq, r: r, key: d.cat + '-' + d.label + '-' + i };
-      });
-    }, [data]);
-
-    useEffect(() => {
-      const stage = stageRef.current;
-      const wrap = wrapRef.current;
-      if (!stage || !wrap) return;
-      const els = Array.prototype.slice.call(stage.children);
-      const bubbles = bubbleMeta.map((meta, idx) => ({
-        el: els[idx], r: meta.r, x: 0, y: 0, vx: 0, vy: 0, drag: false, px: 0, py: 0,
-      }));
-      let placed = false;
-      let raf = 0;
-      scaleRef.current = 1;
-      stage.style.transform = 'scale(1)';
-
-      const cleanups = [];
-      bubbles.forEach((b) => {
-        const el = b.el;
-        if (!el) return;
-        const onDown = (e) => {
-          b.drag = true; el.classList.add('yb-grab');
-          try { el.setPointerCapture(e.pointerId); } catch (err) {}
-          b.px = e.clientX; b.py = e.clientY; e.stopPropagation();
-        };
-        const onMove = (e) => {
-          if (!b.drag) return;
-          const sc = scaleRef.current || 1;
-          b.x += (e.clientX - b.px) / sc; b.y += (e.clientY - b.py) / sc;
-          b.px = e.clientX; b.py = e.clientY; e.preventDefault();
-        };
-        const release = () => {
-          if (b.drag) {
-            b.drag = false; el.classList.remove('yb-grab');
-            b.vx = (Math.random() - 0.5) * 0.35; b.vy = (Math.random() - 0.5) * 0.35;
-          }
-        };
-        el.addEventListener('pointerdown', onDown);
-        el.addEventListener('pointermove', onMove);
-        el.addEventListener('pointerup', release);
-        el.addEventListener('pointercancel', release);
-        cleanups.push(() => {
-          el.removeEventListener('pointerdown', onDown);
-          el.removeEventListener('pointermove', onMove);
-          el.removeEventListener('pointerup', release);
-          el.removeEventListener('pointercancel', release);
-        });
-      });
-
-      const place = () => {
-        const W = stage.clientWidth, H = stage.clientHeight;
-        bubbles.forEach((b) => {
-          b.x = b.r + Math.random() * Math.max(1, W - 2 * b.r);
-          b.y = b.r + Math.random() * Math.max(1, H - 2 * b.r);
-          b.vx = (Math.random() - 0.5) * 0.5; b.vy = (Math.random() - 0.5) * 0.5;
-        });
-        placed = true;
-      };
-      const tick = () => {
-        const W = stage.clientWidth, H = stage.clientHeight;
-        if (W > 0 && H > 0) {
-          if (!placed) place();
-          for (let i = 0; i < bubbles.length; i++) {
-            const b = bubbles[i];
-            if (!b.drag) {
-              b.x += b.vx; b.y += b.vy;
-              if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx); }
-              if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx); }
-              if (b.y < b.r) { b.y = b.r; b.vy = Math.abs(b.vy); }
-              if (b.y > H - b.r) { b.y = H - b.r; b.vy = -Math.abs(b.vy); }
-            }
-            if (b.el) b.el.style.transform = 'translate(' + (b.x - b.r) + 'px,' + (b.y - b.r) + 'px)';
-          }
-        }
-        raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-
-      const setScale = (v) => {
-        scaleRef.current = Math.max(0.6, Math.min(2.2, v));
-        stage.style.transform = 'scale(' + scaleRef.current.toFixed(3) + ')';
-      };
-      setScaleRef.current = setScale;
-      const onWheel = (e) => { e.preventDefault(); setScale(scaleRef.current + (e.deltaY < 0 ? 0.12 : -0.12)); };
-      wrap.addEventListener('wheel', onWheel, { passive: false });
-
-      return () => {
-        cancelAnimationFrame(raf);
-        wrap.removeEventListener('wheel', onWheel);
-        cleanups.forEach((fn) => fn());
-        setScaleRef.current = null;
-      };
-    }, [bubbleMeta]);
-
-    const zoom = (mode) => {
-      const fn = setScaleRef.current;
-      if (!fn) return;
-      if (mode === 0) fn(1);
-      else fn((scaleRef.current || 1) + mode);
-    };
-
-    return (
-      <div className="yb-wrap" ref={wrapRef}>
-        <div className="yb-zoom">
-          <button onClick={() => zoom(0.2)} aria-label="放大">+</button>
-          <button onClick={() => zoom(0)} aria-label="重置">◎</button>
-          <button onClick={() => zoom(-0.2)} aria-label="缩小">−</button>
-        </div>
-        <div className="yb-stage" ref={stageRef}>
-          {bubbleMeta.map((d) => {
-            const bstyle = { width: d.r * 2 + 'px', height: d.r * 2 + 'px' };
-            if (d.cat === 'color') {
-              const c = colorToCss(d.label);
-              bstyle.background =
-                'radial-gradient(circle at 32% 26%, rgba(255,255,255,0.72), ' + c + ' 68%)';
-              bstyle.color = readableOn(c);
-            }
-            return (
-              <div key={d.key} className={'yb-bubble yb-' + d.cat} style={bstyle}>
-                <b>{d.label}</b>
-                <i>{d.freq}</i>
-              </div>
-            );
-          })}
-        </div>
-        <div className="yb-hint">可拖动泡泡 · 滚轮/按钮缩放</div>
-      </div>
-    );
-  };
 
   // ============== Bottom Nav ==============
   const BottomNav = ({ active, onChange }) => {
@@ -4011,21 +3760,6 @@
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [pending, setPending] = useState(null);
-    const [showBTT, setShowBTT] = React.useState(false);
-    const bttTimer = React.useRef(null);
-    React.useEffect(() => {
-      const el = document.querySelector('.content');
-      if (!el) return;
-      const h = () => {
-        setShowBTT(false);
-        clearTimeout(bttTimer.current);
-        bttTimer.current = setTimeout(() => {
-          if (el.scrollTop > 400) setShowBTT(true);
-        }, 300);
-      };
-      el.addEventListener('scroll', h);
-      return () => { el.removeEventListener('scroll', h); clearTimeout(bttTimer.current); };
-    }, []);
     const styleKeys = Object.keys(STYLE_COLORS);
     useEffect(() => {
       let alive = true;
@@ -4051,15 +3785,6 @@
     };
     return (
       <div className="page">
-        {showBTT && (
-          <button
-            className="BackToTop visible"
-            onClick={() => document.querySelector('.content').scrollTo({ top: 0, behavior: 'smooth' })}
-          >
-            <Icon name="chevron" size={20} />
-            TOP
-          </button>
-        )}
         <div className="bl-detail-sticky">
           <div className="bl-detail-head">
             <button className="bl-back" onClick={() => onNav('inspire')} aria-label="返回">
@@ -4179,7 +3904,7 @@
               <Icon name="back" size={20} />
             </button>
             <h2 className="bl-h2">我的收藏</h2>
-            <button className="primary" style={{ padding: "5px 11px", fontSize: 11, borderRadius: 999, boxShadow: "none" }} onClick={onOpenSaveLink}>
+            <button className="primary" style={{ padding: "7px 14px", fontSize: 12.5, borderRadius: 999, boxShadow: "none" }} onClick={onOpenSaveLink}>
               <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                 <Icon name="plus" size={14} /> 保存
               </span>
