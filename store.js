@@ -2522,22 +2522,993 @@
       });
     } catch (e) {}
   }
+  // ============== 博主兜底种子数据 ==============
+  // 未登录 / 接口返回空 / 请求失败时的前端兜底，保证「猜你喜欢」「按风格逛」永远有内容。
+  // 仅内联必要字段（name / profile_url / tags），不引入运行时依赖。
+  const BLOGGER_SEED =   [
+    {
+      "id": "5b4227d34eacab7a1a4c3e61",
+      "name": "一个芙",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b4227d34eacab7a1a4c3e61",
+      "tags": [
+        "甜美"
+      ]
+    },
+    {
+      "id": "67ed4b3f000000000a03cb24",
+      "name": "好莱屋.",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/67ed4b3f000000000a03cb24",
+      "tags": [
+        "韩系"
+      ]
+    },
+    {
+      "id": "5debdaab0000000001009411",
+      "name": "猫堡王",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5debdaab0000000001009411",
+      "tags": [
+        "韩系",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5a55842711be107803d82a4f",
+      "name": "井井玩",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5a55842711be107803d82a4f",
+      "tags": [
+        "优雅知性",
+        "通勤"
+      ]
+    },
+    {
+      "id": "5657d81c7c5bb814405de598",
+      "name": "阿毓yuyu",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5657d81c7c5bb814405de598",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5a7f295311be105c211222e5",
+      "name": "my-name-is-MM",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5a7f295311be105c211222e5",
+      "tags": [
+        "复古",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5d16395d0000000010004081",
+      "name": "全智羊",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5d16395d0000000010004081",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "5a5f8935e8ac2b46f3f1645a",
+      "name": "777a-",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5a5f8935e8ac2b46f3f1645a",
+      "tags": [
+        "韩系",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "67458752000000001d02e1ad",
+      "name": "Panp_Yaki",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/67458752000000001d02e1ad",
+      "tags": [
+        "复古",
+        "中性"
+      ]
+    },
+    {
+      "id": "62023d1d00000000210235fe",
+      "name": "一勺甜瓜",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/62023d1d00000000210235fe",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5ac63001e8ac2b3ae061cbbb",
+      "name": "里奥奈",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ac63001e8ac2b3ae061cbbb",
+      "tags": [
+        "韩系",
+        "甜酷"
+      ]
+    },
+    {
+      "id": "62bd71a2000000001b02bd06",
+      "name": "MJlya",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/62bd71a2000000001b02bd06",
+      "tags": [
+        "复古",
+        "日系"
+      ]
+    },
+    {
+      "id": "66e20c11000000001d03062d",
+      "name": "努力进化的猴",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/66e20c11000000001d03062d",
+      "tags": [
+        "日系",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5e095f51000000000100173f",
+      "name": "十八流",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5e095f51000000000100173f",
+      "tags": [
+        "甜酷",
+        "复古"
+      ]
+    },
+    {
+      "id": "596eae7a82ec395554d478ff",
+      "name": "叫我阿啧",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/596eae7a82ec395554d478ff",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "599d0ca05e87e77ba108ada2",
+      "name": "yeeeelili",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/599d0ca05e87e77ba108ada2",
+      "tags": [
+        "复古",
+        "中性"
+      ]
+    },
+    {
+      "id": "5ff42782000000000101f3e2",
+      "name": "禾子陈",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ff42782000000000101f3e2",
+      "tags": [
+        "中性"
+      ]
+    },
+    {
+      "id": "607d9a840000000001008212",
+      "name": "草鱼爱吃鱼",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/607d9a840000000001008212",
+      "tags": [
+        "通勤",
+        "简约"
+      ]
+    },
+    {
+      "id": "67231a46000000001d02dcc3",
+      "name": "rabi_Gram",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/67231a46000000001d02dcc3",
+      "tags": [
+        "优雅知性",
+        "通勤"
+      ]
+    },
+    {
+      "id": "60e5a4bb000000000101d617",
+      "name": "苹果微胖的娇娇",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/60e5a4bb000000000101d617",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5ac4325e4eacab496beda850",
+      "name": "饱腹女孩",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ac4325e4eacab496beda850",
+      "tags": [
+        "优雅知性",
+        "简约"
+      ]
+    },
+    {
+      "id": "5fb6700f000000000101dbed",
+      "name": "really真胖-大马",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5fb6700f000000000101dbed",
+      "tags": [
+        "通勤",
+        "韩系"
+      ]
+    },
+    {
+      "id": "5c108b0bf7e8b9063698e27b",
+      "name": "奇怪的琪琪子",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5c108b0bf7e8b9063698e27b",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "6582ea13000000001c03ddb1",
+      "name": "小怡儿不怡",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6582ea13000000001c03ddb1",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5a39e2894eacab70688d15b1",
+      "name": "小胖胖花🌸",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5a39e2894eacab70688d15b1",
+      "tags": [
+        "通勤"
+      ]
+    },
+    {
+      "id": "58a0ffd36a6a6914fab1b76a",
+      "name": "喂胖小金🤩",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/58a0ffd36a6a6914fab1b76a",
+      "tags": [
+        "韩系"
+      ]
+    },
+    {
+      "id": "65315070000000002a01b2b8",
+      "name": "La-格绒",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/65315070000000002a01b2b8",
+      "tags": [
+        "中性",
+        "户外运动"
+      ]
+    },
+    {
+      "id": "5e0cb3e500000000010055f2",
+      "name": "西瓜美汁子🍉",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5e0cb3e500000000010055f2",
+      "tags": [
+        "韩系",
+        "简约"
+      ]
+    },
+    {
+      "id": "6537f1050000000004008d3f",
+      "name": "郭郭的日记",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6537f1050000000004008d3f",
+      "tags": [
+        "韩系",
+        "简约"
+      ]
+    },
+    {
+      "id": "59df5e5c20e88f39e27fb003",
+      "name": "瑞秋的来福",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/59df5e5c20e88f39e27fb003",
+      "tags": [
+        "复古",
+        "甜酷"
+      ]
+    },
+    {
+      "id": "5a81599a11be10576a2dd5ef",
+      "name": "0610",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5a81599a11be10576a2dd5ef",
+      "tags": [
+        "简约",
+        "韩系"
+      ]
+    },
+    {
+      "id": "5ba867e03eed5200012bf35c",
+      "name": "阿昨昨昨",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ba867e03eed5200012bf35c",
+      "tags": [
+        "简约",
+        "通勤"
+      ]
+    },
+    {
+      "id": "5b6a90ad93e7f20001feb0bf",
+      "name": "神田优作",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b6a90ad93e7f20001feb0bf",
+      "tags": [
+        "日系"
+      ]
+    },
+    {
+      "id": "5b778cf7afee9300013607c3",
+      "name": "郝人",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b778cf7afee9300013607c3",
+      "tags": [
+        "美式",
+        "简约"
+      ]
+    },
+    {
+      "id": "5b1f5407f7e8b9399cfab1ca",
+      "name": "NinetoWu",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b1f5407f7e8b9399cfab1ca",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "5a8e541d11be106420ac3eed",
+      "name": "165芒果崽",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5a8e541d11be106420ac3eed",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "5ae1f96de8ac2b02870320b3",
+      "name": "怕麻烦爱炒饭",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ae1f96de8ac2b02870320b3",
+      "tags": [
+        "甜美"
+      ]
+    },
+    {
+      "id": "5b1931ed11be1035ab4d15f4",
+      "name": "每天想你八百次",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b1931ed11be1035ab4d15f4",
+      "tags": [
+        "甜酷",
+        "甜美"
+      ]
+    },
+    {
+      "id": "5fd4b6ac00000000010095c2",
+      "name": "西瓜土豆🎀",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5fd4b6ac00000000010095c2",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "6125f505000000000100bbf7",
+      "name": "VibeWear",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6125f505000000000100bbf7",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "67822d79000000000801bc56",
+      "name": "实穿Luna",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/67822d79000000000801bc56",
+      "tags": [
+        "通勤",
+        "复古"
+      ]
+    },
+    {
+      "id": "68b1b3570000000019015b1b",
+      "name": "小只",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/68b1b3570000000019015b1b",
+      "tags": [
+        "简约",
+        "通勤"
+      ]
+    },
+    {
+      "id": "610742f8000000000100b9ca",
+      "name": "李子陈",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/610742f8000000000100b9ca",
+      "tags": [
+        "优雅知性",
+        "复古"
+      ]
+    },
+    {
+      "id": "5dcc0c6b00000000010042b5",
+      "name": "张伟",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5dcc0c6b00000000010042b5",
+      "tags": [
+        "甜酷",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "61ac7e49000000001000c695",
+      "name": "爱时尚的Yuki酱",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/61ac7e49000000001000c695",
+      "tags": [
+        "复古"
+      ]
+    },
+    {
+      "id": "6090c9f700000000010088be",
+      "name": "11nove1ty",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6090c9f700000000010088be",
+      "tags": [
+        "甜酷"
+      ]
+    },
+    {
+      "id": "5d1dee8e000000001002e27e",
+      "name": "Kimmy",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5d1dee8e000000001002e27e",
+      "tags": [
+        "优雅知性",
+        "简约"
+      ]
+    },
+    {
+      "id": "69134417000000003702999c",
+      "name": "귀여워_pear152🐶",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/69134417000000003702999c",
+      "tags": [
+        "韩系",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5dc0fe5500000000010050fc",
+      "name": "不太忧郁大帅哥",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5dc0fe5500000000010050fc",
+      "tags": [
+        "中性",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "624124950000000021029268",
+      "name": "桃跑的Rachel",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/624124950000000021029268",
+      "tags": [
+        "美式",
+        "复古"
+      ]
+    },
+    {
+      "id": "5fa3e60700000000010099d2",
+      "name": "是右右吗",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5fa3e60700000000010099d2",
+      "tags": [
+        "通勤",
+        "简约"
+      ]
+    },
+    {
+      "id": "5e857b78000000000100328f",
+      "name": "肥羊",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5e857b78000000000100328f",
+      "tags": [
+        "甜美"
+      ]
+    },
+    {
+      "id": "5f25105e000000000101f539",
+      "name": "高橋靚妹",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5f25105e000000000101f539",
+      "tags": [
+        "户外运动",
+        "中性"
+      ]
+    },
+    {
+      "id": "5dccb856000000000100a2dc",
+      "name": "是兮不是西",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5dccb856000000000100a2dc",
+      "tags": [
+        "户外运动"
+      ]
+    },
+    {
+      "id": "63100777000000000f004ea2",
+      "name": "戈多在野",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/63100777000000000f004ea2",
+      "tags": [
+        "户外运动"
+      ]
+    },
+    {
+      "id": "5ba9c1dcbf781500014123dc",
+      "name": "阿珍不睡觉",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ba9c1dcbf781500014123dc",
+      "tags": [
+        "户外运动",
+        "复古"
+      ]
+    },
+    {
+      "id": "5aa0edae11be10542cd8a440",
+      "name": "小曹儿",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5aa0edae11be10542cd8a440",
+      "tags": [
+        "户外运动"
+      ]
+    },
+    {
+      "id": "5ccb6bc9000000001600af8c",
+      "name": "sheluamin",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ccb6bc9000000001600af8c",
+      "tags": [
+        "户外运动"
+      ]
+    },
+    {
+      "id": "5f165b850000000001005e59",
+      "name": "玩具枪",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5f165b850000000001005e59",
+      "tags": [
+        "中性",
+        "通勤"
+      ]
+    },
+    {
+      "id": "674541dd000000001c01ba31",
+      "name": "香香baby🧜",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/674541dd000000001c01ba31",
+      "tags": [
+        "通勤",
+        "美式"
+      ]
+    },
+    {
+      "id": "665b368d0000000007005e6c",
+      "name": "smultronställe",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/665b368d0000000007005e6c",
+      "tags": [
+        "户外运动"
+      ]
+    },
+    {
+      "id": "545f688dd6e4a90acef6239d",
+      "name": "Re",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/545f688dd6e4a90acef6239d",
+      "tags": [
+        "简约",
+        "通勤"
+      ]
+    },
+    {
+      "id": "57eac2816a6a692324c94437",
+      "name": "拉姆呀拉姆",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/57eac2816a6a692324c94437",
+      "tags": [
+        "简约"
+      ]
+    },
+    {
+      "id": "6573eb84000000002002d184",
+      "name": "SnowKiss",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6573eb84000000002002d184",
+      "tags": [
+        "复古",
+        "日系"
+      ]
+    },
+    {
+      "id": "5d6b39c50000000001018473",
+      "name": "烤鱼片儿",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5d6b39c50000000001018473",
+      "tags": [
+        "简约",
+        "户外运动"
+      ]
+    },
+    {
+      "id": "5c0892a5000000000500f3b6",
+      "name": "艺文搭搭",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5c0892a5000000000500f3b6",
+      "tags": [
+        "户外运动"
+      ]
+    },
+    {
+      "id": "65fbe87e000000000600ff1d",
+      "name": "Novah.",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/65fbe87e000000000600ff1d",
+      "tags": [
+        "复古"
+      ]
+    },
+    {
+      "id": "5c5ff677000000001b024d70",
+      "name": "阿巴鱼",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5c5ff677000000001b024d70",
+      "tags": [
+        "韩系",
+        "简约"
+      ]
+    },
+    {
+      "id": "6556df3e000000001000bf62",
+      "name": "Air_",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6556df3e000000001000bf62",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "599028345e87e72a289d8ea4",
+      "name": "不气不气-",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/599028345e87e72a289d8ea4",
+      "tags": [
+        "中性",
+        "甜酷"
+      ]
+    },
+    {
+      "id": "66f56dd2000000001d03117a",
+      "name": "Unique point",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/66f56dd2000000001d03117a",
+      "tags": [
+        "复古"
+      ]
+    },
+    {
+      "id": "68999d460000000028032bcd",
+      "name": "沈眉装",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/68999d460000000028032bcd",
+      "tags": [
+        "简约",
+        "通勤"
+      ]
+    },
+    {
+      "id": "5852ab5182ec3909ab5d5bed",
+      "name": "cooxoh",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5852ab5182ec3909ab5d5bed",
+      "tags": [
+        "户外运动",
+        "通勤"
+      ]
+    },
+    {
+      "id": "5adac46d4eacab2df603d427",
+      "name": "Yxixi",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5adac46d4eacab2df603d427",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "6545c42f0000000006005ded",
+      "name": "小居",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6545c42f0000000006005ded",
+      "tags": [
+        "通勤",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5f03670a000000000101e948",
+      "name": "米歇一歇尔",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5f03670a000000000101e948",
+      "tags": [
+        "通勤"
+      ]
+    },
+    {
+      "id": "5db81bfd0000000001002c60",
+      "name": "一个ddp",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5db81bfd0000000001002c60",
+      "tags": [
+        "简约"
+      ]
+    },
+    {
+      "id": "5cb955be000000001103677c",
+      "name": "ChoCho",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5cb955be000000001103677c",
+      "tags": [
+        "通勤",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5e15c9d30000000001009310",
+      "name": "狂野淑女沈眉庄",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5e15c9d30000000001009310",
+      "tags": [
+        "复古",
+        "中性"
+      ]
+    },
+    {
+      "id": "602fd08d0000000001005b18",
+      "name": "EDENiliN_ed",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/602fd08d0000000001005b18",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "601d70440000000001009bec",
+      "name": "喷嚏大王",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/601d70440000000001009bec",
+      "tags": [
+        "韩系",
+        "甜美"
+      ]
+    },
+    {
+      "id": "5764e7f65e87e769dd8f0d2b",
+      "name": "青日子子",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5764e7f65e87e769dd8f0d2b",
+      "tags": [
+        "甜美",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "634eaeba00000000180294c2",
+      "name": "Li4",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/634eaeba00000000180294c2",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "59a15bdb50c4b43c65edd8f5",
+      "name": "tyeahhhhh_",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/59a15bdb50c4b43c65edd8f5",
+      "tags": [
+        "甜美",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5dc438f80000000001006568",
+      "name": "悦恩oni",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5dc438f80000000001006568",
+      "tags": [
+        "复古",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "65e42c45000000000500da08",
+      "name": "金智旻 Jimin Kim",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/65e42c45000000000500da08",
+      "tags": [
+        "复古",
+        "美式"
+      ]
+    },
+    {
+      "id": "5fedf8200000000001002af4",
+      "name": "一碗肉",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5fedf8200000000001002af4",
+      "tags": [
+        "简约",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5c5e5ba30000000012029dfb",
+      "name": "沙拉ok",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5c5e5ba30000000012029dfb",
+      "tags": [
+        "韩系",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "556e7aabe58d132eba30034d",
+      "name": "-吱唔珠珠",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/556e7aabe58d132eba30034d",
+      "tags": [
+        "通勤",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "637082f4000000001f019a44",
+      "name": "芽芽的牙",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/637082f4000000001f019a44",
+      "tags": [
+        "甜美",
+        "日系"
+      ]
+    },
+    {
+      "id": "6837e436000000001d00a5ea",
+      "name": "今天也在偷偷变美",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6837e436000000001d00a5ea",
+      "tags": [
+        "复古",
+        "韩系"
+      ]
+    },
+    {
+      "id": "62c7f2220000000002003f94",
+      "name": "Jilai",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/62c7f2220000000002003f94",
+      "tags": [
+        "简约",
+        "甜美"
+      ]
+    },
+    {
+      "id": "6358d03b000000001901e731",
+      "name": "今天一定早睡！",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6358d03b000000001901e731",
+      "tags": [
+        "甜美",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5cf2ad5700000000110297f1",
+      "name": "没钱买衣服了",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5cf2ad5700000000110297f1",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "562f8c8ef53ee026a3c94b5e",
+      "name": "易梦玲",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/562f8c8ef53ee026a3c94b5e",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "60decbb6000000000101d97f",
+      "name": "爬墙人",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/60decbb6000000000101d97f",
+      "tags": [
+        "美式",
+        "复古"
+      ]
+    },
+    {
+      "id": "5977684c50c4b4038e8f819a",
+      "name": "我是水水",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5977684c50c4b4038e8f819a",
+      "tags": [
+        "美式",
+        "甜酷"
+      ]
+    },
+    {
+      "id": "5ea6b53a00000000010009c7",
+      "name": "66Bua！",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5ea6b53a00000000010009c7",
+      "tags": [
+        "复古",
+        "中性"
+      ]
+    },
+    {
+      "id": "5d04ba520000000016004ef7",
+      "name": "quqookicu",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5d04ba520000000016004ef7",
+      "tags": [
+        "简约"
+      ]
+    },
+    {
+      "id": "68d66c4700000000210243dc",
+      "name": "圆圆财",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/68d66c4700000000210243dc",
+      "tags": [
+        "韩系"
+      ]
+    },
+    {
+      "id": "5b624e094eacab6f505cbf3c",
+      "name": "任冬梅-",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b624e094eacab6f505cbf3c",
+      "tags": [
+        "韩系",
+        "通勤"
+      ]
+    },
+    {
+      "id": "5b3828c86b58b75e1a27b136",
+      "name": "jojoyceee",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5b3828c86b58b75e1a27b136",
+      "tags": [
+        "简约",
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "5d94ef11000000000101850e",
+      "name": "oocookiesu",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/5d94ef11000000000101850e",
+      "tags": [
+        "甜酷"
+      ]
+    },
+    {
+      "id": "592b7c3b50c4b408b8ad6a17",
+      "name": "7",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/592b7c3b50c4b408b8ad6a17",
+      "tags": [
+        "美式"
+      ]
+    },
+    {
+      "id": "6970cef90000000014014d6a",
+      "name": "肉肉肉酱",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6970cef90000000014014d6a",
+      "tags": [
+        "优雅知性"
+      ]
+    },
+    {
+      "id": "69a074ef000000002100bccd",
+      "name": "宇宙人尧尧",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/69a074ef000000002100bccd",
+      "tags": [
+        "中性"
+      ]
+    },
+    {
+      "id": "6783fa1300000000080191dd",
+      "name": "IamQQ",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/6783fa1300000000080191dd",
+      "tags": [
+        "简约",
+        "户外运动"
+      ]
+    },
+    {
+      "id": "67bc2584000000000e01e15a",
+      "name": "marionette",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/67bc2584000000000e01e15a",
+      "tags": [
+        "复古"
+      ]
+    },
+    {
+      "id": "65f2e001000000000500b435",
+      "name": "咸菜蛋蛋",
+      "profile_url": "https://www.xiaohongshu.com/user/profile/65f2e001000000000500b435",
+      "tags": [
+        "美式",
+        "复古"
+      ]
+    }
+  ];
+  function shuffleBloggers(a) {
+    const arr = (a || []).slice();
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+    return arr;
+  }
+  // 「猜你喜欢」兜底：打乱后取前 20 个
+  function seedRecommendations() {
+    return shuffleBloggers(BLOGGER_SEED).slice(0, 20);
+  }
+  // 「按风格逛」兜底：按 tag 过滤（无 tag 或该风格为空则返回全部）
+  function seedByTag(tag) {
+    if (!tag) return BLOGGER_SEED.slice();
+    const filtered = BLOGGER_SEED.filter(function (b) {
+      return Array.isArray(b.tags) && b.tags.indexOf(tag) !== -1;
+    });
+    return filtered.length ? filtered : BLOGGER_SEED.slice();
+  }
+  // 匿名也发请求（apiFetch 仅在有 token 时才带 Authorization，不强制依赖登录）；
+  // 接口空或异常时统一回落到本地种子。
   async function fetchBloggerRecommendations() {
     try {
       const data = await apiFetch('/api/v1/bloggers/recommendations');
-      return (data && (data.items || data.bloggers || data.recommendations)) || (Array.isArray(data) ? data : []);
-    } catch (e) {
-      return [];
-    }
+      const list = (data && (data.items || data.bloggers || data.recommendations)) || (Array.isArray(data) ? data : []);
+      if (list && list.length) return list.slice(0, 20);
+    } catch (e) {}
+    return seedRecommendations();
   }
   async function fetchBloggers(tag) {
     try {
       const path = tag ? '/api/v1/bloggers?tag=' + encodeURIComponent(tag) : '/api/v1/bloggers';
       const data = await apiFetch(path);
-      return (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
-    } catch (e) {
-      return [];
-    }
+      const list = (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
+      if (list && list.length) return list;
+    } catch (e) {}
+    return seedByTag(tag);
   }
 
   window.YijianStore = {

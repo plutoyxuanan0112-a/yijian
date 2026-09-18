@@ -8,30 +8,6 @@
   const S = window.YijianStore;
 
   // ============== 通用小组件 ==============
-  const StatusBar = () => {
-    const [t, setT] = useState(fmtTime());
-    useEffect(() => {
-      const id = setInterval(() => setT(fmtTime()), 20000);
-      return () => clearInterval(id);
-    }, []);
-    return (
-      <div className="status">
-        <span className="status-icons">
-          <span className="signal">
-            <i /><i /><i /><i />
-          </span>
-        </span>
-      </div>
-    );
-  };
-  function fmtTime() {
-    const d = new Date();
-    return (
-      String(d.getHours()).padStart(2, '0') +
-      ':' +
-      String(d.getMinutes()).padStart(2, '0')
-    );
-  }
 
   // 把穿搭记录里的 weather（可能是结构化对象 / 摘要字符串 / null）安全拼成展示文案。
   // 老记录没存温度/天气时，返回空串或已有摘要，绝不输出 "undefined°C · undefined"。
@@ -3710,12 +3686,18 @@
   // 首页「猜你喜欢」横滑推荐行（替换原博主推荐栏）
   const HomeBloggerRail = ({ onOpenStyleBrowse }) => {
     const [list, setList] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [pending, setPending] = useState(null);
     useEffect(() => {
       let alive = true;
-      S.fetchBloggerRecommendations().then((l) => {
-        if (alive) setList((l || []).slice(0, 20));
-      });
+      setLoading(true);
+      S.fetchBloggerRecommendations()
+        .then((l) => {
+          if (alive) setList((l || []).slice(0, 20));
+        })
+        .finally(() => {
+          if (alive) setLoading(false);
+        });
       return () => {
         alive = false;
       };
@@ -3728,7 +3710,7 @@
       const tag = normTags(bg)[0];
       if (tag) S.recordStyleBehavior(tag, 'dislike_style');
     };
-    if (!list.length) return null;
+    // 标题始终渲染：即使 loading / 空数据也保留「猜你喜欢」标题与占位，绝不整块吞掉
     return (
       <>
         <div className="bl-section-head">
@@ -3737,16 +3719,20 @@
             查看更多 <Icon name="chevron" size={13} />
           </button>
         </div>
-        <div className="bl-hscroll">
-          {list.map((bg, i) => (
-            <BloggerRailCard
-              key={(bg && (bg.id || bg.profile_url)) || i}
-              blogger={bg}
-              onOpen={() => openBloggerHome(bg)}
-              onDislike={() => setPending(bg)}
-            />
-          ))}
-        </div>
+        {list.length ? (
+          <div className="bl-hscroll">
+            {list.map((bg, i) => (
+              <BloggerRailCard
+                key={(bg && (bg.id || bg.profile_url)) || i}
+                blogger={bg}
+               onOpen={() => openBloggerHome(bg)}
+                onDislike={() => setPending(bg)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="blogger-empty">{loading ? '加载中…' : '暂时没有推荐博主～'}</div>
+       )}
         {pending && (
           <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
         )}
@@ -4016,7 +4002,6 @@
   };
 
   window.YijianUI = {
-    StatusBar,
     Icon,
     WeatherIcon,
     Select,

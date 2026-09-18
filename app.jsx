@@ -9,7 +9,6 @@
   const U = window.YijianUI;
 
   const {
-    StatusBar,
     Icon,
     Toast,
     HomePage,
@@ -744,7 +743,6 @@
     return (
       <div className="stage">
         <div className="phone">
-          <StatusBar />
           {page === 'home' && (
           <div className="topbar">
             <div className="brand">衣见</div>
