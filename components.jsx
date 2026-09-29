@@ -8,46 +8,21 @@
   const S = window.YijianStore;
 
   // ============== 通用小组件 ==============
-  const StatusBar = () => {
-    const [t, setT] = useState(fmtTime());
-    useEffect(() => {
-      const id = setInterval(() => setT(fmtTime()), 20000);
-      return () => clearInterval(id);
-    }, []);
-    return (
-      <div className="status">
-        <span className="status-time">{t}</span>
-        <span className="status-icons">
-          <span className="signal">
-            <i /><i /><i /><i />
-          </span>
-          <span className="battery" />
-        </span>
-      </div>
-    );
-  };
-  function fmtTime() {
-    const d = new Date();
-    return (
-      String(d.getHours()).padStart(2, '0') +
-      ':' +
-      String(d.getMinutes()).padStart(2, '0')
-    );
-  }
 
   // 把穿搭记录里的 weather（可能是结构化对象 / 摘要字符串 / null）安全拼成展示文案。
   // 老记录没存温度/天气时，返回空串或已有摘要，绝不输出 "undefined°C · undefined"。
   function formatRecordWeather(w) {
-    if (!w) return '';
-    if (typeof w === 'string') {
+    if (!w) return "";
+    if (typeof w === "string") {
       const str = w.trim();
-      return str && str !== '未知' ? str : '';
+      return str && str !== "未知" ? str : "";
     }
     const parts = [];
-    if (w.temperature != null && w.temperature !== '') parts.push(w.temperature + '°C');
+    if (w.temperature != null && w.temperature !== "")
+      parts.push(w.temperature + "°C");
     if (w.weatherLabel) parts.push(w.weatherLabel);
     if (!parts.length && w.summary) return String(w.summary);
-    return parts.join(' · ');
+    return parts.join(" · ");
   }
 
   const Icon = ({ name, size = 20 }) => {
@@ -55,22 +30,22 @@
     const props = {
       width: s,
       height: s,
-      viewBox: '0 0 24 24',
-      fill: 'none',
-      stroke: 'currentColor',
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
       strokeWidth: 1.7,
-      strokeLinecap: 'round',
-      strokeLinejoin: 'round',
+      strokeLinecap: "round",
+      strokeLinejoin: "round",
     };
     switch (name) {
-      case 'home':
+      case "home":
         return (
           <svg {...props}>
             <path d="M3 11.5 12 4l9 7.5" />
             <path d="M5 10v10h14V10" />
           </svg>
         );
-      case 'closet':
+      case "closet":
         return (
           <svg {...props}>
             <path d="M6 8 12 4l6 4" />
@@ -78,21 +53,21 @@
             <path d="M12 8v12" />
           </svg>
         );
-      case 'sparkle':
+      case "sparkle":
         return (
           <svg {...props}>
             <path d="M12 4v6M12 14v6M4 12h6M14 12h6" />
             <path d="M7 7l3 3M14 14l3 3M17 7l-3 3M10 14l-3 3" />
           </svg>
         );
-      case 'clock':
+      case "clock":
         return (
           <svg {...props}>
             <circle cx="12" cy="12" r="8" />
             <path d="M12 8v5l3 2" />
           </svg>
         );
-      case 'share':
+      case "share":
         return (
           <svg {...props}>
             <path d="M12 3v13" />
@@ -100,20 +75,20 @@
             <path d="M5 12v7h14v-7" />
           </svg>
         );
-      case 'user':
+      case "user":
         return (
           <svg {...props}>
             <circle cx="12" cy="8" r="4" />
             <path d="M4 20c1.5-4 5-6 8-6s6.5 2 8 6" />
           </svg>
         );
-      case 'plus':
+      case "plus":
         return (
           <svg {...props}>
             <path d="M12 5v14M5 12h14" />
           </svg>
         );
-      case 'refresh':
+      case "refresh":
         return (
           <svg {...props}>
             <path d="M4 12a8 8 0 0 1 14-5" />
@@ -122,27 +97,27 @@
             <path d="M6 20v-4h4" />
           </svg>
         );
-      case 'sun':
+      case "sun":
         return (
           <svg {...props}>
             <circle cx="12" cy="12" r="4" />
             <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" />
           </svg>
         );
-      case 'cloud':
+      case "cloud":
         return (
           <svg {...props}>
             <path d="M7 17a4 4 0 0 1 0-8 5 5 0 0 1 9-1 4 4 0 0 1 1 8H7Z" />
           </svg>
         );
-      case 'rain':
+      case "rain":
         return (
           <svg {...props}>
             <path d="M7 15a4 4 0 0 1 0-8 5 5 0 0 1 9-1 4 4 0 0 1 1 8" />
             <path d="M9 18l-1 3M13 18l-1 3M17 18l-1 3" />
           </svg>
         );
-      case 'link':
+      case "link":
         return (
           <svg {...props}>
             <path d="M10 14l4-4" />
@@ -150,19 +125,19 @@
             <path d="M16 12l3-3a3 3 0 1 0-4-4l-3 3" />
           </svg>
         );
-      case 'trash':
+      case "trash":
         return (
           <svg {...props}>
             <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
           </svg>
         );
-      case 'edit':
+      case "edit":
         return (
           <svg {...props}>
             <path d="M4 20l4-1 11-11-3-3L5 16l-1 4Z" />
           </svg>
         );
-      case 'download':
+      case "download":
         return (
           <svg {...props}>
             <path d="M12 4v11" />
@@ -170,51 +145,51 @@
             <path d="M5 20h14" />
           </svg>
         );
-      case 'copy':
+      case "copy":
         return (
           <svg {...props}>
             <rect x="8" y="8" width="12" height="12" rx="2" />
             <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
           </svg>
         );
-      case 'check':
+      case "check":
         return (
           <svg {...props}>
             <path d="M4 12l5 5L20 6" />
           </svg>
         );
-      case 'chevron':
+      case "chevron":
         return (
           <svg {...props}>
             <path d="M9 6l6 6-6 6" />
           </svg>
         );
-      case 'star':
+      case "star":
         return (
           <svg {...props}>
             <path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14l-5-4.5 6.5-.5L12 3Z" />
           </svg>
         );
-      case 'back':
+      case "back":
         return (
           <svg {...props}>
             <path d="M15 6l-6 6 6 6" />
           </svg>
         );
-      case 'close':
+      case "close":
         return (
           <svg {...props}>
             <path d="M6 6l12 12M18 6L6 18" />
           </svg>
         );
-      case 'rows':
+      case "rows":
         return (
           <svg {...props}>
             <rect x="4" y="5.5" width="16" height="5.4" rx="1.4" />
             <rect x="4" y="13" width="16" height="5.4" rx="1.4" />
           </svg>
         );
-      case 'grid':
+      case "grid":
         return (
           <svg {...props}>
             <rect x="4.5" y="4.5" width="6.2" height="6.2" rx="1.2" />
@@ -231,10 +206,10 @@
   // 天气图标：根据 weatherLabel 选择
   const WeatherIcon = ({ weather }) => {
     if (!weather) return <Icon name="sun" size={22} />;
-    const t = weather.weatherLabel || '';
-    if (t.includes('雨') || t.includes('雷'))
+    const t = weather.weatherLabel || "";
+    if (t.includes("雨") || t.includes("雷"))
       return <Icon name="rain" size={22} />;
-    if (t.includes('云') || t.includes('阴') || t.includes('雾'))
+    if (t.includes("云") || t.includes("阴") || t.includes("雾"))
       return <Icon name="cloud" size={22} />;
     return <Icon name="sun" size={22} />;
   };
@@ -247,17 +222,14 @@
       const close = (e) => {
         if (wrap.current && !wrap.current.contains(e.target)) setOpen(false);
       };
-      document.addEventListener('click', close);
-      return () => document.removeEventListener('click', close);
+      document.addEventListener("click", close);
+      return () => document.removeEventListener("click", close);
     }, []);
     return (
-      <div
-        className={'select-wrap ' + (open ? 'open' : '')}
-        ref={wrap}
-      >
+      <div className={"select-wrap " + (open ? "open" : "")} ref={wrap}>
         <button
           type="button"
-          className={'select-trigger' + (value ? '' : ' placeholder')}
+          className={"select-trigger" + (value ? "" : " placeholder")}
           onClick={(e) => {
             e.stopPropagation();
             setOpen(!open);
@@ -274,7 +246,7 @@
                 aria-selected={o === value}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onChange(o === value ? '' : o);
+                  onChange(o === value ? "" : o);
                   setOpen(false);
                 }}
               >
@@ -312,9 +284,10 @@
             <button
               type="button"
               key={it}
-              className={'wheel-item' + (it === value ? ' active' : '')}
+              className={"wheel-item" + (it === value ? " active" : "")}
               onClick={() => {
-                if (ref.current) ref.current.scrollTop = items.indexOf(it) * ITEM_H;
+                if (ref.current)
+                  ref.current.scrollTop = items.indexOf(it) * ITEM_H;
                 onChange(it);
               }}
             >
@@ -327,7 +300,14 @@
     );
   };
 
-  const YearMonthWheel = ({ year, month, minYear, maxYear, onConfirm, onClose }) => {
+  const YearMonthWheel = ({
+    year,
+    month,
+    minYear,
+    maxYear,
+    onConfirm,
+    onClose,
+  }) => {
     const years = useMemo(() => {
       const arr = [];
       for (let y = minYear; y <= maxYear; y += 1) arr.push(y);
@@ -339,9 +319,14 @@
     return (
       <>
         <div className="ym-pop-mask" onClick={onClose} />
-        <div className="ym-pop ym-pop-wheel" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="ym-pop ym-pop-wheel"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="ym-pop-bar">
-            <button type="button" className="wheel-cancel" onClick={onClose}>取消</button>
+            <button type="button" className="wheel-cancel" onClick={onClose}>
+              取消
+            </button>
             <span className="wheel-title">选择年月</span>
             <button
               type="button"
@@ -356,13 +341,13 @@
               items={years}
               value={tempYear}
               onChange={setTempYear}
-              formatLabel={(y) => y + ' 年'}
+              formatLabel={(y) => y + " 年"}
             />
             <WheelColumn
               items={months}
               value={tempMonth}
               onChange={setTempMonth}
-              formatLabel={(m) => m + 1 + ' 月'}
+              formatLabel={(m) => m + 1 + " 月"}
             />
           </div>
         </div>
@@ -379,34 +364,56 @@
     </div>
   );
 
-  // 单品卡片
-  // v12：不再在卡片右上角显示删除叉；用户必须点击卡片进入 ItemDetailSheet 后再操作删除/编辑，
-  // 避免手滑误删。onDelete prop 保留是为向后兼容传入，但不再渲染。
-  const ItemCard = ({ item, onClick, isDemo }) => {
+  // 单品卡片：右上角删除符号只负责发起确认，不直接删除。
+  const ItemCard = ({ item, onClick, onDelete, isDemo }) => {
     const bg = item.image;
+    const demoItem = isDemo || item.isDemo;
     return (
       <div className="item-card" onClick={onClick}>
         <div className="item-photo">
           {bg ? (
             <img alt={item.name} src={bg} />
           ) : (
-            <span style={{ color: 'var(--muted)', fontSize: 22 }}>◐</span>
+            <span style={{ color: "var(--muted)", fontSize: 22 }}>◐</span>
           )}
-          {isDemo && <span className="item-demo-tag">示例</span>}
+          {demoItem && <span className="item-demo-tag">例</span>}
+          {onDelete && (
+            <button
+              type="button"
+              className="item-delete"
+              aria-label={"删除" + (item.name || "衣物")}
+              title="删除衣物"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDelete(item);
+              }}
+            >
+              ×
+            </button>
+          )}
         </div>
         <div className="item-name" title={item.name}>
           {item.name}
         </div>
         <div className="item-tag">
           {item.category}
-          {item.color ? ' · ' + item.color : ''}
+          {item.color ? " · " + item.color : ""}
         </div>
       </div>
     );
   };
 
   // Flat-lay 效果图：给出 selected_items（含 image / category）
-  const Flatlay = ({ picks, title, meta, footer, forwardRef, onReplace, onRemove, onAdd }) => {
+  const Flatlay = ({
+    picks,
+    title,
+    meta,
+    footer,
+    forwardRef,
+    onReplace,
+    onRemove,
+    onAdd,
+  }) => {
     // Task 1：不再按固定 5 类槽位塞单品，改为按实际返回的 selected_items 动态渲染。
     const items = useMemo(
       () => (Array.isArray(picks) ? picks.filter(Boolean) : []),
@@ -418,75 +425,79 @@
         {item.image ? (
           <img src={item.image} alt={item.name} />
         ) : (
-          <span className="empty-slot">{item.category || '单品'}</span>
+          <span className="empty-slot">{item.category || "单品"}</span>
         )}
         <div className="slot-label">
-          <strong>{(item.name && item.name !== '未填写') ? item.name : (item.category || '单品')}</strong>
+          <strong>
+            {item.name && item.name !== "未填写"
+              ? item.name
+              : item.category || "单品"}
+          </strong>
         </div>
-            {onReplace && (
-              <button
-                type="button"
-                aria-label={'替换' + (item.category || '单品')}
-                title="换这件"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onReplace(item);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 6,
-                  right: 6,
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: '#ede9fe',
-                  color: '#7c3aed',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 4px rgba(124,58,237,.2)',
-                  padding: 0,
-                  zIndex: 2,
-                }}
-              >
-                <Icon name="refresh" size={14} />
-              </button>
-            )}
-            {onRemove && (
-              <button
-                type="button"
-                aria-label={'删除' + (item.category || '单品')}
-                title="删掉这件"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove(item);
-                }}
-                style={{
-                  position: 'absolute',
-                  top: 6,
-                  left: 6,
-                  width: 26,
-                  height: 26,
-                  borderRadius: '50%',
-                  border: 'none',
-                  background: '#fdecec',
-                  color: '#c2410c',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 1px 4px rgba(194,64,12,.2)',
-                  padding: 0,
-                  fontSize: 16,
-                  lineHeight: 1,
-                  zIndex: 2,
-                }}
-              >
-                ×
-              </button>
-            )}
+        {onReplace && (
+          <button
+            type="button"
+            aria-label={"替换" + (item.category || "单品")}
+            title="换这件"
+            onClick={(e) => {
+              e.stopPropagation();
+              onReplace(item);
+            }}
+            style={{
+              position: "absolute",
+              top: 6,
+              right: 6,
+              width: 26,
+              height: 26,
+              borderRadius: "50%",
+              border: "none",
+              background: "#ede9fe",
+              color: "#7c3aed",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 4px rgba(124,58,237,.2)",
+              padding: 0,
+              zIndex: 2,
+            }}
+          >
+            <Icon name="refresh" size={14} />
+          </button>
+        )}
+        {onRemove && (
+          <button
+            type="button"
+            aria-label={"删除" + (item.category || "单品")}
+            title="删掉这件"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove(item);
+            }}
+            style={{
+              position: "absolute",
+              top: 6,
+              left: 6,
+              width: 26,
+              height: 26,
+              borderRadius: "50%",
+              border: "none",
+              background: "#fdecec",
+              color: "#c2410c",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 1px 4px rgba(194,64,12,.2)",
+              padding: 0,
+              fontSize: 16,
+              lineHeight: 1,
+              zIndex: 2,
+            }}
+          >
+            ×
+          </button>
+        )}
       </div>
     );
 
@@ -495,7 +506,14 @@
         {(title || meta) && (
           <div style={{ marginBottom: 10 }}>
             {title && (
-              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)', letterSpacing: '-.01em' }}>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: "var(--ink)",
+                  letterSpacing: "-.01em",
+                }}
+              >
                 {title}
               </div>
             )}
@@ -508,16 +526,16 @@
         )}
         <div className="flatlay">
           {items.length === 0 && (
-            <div className="slot" style={{ gridColumn: '1 / -1' }}>
+            <div className="slot" style={{ gridColumn: "1 / -1" }}>
               <span className="empty-slot">
                 {onAdd
-                  ? '这套还没有单品，点下方「+ 添加单品」从衣橱挑选'
-                  : '暂无单品'}
+                  ? "这套还没有单品，点下方「+ 添加单品」从衣橱挑选"
+                  : "暂无单品"}
               </span>
             </div>
           )}
           {items.map((it, idx) =>
-            cell(it, it && it.id != null ? 'pick-' + it.id : 'pick-' + idx),
+            cell(it, it && it.id != null ? "pick-" + it.id : "pick-" + idx),
           )}
           {onAdd && (
             <button
@@ -527,15 +545,15 @@
               aria-label="添加单品"
               title="从衣橱添加一件"
               style={{
-                cursor: 'pointer',
-                border: '1px dashed #b9aef0',
-                background: 'rgba(255,255,255,.4)',
-                color: '#5b4bdb',
+                cursor: "pointer",
+                border: "1px dashed #b9aef0",
+                background: "rgba(255,255,255,.4)",
+                color: "#5b4bdb",
                 fontSize: 13,
                 fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 gap: 4,
               }}
             >
@@ -544,7 +562,10 @@
           )}
         </div>
         {footer && (
-          <div className="tiny mt-3" style={{ color: 'var(--muted)', fontSize: 11 }}>
+          <div
+            className="tiny mt-3"
+            style={{ color: "var(--muted)", fontSize: 11 }}
+          >
             {footer}
           </div>
         )}
@@ -574,17 +595,20 @@
     onClickItem,
   }) => {
     const today = new Date();
+    const latestRecord = recentRecords?.length
+      ? recentRecords[recentRecords.length - 1]
+      : null;
     const dateStr =
       today.getFullYear() +
-      '年' +
+      "年" +
       (today.getMonth() + 1) +
-      '月' +
+      "月" +
       today.getDate() +
-      '日 · 周' +
-      '日一二三四五六'[today.getDay()];
+      "日 · 周" +
+      "日一二三四五六"[today.getDay()];
 
     return (
-      <div className="page">
+      <div className="page home-page">
         <div className="sub">{dateStr}</div>
         <h1 className="h1-hero">今天穿什么？</h1>
 
@@ -620,9 +644,14 @@
               {geoLocating ? (
                 <>
                   <strong>定位中…</strong>
-                  <span className="meta">
-                    请允许定位
-                  </span>
+                  <span className="meta">请授权定位</span>
+                </>
+              ) : weather && weather.isDemo ? (
+                <>
+                  <strong>
+                    {weather.temperature}°C · {weather.weatherLabel}
+                  </strong>
+                  <span className="meta">模拟天气 · {weather.warmthNeed}</span>
                 </>
               ) : weather && !weather.isFallback ? (
                 <>
@@ -630,79 +659,64 @@
                     {weather.temperature}°C · {weather.weatherLabel}
                   </strong>
                   <span className="meta">
-                    {weather.city || '当前位置'} ·{' '}
-                    {weather.warmthNeed}
-                    {weather.precipitation > 0 ? ' · 有降水' : ''}
+                    {weather.city || "当前位置"} · {weather.warmthNeed}
+                    {weather.precipitation > 0 ? " · 有降水" : ""}
                     {weather.accuracy
-                      ? ' · 精度 ' + weather.accuracy + 'm'
-                      : ''}
+                      ? " · 精度 " + weather.accuracy + "m"
+                      : ""}
                   </span>
                 </>
-              ) : geoStatus === 'denied' ? (
+              ) : geoStatus === "denied" ? (
                 <>
                   <strong>定位被拒</strong>
-                  <span className="meta">
-                    可在设置中恢复权限
-                  </span>
+                  <span className="meta">可在设置中恢复权限</span>
                 </>
-              ) : geoStatus === 'no_support' ? (
+              ) : geoStatus === "no_support" ? (
                 <>
                   <strong>不支持定位</strong>
                   <span className="meta">使用默认天气</span>
                 </>
-              ) : geoStatus === 'insecure' ? (
+              ) : geoStatus === "insecure" ? (
                 <>
                   <strong>定位不可用</strong>
-                  <span className="meta">
-                    请用启动脚本打开
-                  </span>
+                  <span className="meta">请用启动脚本打开</span>
                 </>
-              ) : geoStatus === 'error' ||
-                geoStatus === 'timeout' ||
-                geoStatus === 'unavailable' ||
-                geoStatus === 'weather_error' ? (
+              ) : geoStatus === "error" ||
+                geoStatus === "timeout" ||
+                geoStatus === "unavailable" ||
+                geoStatus === "weather_error" ? (
                 <>
                   <strong>
-                    {weather ? weather.temperature + '°C · ' + weather.weatherLabel : '定位失败'}
+                    {weather
+                      ? weather.temperature + "°C · " + weather.weatherLabel
+                      : "定位失败"}
                   </strong>
-                  <span className="meta">
-                    点击重试
-                  </span>
+                  <span className="meta">点击重试</span>
                 </>
               ) : (
                 <>
                   <strong>获取当地天气</strong>
-                  <span className="meta">点击允许定位</span>
+                  <span className="meta">点击授权定位</span>
                 </>
               )}
             </span>
-            <em>
-              {geoLocating
-                ? '定位中…'
-                : weather && !weather.isFallback
-                ? '刷新 ›'
-                : geoStatus === 'denied'
-                ? '再试 ›'
-                : '允许定位 ›'}
-            </em>
+            <em>{geoLocating ? "定位中…" : "授权定位 ›"}</em>
           </button>
 
           <button
             className="primary mt-3"
-            style={{ width: '100%' }}
+            style={{ width: "100%" }}
             onClick={onGenerate}
             disabled={generating}
           >
-            {generating ? '生成中…' : '生成今日穿搭'}
+            {generating ? "生成中…" : "生成今日穿搭"}
           </button>
 
-{generating && (
-  <div
-    style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}
-  >
-    首次生成可能较慢（约 1 分钟），请耐心等待…
-  </div>
-)}
+          {generating && (
+            <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
+              首次生成可能较慢（约 1 分钟），请耐心等待…
+            </div>
+          )}
         </div>
 
         {outfit && outfit.missing_piece && (
@@ -711,10 +725,7 @@
             title="衣橱还不够完整"
             tip={outfit.missing_piece}
             action={
-              <button
-                className="outline"
-                onClick={() => onNav('wardrobe')}
-              >
+              <button className="outline" onClick={() => onNav("wardrobe")}>
                 去衣橱上传
               </button>
             }
@@ -723,27 +734,26 @@
 
         <div className="section-head">
           <h2>我的衣橱</h2>
-          <button className="link" onClick={() => onNav('wardrobe')}>
+          <button className="link" onClick={() => onNav("wardrobe")}>
             查看全部 ›
           </button>
         </div>
         {wardrobe.length === 0 ? (
-          <EmptyState
-            big="◐"
-            title="你的衣橱还是空的"
-            tip="先上传一件真实衣服，会自动识别并加入衣橱。"
-            action={
-              <button
-                className="primary"
-                onClick={() => onNav('wardrobe')}
-              >
-                去上传第一件
-              </button>
-            }
-          />
+          <div className="home-wardrobe-empty">
+            <EmptyState
+              big="◐"
+              title="你的衣橱还是空的"
+              tip="先上传一件真实衣服，会自动识别并加入衣橱。"
+              action={
+                <button className="primary" onClick={() => onNav("wardrobe")}>
+                  去上传第一件
+                </button>
+              }
+            />
+          </div>
         ) : (
-          <div className="wardrobe-grid grid-4">
-            {wardrobe.slice(0, 4).map((item) => (
+          <div className="wardrobe-grid">
+            {wardrobe.slice(0, 3).map((item) => (
               <ItemCard
                 key={item.id}
                 item={item}
@@ -753,24 +763,21 @@
           </div>
         )}
 
-        <HomeBloggerRail onOpenStyleBrowse={() => onNav('styleBrowse')} />
+        <HomeBloggerRail onOpenStyleBrowse={() => onNav("styleBrowse")} />
 
-        {recentRecords && recentRecords.length > 0 && (
-          <>
-            <div className="section-head">
-              <h2>穿搭日记</h2>
-              <button className="link" onClick={() => onNav('records')}>
-                查看全部 ›
-              </button>
-            </div>
-            {recentRecords.slice(0, 1).map((r) => (
-              <MiniRecord
-                key={r.id}
-                record={r}
-                onClick={() => onNav('records')}
-              />
-            ))}
-          </>
+        <div className="section-head">
+          <h2>穿搭日记</h2>
+          <button className="link" onClick={() => onNav("records")}>
+            查看全部 ›
+          </button>
+        </div>
+        {latestRecord ? (
+          <MiniRecord record={latestRecord} onClick={() => onNav("records")} />
+        ) : (
+          <button className="home-diary-empty" onClick={() => onNav("records")}>
+            <span>还没有保存的穿搭</span>
+            <Icon name="chevron" size={18} />
+          </button>
         )}
       </div>
     );
@@ -778,26 +785,24 @@
 
   const MiniRecord = ({ record, onClick, onDelete }) => {
     const picks = record.outfit?.selected_items || [];
+    const weatherText = formatRecordWeather(record.weather);
     return (
       <div className="record-card" onClick={onClick}>
         <div className="record-thumb">
           <div className="mini-grid">
-            {picks.slice(0, 4).map((p, i) => (
-              <img key={i} src={p.image} alt={p.name} />
-            ))}
+            {picks
+              .filter((p) => p.image)
+              .slice(0, 4)
+              .map((p, i) => (
+                <img key={i} src={p.image} alt="" />
+              ))}
           </div>
         </div>
         <div className="record-body">
           <strong>
-            {record.date} · {record.scene}
+            {record.scene || "日常"} · {record.style || "简约"}
           </strong>
-          <p>
-            {picks.map((p) => (p.name && p.name !== '未填写') ? p.name : (p.category || '单品')).join(' · ') || '空搭配'}
-          </p>
-          <p className="tiny">
-            {record.style} ·{' '}
-            {formatRecordWeather(record.weather) || '未记录天气'}
-          </p>
+          <p className="tiny">{weatherText || "未记录天气"}</p>
         </div>
         {onDelete && (
           <button
@@ -834,20 +839,25 @@
         }, 300);
       };
       el.addEventListener("scroll", h);
-      return () => { el.removeEventListener("scroll", h); clearTimeout(scrollTimer.current); };
+      return () => {
+        el.removeEventListener("scroll", h);
+        clearTimeout(scrollTimer.current);
+      };
     }, []);
-    const [cat, setCat] = useState('全部');
-    const cats = ['全部', ...S.CATEGORIES];
+    const [cat, setCat] = useState("全部");
+    const cats = ["全部", ...S.CATEGORIES];
     const filtered =
-      cat === '全部'
-        ? wardrobe
-        : wardrobe.filter((x) => x.category === cat);
+      cat === "全部" ? wardrobe : wardrobe.filter((x) => x.category === cat);
     return (
       <div className="page">
         {showBTT && (
-          <button 
-            className="BackToTop visible" 
-            onClick={() => document.querySelector(".content").scrollTo({top: 0, behavior: "smooth"})}
+          <button
+            className="BackToTop visible"
+            onClick={() =>
+              document
+                .querySelector(".content")
+                .scrollTo({ top: 0, behavior: "smooth" })
+            }
           >
             <Icon name="chevron" size={20} />
             TOP
@@ -859,10 +869,12 @@
           <h2>全部单品</h2>
           <button
             className="primary"
-            style={{ padding: '9px 14px', fontSize: 12 }}
-            onClick={onOpenUpload}
+            style={{ padding: "9px 14px", fontSize: 12 }}
+            onClick={() => onOpenUpload(cat)}
           >
-            <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+            <span
+              style={{ display: "inline-flex", gap: 4, alignItems: "center" }}
+            >
               <Icon name="plus" size={14} /> 上传
             </span>
           </button>
@@ -872,7 +884,7 @@
           {cats.map((c) => (
             <button
               key={c}
-              className={'tab ' + (c === cat ? 'selected' : '')}
+              className={"tab " + (c === cat ? "selected" : "")}
               onClick={() => setCat(c)}
             >
               {c}
@@ -881,24 +893,22 @@
         </div>
 
         {filtered.length === 0 ? (
-          <EmptyState
-            big="◐"
-            title={
-              wardrobe.length === 0
-                ? '你的衣橱还是空的'
-                : '这个分类还没单品'
-            }
-            tip={
-              wardrobe.length === 0
-                ? '先上传一件真实衣服，会自动识别并归类。'
-                : '试试上传一件，或切换到其他分类。'
-            }
-            action={
-              <button className="primary" onClick={onOpenUpload}>
-                上传一件
-              </button>
-            }
-          />
+          <div className="wardrobe-empty-compact">
+            <EmptyState
+              big="◐"
+              title={
+                wardrobe.length === 0 ? "你的衣橱还是空的" : "这个分类还没单品"
+              }
+              tip={
+                wardrobe.length === 0 ? "" : "试试上传一件，或切换到其他分类。"
+              }
+              action={
+                <button className="primary" onClick={() => onOpenUpload(cat)}>
+                  上传一件
+                </button>
+              }
+            />
+          </div>
         ) : (
           <div className="wardrobe-grid">
             {filtered.map((item) => (
@@ -916,7 +926,7 @@
   };
 
   // ============== Inspire Page ==============
-  // 灵感落地页（概览）：按风格逛预览 + 我的收藏预览。完整板块见 StyleBrowsePage / CollectionsPage。
+  // 灵感落地页（概览）：按风格逛 + 统一的我的灵感库。
   const InspirePage = ({
     links,
     inspireTag,
@@ -924,40 +934,39 @@
     onOpenSaveLink,
     onNav,
   }) => {
-    const [preview, setPreview] = useState([]);
+    const {
+      list: preview,
+      error: previewError,
+      retry: retryPreview,
+    } = useBloggers(inspireTag, false, 2);
     const [pending, setPending] = useState(null);
     const styleKeys = Object.keys(STYLE_COLORS);
-    useEffect(() => {
-      let alive = true;
-      S.fetchBloggers(inspireTag).then((l) => {
-        if (alive) setPreview((l || []).slice(0, 2));
-      });
-      return () => {
-        alive = false;
-      };
-    }, [inspireTag]);
-    const doConfirm = () => {
+    const doConfirm = async () => {
       const bg = pending;
-      setPending(null);
       if (!bg) return;
-      setPreview((prev) => prev.filter((x) => x !== bg));
-      const tag = normTags(bg)[0] || inspireTag;
-      if (tag) S.recordStyleBehavior(tag, 'dislike_style');
+      if (await bloggerAction(bg, "block_blogger")) setPending(null);
     };
-    const savedPreview = links.slice().reverse().slice(0, 2);
+    const savedPreview = links.slice(0, 2);
     return (
       <div className="page">
+        <h1 className="h1-hero">灵感库</h1>
         <div className="bl-section-head" style={{ marginTop: 8 }}>
           <h2 className="bl-h2">按风格逛</h2>
-          <button className="bl-link" onClick={() => onNav('styleBrowse')}>
-            查看更多 <Icon name="chevron" size={13} />
+          <button
+            className="bl-eye-link"
+            onClick={() => onNav("styleBrowse")}
+            aria-label="查看全部博主"
+            title="查看全部博主"
+          >
+            <span>查看全部</span>
+            <Icon name="chevron" size={18} />
           </button>
         </div>
         <div className="bl-chips">
           {styleKeys.map((t) => (
             <button
               key={t}
-              className={'bl-chip' + (t === inspireTag ? ' active' : '')}
+              className={"bl-chip" + (t === inspireTag ? " active" : "")}
               onClick={() => setInspireTag(t)}
             >
               {t}
@@ -965,6 +974,9 @@
           ))}
         </div>
         <div style={{ marginTop: 12 }}>
+          {previewError && (
+            <button onClick={retryPreview}>推荐暂时未同步，点击重试</button>
+          )}
           {preview.length === 0 ? (
             <div className="blogger-empty">这个风格暂时没有博主～</div>
           ) : (
@@ -980,9 +992,13 @@
         </div>
 
         <div className="bl-section-head">
-          <h2 className="bl-h2">我的收藏</h2>
+          <div>
+            <h2 className="bl-h2">我的灵感库</h2>
+          </div>
           <button className="primary" onClick={onOpenSaveLink}>
-            <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+            <span
+              style={{ display: "inline-flex", gap: 4, alignItems: "center" }}
+            >
               <Icon name="plus" size={14} /> 保存
             </span>
           </button>
@@ -990,12 +1006,16 @@
         {savedPreview.length === 0 ? (
           <EmptyState
             big="✦"
-            title="还没有保存的灵感"
-            tip="看到喜欢的小红书 / 抖音 / 淘宝内容，粘贴链接进来。"
+            title="灵感库还是空的"
+            tip="喜欢博主、收藏博主，或保存一条自己的灵感链接。"
           />
         ) : (
           savedPreview.map((l) => (
-            <div key={l.id} className="link-card" onClick={() => onNav('collections')}>
+            <div
+              key={l.id}
+              className="link-card"
+              onClick={() => onNav("library")}
+            >
               <strong>{l.title}</strong>
               <span className="url">{l.url}</span>
               {l.tags && l.tags.length > 0 && (
@@ -1011,13 +1031,17 @@
           ))
         )}
         <div className="bl-more-row">
-          <button className="bl-link" onClick={() => onNav('collections')}>
-            查看更多 <Icon name="chevron" size={13} />
+          <button className="bl-link" onClick={() => onNav("library")}>
+            打开灵感库 <Icon name="chevron" size={13} />
           </button>
         </div>
 
         {pending && (
-          <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
+          <DislikeDialog
+            blogger={pending}
+            onCancel={() => setPending(null)}
+            onConfirm={doConfirm}
+          />
         )}
       </div>
     );
@@ -1027,7 +1051,9 @@
   const RecordsPage = ({ records, onDelete, onOpen }) => {
     const stats = useMemo(() => S.statsOfRecords(records), [records]);
     const today = new Date();
-    const initialKey = records.length ? normalizeRecordDate(records[records.length - 1]) : formatDateKey(today);
+    const initialKey = records.length
+      ? normalizeRecordDate(records[records.length - 1])
+      : formatDateKey(today);
     const initialMonth = safeDateFromKey(initialKey, today);
     const [cursor, setCursor] = useState({
       year: initialMonth.getFullYear(),
@@ -1048,7 +1074,9 @@
         map[key].push(r);
       });
       Object.keys(map).forEach((key) => {
-        map[key].sort((a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0));
+        map[key].sort(
+          (a, b) => (Number(b.createdAt) || 0) - (Number(a.createdAt) || 0),
+        );
       });
       return map;
     }, [records]);
@@ -1064,14 +1092,26 @@
     );
     const yearOptions = buildRecordYears(records, today.getFullYear());
     const monthSummary = useMemo(
-      () => summarizeRecords(records.filter((r) => {
-        const d = new Date(normalizeRecordDate(r) + 'T00:00:00');
-        return d.getFullYear() === cursor.year && d.getMonth() === cursor.month;
-      })),
+      () =>
+        summarizeRecords(
+          records.filter((r) => {
+            const d = new Date(normalizeRecordDate(r) + "T00:00:00");
+            return (
+              d.getFullYear() === cursor.year && d.getMonth() === cursor.month
+            );
+          }),
+        ),
       [records, cursor.year, cursor.month],
     );
     const yearSummary = useMemo(
-      () => summarizeRecords(records.filter((r) => new Date(normalizeRecordDate(r) + 'T00:00:00').getFullYear() === cursor.year)),
+      () =>
+        summarizeRecords(
+          records.filter(
+            (r) =>
+              new Date(normalizeRecordDate(r) + "T00:00:00").getFullYear() ===
+              cursor.year,
+          ),
+        ),
       [records, cursor.year],
     );
 
@@ -1079,18 +1119,14 @@
       const next = new Date(cursor.year, cursor.month + step, 1);
       setCursor({ year: next.getFullYear(), month: next.getMonth() });
     };
-    const jumpToToday = () => {
-      const key = formatDateKey(today);
-      setCursor({ year: today.getFullYear(), month: today.getMonth() });
-      setSelectedDate(key);
-    };
-
     return (
       <div className="page records-calendar-page">
         <div className="calendar-hero">
           <div>
-            <div className="eyebrow">Wardrobe Journal</div>
             <h1 className="h1-hero">穿搭日记</h1>
+            <p className="calendar-hero-sub">
+              记录每天穿过的搭配，慢慢找到自己的节奏。
+            </p>
           </div>
         </div>
 
@@ -1100,26 +1136,46 @@
             <span className="calendar-summary-unit">套记录</span>
           </div>
           <div className="calendar-summary-text">
-            {stats.topStyle ? '最常出现：' + stats.topStyle : '从第一套保存开始，衣橱会慢慢长出自己的节奏。'}
+            {stats.topStyle
+              ? "最常出现：" + stats.topStyle
+              : "从第一套保存开始，衣橱会慢慢长出自己的节奏。"}
           </div>
         </div>
 
         <div className="calendar-card">
           <div className="calendar-toolbar">
-            <button className="calendar-nav" onClick={() => moveMonth(-1)} aria-label="上个月">‹</button>
+            <button
+              className="calendar-nav"
+              onClick={() => moveMonth(-1)}
+              aria-label="上个月"
+            >
+              ‹
+            </button>
             <button
               className="calendar-title-picker"
               onClick={() => setPickerOpen((v) => !v)}
               aria-expanded={pickerOpen}
             >
-              <div className="calendar-month-title">{cursor.year} 年 {cursor.month + 1} 月</div>
-              <div className="calendar-month-sub">本月 {monthRecordCount} 套穿搭 · 点这里快速选择</div>
+              <div className="calendar-month-title">
+                {cursor.year} 年 {cursor.month + 1} 月
+              </div>
+              <div className="calendar-month-sub">
+                本月 {monthRecordCount} 套穿搭 · 点这里快速选择
+              </div>
             </button>
-            <button className="calendar-nav" onClick={() => moveMonth(1)} aria-label="下个月">›</button>
+            <button
+              className="calendar-nav"
+              onClick={() => moveMonth(1)}
+              aria-label="下个月"
+            >
+              ›
+            </button>
           </div>
 
           <div className="calendar-week-row">
-            {['一', '二', '三', '四', '五', '六', '日'].map((d) => <span key={d}>{d}</span>)}
+            {["一", "二", "三", "四", "五", "六", "日"].map((d) => (
+              <span key={d}>{d}</span>
+            ))}
           </div>
           <div className="calendar-grid" role="grid">
             {monthCells.map((d) => {
@@ -1130,17 +1186,20 @@
                 <button
                   key={d.key}
                   className={
-                    'calendar-day' +
-                    (d.inMonth ? '' : ' muted') +
-                    (isSelected ? ' selected' : '') +
-                    (isToday ? ' today' : '') +
-                    (dayRecords.length ? ' has-record' : '')
+                    "calendar-day" +
+                    (d.inMonth ? "" : " muted") +
+                    (isSelected ? " selected" : "") +
+                    (isToday ? " today" : "") +
+                    (dayRecords.length ? " has-record" : "")
                   }
                   onClick={() => {
                     setSelectedDate(d.key);
                     if (!d.inMonth) {
-                      const next = new Date(d.key + 'T00:00:00');
-                      setCursor({ year: next.getFullYear(), month: next.getMonth() });
+                      const next = new Date(d.key + "T00:00:00");
+                      setCursor({
+                        year: next.getFullYear(),
+                        month: next.getMonth(),
+                      });
                     }
                   }}
                 >
@@ -1153,8 +1212,14 @@
             <YearMonthWheel
               year={cursor.year}
               month={cursor.month}
-              minYear={Math.min(cursor.year - 15, (yearOptions[yearOptions.length - 1] || cursor.year) - 1)}
-              maxYear={Math.max(cursor.year + 5, (yearOptions[0] || cursor.year) + 1)}
+              minYear={Math.min(
+                cursor.year - 15,
+                (yearOptions[yearOptions.length - 1] || cursor.year) - 1,
+              )}
+              maxYear={Math.max(
+                cursor.year + 5,
+                (yearOptions[0] || cursor.year) + 1,
+              )}
               onConfirm={(y, m) => {
                 setCursor({ year: y, month: m });
                 setPickerOpen(false);
@@ -1164,15 +1229,14 @@
           )}
         </div>
 
-        <div className="diary-summary-grid">
-          <DiarySummaryCard title="本月总结" summary={monthSummary} emptyText="这个月还没有穿搭记录" />
-          <DiarySummaryCard title="年度总结" summary={yearSummary} emptyText="这一年还没有穿搭记录" />
-        </div>
-
         <div className="day-diary-panel">
           <div className="section-head compact">
             <h2>{formatDiaryDate(selectedDate)}</h2>
-            <span className="tiny">{selectedRecords.length ? selectedRecords.length + ' 套' : '未记录'}</span>
+            <span className="tiny">
+              {selectedRecords.length
+                ? selectedRecords.length + " 套"
+                : "未记录"}
+            </span>
           </div>
           {selectedRecords.length === 0 ? (
             <EmptyState
@@ -1191,34 +1255,89 @@
             ))
           )}
         </div>
+
+        <div className="diary-summary-grid">
+          <DiarySummaryCard
+            title="本月总结"
+            summary={monthSummary}
+            emptyText="这个月还没有穿搭记录"
+          />
+          <DiarySummaryCard
+            title="年度总结"
+            summary={yearSummary}
+            emptyText="这一年还没有穿搭记录"
+          />
+        </div>
       </div>
     );
   };
 
-  const DiarySummaryCard = ({ title, summary, emptyText }) => (
-    <div className="diary-summary-card">
-      <div className="diary-summary-head">
-        <h3>{title}</h3>
-        <span>{summary.count ? summary.count + ' 套' : '—'}</span>
-      </div>
-      {summary.count ? (
-        <div className="summary-metrics">
-          <SummaryMetric label="最多单品" value={summary.topItem || '—'} />
-          <SummaryMetric label="最多颜色" value={summary.topColor || '—'} />
-          <SummaryMetric label="最多风格" value={summary.topStyle || '—'} />
-        </div>
-      ) : (
-        <p className="summary-empty">{emptyText}</p>
-      )}
-    </div>
-  );
+  const SUMMARY_TYPES = [
+    { key: "styles", label: "风格" },
+    { key: "items", label: "单品" },
+    { key: "colors", label: "颜色" },
+  ];
 
-  const SummaryMetric = ({ label, value }) => (
-    <div className="summary-metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
+  const DiarySummaryCard = ({ title, summary, emptyText }) => {
+    const [type, setType] = useState("styles");
+    const [expanded, setExpanded] = useState(false);
+    const items = summary.groups[type] || [];
+    const visibleItems = expanded ? items : items.slice(0, 3);
+    return (
+      <section className="diary-summary-card">
+        <div className="diary-summary-head">
+          <h3>{title}</h3>
+          <span>{summary.count ? summary.count + " 套" : "—"}</span>
+        </div>
+        <div className="summary-type-tabs" aria-label={title + "类型"}>
+          {SUMMARY_TYPES.map((item) => (
+            <button
+              key={item.key}
+              aria-pressed={type === item.key}
+              onClick={() => {
+                setType(item.key);
+                setExpanded(false);
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+        {summary.count && items.length ? (
+          <>
+            <BubbleCloud items={visibleItems} />
+            {items.length > 3 && (
+              <button
+                className="summary-expand"
+                onClick={() => setExpanded((value) => !value)}
+                aria-expanded={expanded}
+              >
+                {expanded ? "收起" : "展开"}
+              </button>
+            )}
+          </>
+        ) : (
+          <p className="summary-empty">
+            {summary.count ? "这类信息还没有记录" : emptyText}
+          </p>
+        )}
+      </section>
+    );
+  };
+
+  const BubbleCloud = ({ items }) => {
+    return (
+      <ol className="summary-text-list">
+        {items.map((item, index) => (
+          <li key={item.label}>
+            <span className="summary-text-rank">{index + 1}</span>
+            <strong>{item.label}</strong>
+            <span>{item.count} 次</span>
+          </li>
+        ))}
+      </ol>
+    );
+  };
 
   function summarizeRecords(list) {
     const itemCount = {};
@@ -1237,29 +1356,45 @@
       topItem: topEntry(itemCount),
       topColor: topEntry(colorCount),
       topStyle: topEntry(styleCount),
+      groups: {
+        styles: frequencyEntries(styleCount),
+        items: frequencyEntries(itemCount),
+        colors: frequencyEntries(colorCount),
+      },
     };
+  }
+  function frequencyEntries(obj) {
+    return Object.entries(obj)
+      .map(([label, count]) => ({ label, count }))
+      .sort(
+        (a, b) => b.count - a.count || a.label.localeCompare(b.label, "zh-CN"),
+      )
+      .slice(0, 10);
   }
   function topEntry(obj) {
     const arr = Object.entries(obj).sort((a, b) => b[1] - a[1]);
-    return arr[0] ? arr[0][0] : '';
+    return arr[0] ? arr[0][0] : "";
   }
 
   function normalizeRecordDate(record) {
-    if (record.date && /^\d{4}-\d{2}-\d{2}$/.test(record.date)) return record.date;
+    if (record.date && /^\d{4}-\d{2}-\d{2}$/.test(record.date))
+      return record.date;
     const d = new Date(record.createdAt || Date.now());
-    return Number.isNaN(d.getTime()) ? formatDateKey(new Date()) : formatDateKey(d);
+    return Number.isNaN(d.getTime())
+      ? formatDateKey(new Date())
+      : formatDateKey(d);
   }
   function formatDateKey(date) {
     const d = date instanceof Date ? date : new Date(date);
     const safe = Number.isNaN(d.getTime()) ? new Date() : d;
     const y = safe.getFullYear();
-    const m = String(safe.getMonth() + 1).padStart(2, '0');
-    const day = String(safe.getDate()).padStart(2, '0');
-    return y + '-' + m + '-' + day;
+    const m = String(safe.getMonth() + 1).padStart(2, "0");
+    const day = String(safe.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + day;
   }
   function safeDateFromKey(key, fallback) {
-    const d = new Date(String(key || '') + 'T00:00:00');
-    return Number.isNaN(d.getTime()) ? (fallback || new Date()) : d;
+    const d = new Date(String(key || "") + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? fallback || new Date() : d;
   }
   function buildCalendarMonth(year, month) {
     const safeYear = Number.isFinite(year) ? year : new Date().getFullYear();
@@ -1279,28 +1414,36 @@
   }
   function buildRecordYears(records, fallbackYear) {
     const set = new Set([fallbackYear]);
-    records.forEach((r) => set.add(new Date(normalizeRecordDate(r) + 'T00:00:00').getFullYear()));
-    return Array.from(set).filter((y) => Number.isFinite(y)).sort((a, b) => b - a);
+    records.forEach((r) =>
+      set.add(new Date(normalizeRecordDate(r) + "T00:00:00").getFullYear()),
+    );
+    return Array.from(set)
+      .filter((y) => Number.isFinite(y))
+      .sort((a, b) => b - a);
   }
   function formatDiaryDate(key) {
     const d = safeDateFromKey(key, new Date());
-    return d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' });
+    return d.toLocaleDateString("zh-CN", {
+      month: "long",
+      day: "numeric",
+      weekday: "short",
+    });
   }
 
   // ============== Bottom Nav ==============
   const BottomNav = ({ active, onChange }) => {
     const tabs = [
-      { key: 'home', label: '首页', icon: 'home' },
-      { key: 'wardrobe', label: '衣橱', icon: 'closet' },
-      { key: 'inspire', label: '灵感', icon: 'sparkle' },
-      { key: 'records', label: '日记', icon: 'clock' },
+      { key: "home", label: "首页", icon: "home" },
+      { key: "wardrobe", label: "衣橱", icon: "closet" },
+      { key: "inspire", label: "灵感", icon: "sparkle" },
+      { key: "records", label: "日记", icon: "clock" },
     ];
     return (
       <nav className="bottom">
         {tabs.map((t) => (
           <button
             key={t.key}
-            className={'nav ' + (active === t.key ? 'active' : '')}
+            className={"nav " + (active === t.key ? "active" : "")}
             onClick={() => onChange(t.key)}
           >
             <Icon name={t.icon} size={24} />
@@ -1320,7 +1463,7 @@
   const Sheet = ({ title, subtitle, onClose, children, variant }) => (
     <>
       <div className="sheet-mask" onClick={onClose} />
-      <div className={'sheet' + (variant ? ' sheet-' + variant : '')}>
+      <div className={"sheet" + (variant ? " sheet-" + variant : "")}>
         <div className="sheet-handle" />
         <div className="sheet-title">
           <div>
@@ -1340,24 +1483,25 @@
   // 按风格分组展示全部真实博主，每张卡片直达该博主的 Instagram 个人主页。
   const CreatorExploreSheet = ({ onClose, onOpenCreator }) => {
     const groups = useMemo(() => S.creatorsByCategory(), []);
-    const [active, setActive] = useState('全部');
+    const [active, setActive] = useState("全部");
     const categories = useMemo(
-      () => ['全部'].concat(groups.map((g) => g.category)),
+      () => ["全部"].concat(groups.map((g) => g.category)),
       [groups],
     );
-    const visible = active === '全部' ? groups : groups.filter((g) => g.category === active);
+    const visible =
+      active === "全部" ? groups : groups.filter((g) => g.category === active);
 
     return (
       <Sheet
         title="发现博主"
-        subtitle='按风格分组的公开博主推荐'
+        subtitle="按风格分组的公开博主推荐"
         onClose={onClose}
       >
         <div className="explore-tabs">
           {categories.map((c) => (
             <button
               key={c}
-              className={'style-chip' + (active === c ? ' active' : '')}
+              className={"style-chip" + (active === c ? " active" : "")}
               onClick={() => setActive(c)}
             >
               {c}
@@ -1381,7 +1525,7 @@
                     </div>
                     <div className="meta">
                       {c.platform}
-                      {c.handle ? ' · ' + c.handle : ''}
+                      {c.handle ? " · " + c.handle : ""}
                     </div>
                     <div className="tags">
                       {c.styleTags.slice(0, 3).map((t) => (
@@ -1398,10 +1542,12 @@
                     )}
                   </div>
                   <button
-                    className="primary explore-open"
+                    className="bl-eye-link explore-open"
                     onClick={() => onOpenCreator(c)}
+                    aria-label={"查看" + c.name + "的主页"}
+                    title="查看主页"
                   >
-                    去看看
+                    <EyeIcon />
                   </button>
                 </div>
               ))}
@@ -1410,9 +1556,10 @@
         ))}
         <div
           className="tiny"
-          style={{ marginTop: 12, color: 'var(--muted)', lineHeight: 1.6 }}
+          style={{ marginTop: 12, color: "var(--muted)", lineHeight: 1.6 }}
         >
-          点击卡片会跳转到该博主自己的公开主页。中国大陆访问 Instagram 需要国际网络环境。
+          点击卡片会跳转到该博主自己的公开主页。中国大陆访问 Instagram
+          需要国际网络环境。
         </div>
       </Sheet>
     );
@@ -1423,18 +1570,19 @@
   const LocalHintBanner = () => {
     const [hidden, setHidden] = useState(false);
     if (hidden) return null;
-    if (typeof window === 'undefined') return null;
+    if (typeof window === "undefined") return null;
     const proto = window.location && window.location.protocol;
-    if (proto !== 'file:') return null;
+    if (proto !== "file:") return null;
     return (
       <div className="local-hint">
         <div className="local-hint-body">
           <strong>看起来你是直接双击打开的</strong>
           <p>
-            为了让定位和图片处理更稳定，建议从项目里的 <b>「启动衣见.command」</b> 打开。
+            为了让定位和图片处理更稳定，建议从项目里的{" "}
+            <b>「启动衣见.command」</b> 打开。
             <br />
             <br />
-            打开后点「允许定位」，衣见就能根据你所在地的天气给出更合适的搭配建议。
+            打开后点「授权定位」，衣见就能根据你所在地的天气给出更合适的搭配建议。
           </p>
         </div>
         <button
@@ -1451,42 +1599,57 @@
   // ============== Item Detail Sheet ==============
   // 点击衣橱单品后弹出的详情卡：完整展示分类/颜色/厚薄/材质/廓形/风格/场景/季节/系统描述/自定义描述，
   // 支持进入编辑态修改任一字段，支持重新上传照片（重新抠图 / 使用原图）
-  const ItemDetailSheet = ({ item, onClose, onUpdate, onDelete, onToast }) => {
+  const ItemDetailSheet = ({ item, onClose, onUpdate, onDelete }) => {
     const [editing, setEditing] = useState(false);
-    // v13：把 item 展开成"多选 + 其他"表单结构
+    // 与上传表单共用同一套标准字段。
     const buildForm = (it) => ({
-      name: it.name || '',
-      category: it.category || '上衣',
-      colors: it.colors && it.colors.length ? it.colors : (it.color ? [it.color] : []),
-      colorOther: it.colorOther || '',
-      warmthTags: it.warmthTags && it.warmthTags.length ? it.warmthTags : (it.warmth ? [it.warmth] : []),
-      warmthOther: it.warmthOther || '',
-      materials: it.materials && it.materials.length ? it.materials : (it.material ? [it.material] : []),
-      materialOther: it.materialOther || '',
-      silhouettes: it.silhouettes && it.silhouettes.length ? it.silhouettes : (it.silhouette ? [it.silhouette] : []),
+      name: it.name || "",
+      category: it.category || "上衣",
+      subcategory: it.subcategory || "",
+      colors:
+        it.colors && it.colors.length ? it.colors : it.color ? [it.color] : [],
+      colorOther: it.colorOther || "",
+      warmthTags:
+        it.warmthTags && it.warmthTags.length
+          ? it.warmthTags
+          : it.warmth
+            ? [it.warmth]
+            : [],
+      warmthOther: it.warmthOther || "",
+      materials:
+        it.materials && it.materials.length
+          ? it.materials
+          : it.material
+            ? [it.material]
+            : [],
+      materialOther: it.materialOther || "",
       styleTags: it.styleTags || [],
-      styleOther: it.styleOther || '',
       sceneTags: it.sceneTags || [],
-      sceneOther: it.sceneOther || '',
       seasonTags: it.seasonTags || [],
-      seasonOther: it.seasonOther || '',
       fitTags: it.fitTags || [],
-      customNotes: it.customNotes || '',
+      fitOther: it.fitOther || "",
+      customNotes: it.customNotes || "",
     });
     const [form, setForm] = useState(() => buildForm(item));
-    const [original, setOriginal] = useState(item.originalImage || item.image || '');
-    const [processed, setProcessed] = useState(item.image || '');
+    const [original, setOriginal] = useState(
+      item.originalImage || item.image || "",
+    );
+    const [processed, setProcessed] = useState(item.image || "");
     const [useCutout, setUseCutout] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [reuploading, setReuploading] = useState(false);
+    const [analysisNote, setAnalysisNote] = useState("");
+    const [errorNote, setErrorNote] = useState("");
     const fileRef = useRef(null);
 
     // 若外部 item 变化（比如刚保存完），重置本地状态
     useEffect(() => {
       setForm(buildForm(item));
-      setOriginal(item.originalImage || item.image || '');
-      setProcessed(item.image || '');
+      setOriginal(item.originalImage || item.image || "");
+      setProcessed(item.image || "");
       setReuploading(false);
+      setAnalysisNote("");
+      setErrorNote("");
       setEditing(false);
     }, [item.id]); // eslint-disable-line
 
@@ -1503,22 +1666,56 @@
     const onFile = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        onToast && onToast('请选择图片文件');
+      if (!file.type.startsWith("image/")) {
+        setErrorNote("请选择图片文件");
         return;
       }
+      setErrorNote("");
       setProcessing(true);
       try {
         const dataUrl = await S.readFileAsDataURL(file);
+        if (S.estimateSize(dataUrl) > 4 * 1024 * 1024) {
+          setErrorNote("图片较大，处理可能需要更长时间");
+        }
         setOriginal(dataUrl);
-        const cut = await S.removeBackground(dataUrl);
-        setProcessed(cut);
+        setProcessed("");
+        const [cutResult, analysis] = await Promise.allSettled([
+          S.removeBackground(dataUrl),
+          S.analyzeClothingImage(dataUrl),
+        ]);
+        if (cutResult.status === "fulfilled") setProcessed(cutResult.value);
         setUseCutout(true);
         setReuploading(true);
+        if (analysis.status === "fulfilled") {
+          const result = analysis.value;
+          setForm((current) => ({
+            ...current,
+            name:
+              result.name ||
+              current.name ||
+              file.name.replace(/\.[^.]+$/, "") ||
+              "未命名单品",
+            category: result.category || current.category,
+            subcategory: result.subcategory || "",
+            colors: result.color ? result.color.split("、") : [],
+            materials: result.material ? result.material.split("、") : [],
+            warmthTags: result.warmth ? result.warmth.split("、") : [],
+            fitTags: result.fit ? result.fit.split("、") : [],
+            styleTags: result.style_tags ? result.style_tags.split("、") : [],
+            sceneTags: result.scene_tags ? result.scene_tags.split("、") : [],
+            seasonTags: result.season ? result.season.split("、") : [],
+          }));
+          setAnalysisNote("已根据新照片预填，请确认后保存");
+        } else {
+          setAnalysisNote(
+            "未自动识别：" + (analysis.reason?.message || "服务暂不可用"),
+          );
+        }
       } catch (err) {
-        onToast && onToast('读取图片失败');
+        setErrorNote("读取图片失败，请重试");
       } finally {
         setProcessing(false);
+        e.target.value = "";
       }
     };
 
@@ -1527,39 +1724,38 @@
       let originalImg = original;
       // 仅对本地新选择的图片（data: URL）做压缩；已托管的远程 URL 直接透传。
       // 否则会把透明抠图 PNG 重新编码成带白底的 JPEG，表现为“使用抠图版保存后变原图”。
-      if (image && String(image).startsWith('data:')) {
+      if (image && String(image).startsWith("data:")) {
         try {
-          const mime = image.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
+          const mime = image.startsWith("data:image/png")
+            ? "image/png"
+            : "image/jpeg";
           image = await S.compressImage(image, 360, 0.7, mime);
         } catch (e) {
           /* 压缩失败也用原始 */
         }
       }
       // 编辑单品不再保留原始大图，避免存储撑爆导致衣橱/分类/删除表现不稳定。
-      originalImg = '';
+      originalImg = "";
       const patch = {
         name: form.name,
         category: form.category,
+        subcategory: form.subcategory,
         colors: form.colors,
-        colorOther: form.colorOther,
+        colorOther: form.colorOther || "",
         warmthTags: form.warmthTags,
-        warmthOther: form.warmthOther,
+        warmthOther: form.warmthOther || "",
         materials: form.materials,
-        materialOther: form.materialOther,
-        silhouettes: form.silhouettes,
+        materialOther: form.materialOther || "",
         styleTags: form.styleTags,
-        styleOther: form.styleOther,
         sceneTags: form.sceneTags,
-        sceneOther: form.sceneOther,
         seasonTags: form.seasonTags,
-        seasonOther: form.seasonOther,
         fitTags: form.fitTags || [],
-        customNotes: form.customNotes || '',
+        fitOther: form.fitOther || "",
+        customNotes: form.customNotes || "",
         // 同步 legacy 单值
-        color: form.colors[0] || form.colorOther || '',
-        warmth: form.warmthTags[0] || form.warmthOther || '',
-        material: form.materials[0] || form.materialOther || '',
-        silhouette: form.silhouettes[0] || '',
+        color: form.colors[0] || "",
+        warmth: form.warmthTags[0] || "",
+        material: form.materials[0] || "",
         image,
         originalImage: originalImg,
       };
@@ -1573,43 +1769,41 @@
           ...item,
           ...form,
           // 让 buildSystemDescription 能读到最新
-          color: form.colors[0] || form.colorOther || '',
-          warmth: form.warmthTags[0] || form.warmthOther || '',
-          material: form.materials[0] || form.materialOther || '',
-          silhouette: form.silhouettes[0] || '',
+          color: form.colors[0] || "",
+          warmth: form.warmthTags[0] || "",
+          material: form.materials[0] || "",
         }
       : item;
     const displayDesc = S.buildSystemDescription(previewItem);
 
     // 展示区聚合字符串
-    const joinArr = (arr) => (arr && arr.length ? arr.join(' / ') : '');
-    const displayColors = joinArr(S.itemColors(item)) || '未填';
-    const displayWarmths = joinArr(S.itemWarmths(item)) || '未填';
+    const joinArr = (arr) => (arr && arr.length ? arr.join(" / ") : "");
+    const displayColors = joinArr(S.itemColors(item)) || "未填";
+    const displayWarmths = joinArr(S.itemWarmths(item)) || "未填";
     const displayMaterials = joinArr(S.itemMaterials(item));
-    const displaySilhouettes = joinArr(S.itemSilhouettes(item));
-    const displayStyles = joinArr(S.itemStyles(item)) || '未填';
-    const displayScenes = joinArr(S.itemScenes(item)) || '未填';
-    const displaySeasons = joinArr(S.itemSeasons(item)) || '未填';
+    const displayStyles = joinArr(S.itemStyles(item)) || "未填";
+    const displayScenes = joinArr(S.itemScenes(item)) || "未填";
+    const displaySeasons = joinArr(S.itemSeasons(item)) || "未填";
 
     return (
       <Sheet
-        title={editing ? '编辑单品' : item.name}
+        title={editing ? "编辑单品" : item.name}
         subtitle={
           editing
-            ? ''
+            ? ""
             : item.category +
-              (displayColors !== '未填' ? ' · ' + displayColors : '') +
-              (displayMaterials ? ' · ' + displayMaterials : '')
+              (displayColors !== "未填" ? " · " + displayColors : "") +
+              (displayMaterials ? " · " + displayMaterials : "")
         }
         onClose={onClose}
-        variant="mid"
+        variant={editing ? "" : "mid"}
       >
         <input
           type="file"
           accept="image/*"
           ref={fileRef}
           onChange={onFile}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
         <div className="item-detail-photo">
           <img src={currentImage} alt={item.name} />
@@ -1621,21 +1815,30 @@
         {editing && (
           <div className="action-row item-detail-photo-actions">
             <button
-              className={'solid-action ' + (useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
+              className={
+                "solid-action " +
+                (useCutout ? "solid-action--accent" : "solid-action--quiet")
+              }
               onClick={() => setUseCutout(true)}
               disabled={!processed}
             >
               使用抠图版
             </button>
             <button
-              className={'solid-action ' + (!useCutout ? 'solid-action--accent' : 'solid-action--quiet')}
+              className={
+                "solid-action " +
+                (!useCutout ? "solid-action--accent" : "solid-action--quiet")
+              }
               onClick={() => setUseCutout(false)}
               disabled={!original}
             >
               使用原图
             </button>
-            <button className="solid-action solid-action--quiet" onClick={chooseFile}>
-              重新上传
+            <button
+              className="solid-action solid-action--quiet"
+              onClick={chooseFile}
+            >
+              选择新照片
             </button>
           </div>
         )}
@@ -1643,14 +1846,20 @@
         {!editing && (
           <>
             <div className="item-detail-desc">
-              <div className="tiny" style={{ color: 'var(--muted)', marginBottom: 4 }}>
+              <div
+                className="tiny"
+                style={{ color: "var(--muted)", marginBottom: 4 }}
+              >
                 系统识别
               </div>
               <div>{displayDesc}</div>
             </div>
             {item.customNotes && (
               <div className="item-detail-desc">
-                <div className="tiny" style={{ color: 'var(--muted)', marginBottom: 4 }}>
+                <div
+                  className="tiny"
+                  style={{ color: "var(--muted)", marginBottom: 4 }}
+                >
                   我的补充
                 </div>
                 <div>{item.customNotes}</div>
@@ -1658,17 +1867,25 @@
             )}
             <div className="item-detail-meta">
               <MetaRow label="分类" value={item.category} />
+              {item.subcategory && (
+                <MetaRow label="具体品类" value={item.subcategory} />
+              )}
               <MetaRow label="颜色" value={displayColors} />
               <MetaRow label="厚薄" value={displayWarmths} />
-              {displayMaterials && <MetaRow label="材质" value={displayMaterials} />}
-              {displaySilhouettes && <MetaRow label="廓形" value={displaySilhouettes} />}
+              {displayMaterials && (
+                <MetaRow label="材质" value={displayMaterials} />
+              )}
               <MetaRow label="风格" value={displayStyles} />
               <MetaRow label="季节" value={displaySeasons} />
+              <MetaRow label="场景" value={displayScenes} />
               {item.fitTags && item.fitTags.length > 0 && (
-                <MetaRow label="版型" value={item.fitTags.join(' / ')} />
+                <MetaRow label="版型" value={item.fitTags.join(" / ")} />
               )}
             </div>
-            <div className="action-row item-detail-actions" style={{ marginTop: 14 }}>
+            <div
+              className="action-row item-detail-actions"
+              style={{ marginTop: 14 }}
+            >
               <button
                 className="solid-action solid-action--quiet"
                 onClick={() => onDelete && onDelete(item)}
@@ -1688,129 +1905,141 @@
         {editing && (
           <>
             <div className="item-detail-edit-content">
+              {analysisNote && (
+                <div className="tiny center mb-2">{analysisNote}</div>
+              )}
+              {errorNote && (
+                <div className="tiny center mb-2" style={{ color: "#b56f6f" }}>
+                  {errorNote}
+                </div>
+              )}
               <div className="field">
                 <label>衣物名称</label>
                 <input
                   className="input"
-                  value={form.name || ''}
+                  value={form.name || ""}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
-            <div className="field">
-              <label>分类</label>
-              <div className="cat-grid">
-                {S.CATEGORIES.map((c) => (
-                  <button
-                    key={c}
-                    className={'chip ' + (form.category === c ? 'active' : '')}
-                    onClick={() => setForm({ ...form, category: c })}
-                  >
-                    {c}
-                  </button>
-                ))}
+              <div className="field">
+                <label>分类</label>
+                <div className="cat-grid">
+                  {S.CATEGORIES.map((c) => (
+                    <button
+                      key={c}
+                      className={
+                        "chip " + (form.category === c ? "active" : "")
+                      }
+                      onClick={() => setForm({ ...form, category: c })}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <MultiChipField
-              label="颜色"
-              options={S.COLOR_PALETTE}
-              values={form.colors}
-              otherValue={form.colorOther}
-              onToggle={(v) => toggleMulti('colors', v)}
-              onOtherChange={(v) => setForm({ ...form, colorOther: v })}
-              otherPlaceholder="其他"
-            />
-            <MultiChipField
-              label="厚薄"
-              options={S.WARMTH}
-              values={form.warmthTags}
-              otherValue={form.warmthOther}
-              onToggle={(v) => toggleMulti('warmthTags', v)}
-              onOtherChange={(v) => setForm({ ...form, warmthOther: v })}
-              otherPlaceholder="其他"
-            />
-            <MultiChipField
-              label="材质"
-              options={S.MATERIALS}
-              values={form.materials}
-              otherValue={form.materialOther}
-              onToggle={(v) => toggleMulti('materials', v)}
-              onOtherChange={(v) => setForm({ ...form, materialOther: v })}
-              otherPlaceholder="其他"
-            />
-            <div className="field">
-              <label>廓形</label>
-              <div className="chips">
-                {S.SILHOUETTES.map((s) => (
-                  <button
-                    key={s}
-                    className={'chip ' + ((form.silhouettes || []).includes(s) ? 'active' : '')}
-                    onClick={() => toggleMulti('silhouettes', s)}
-                  >
-                    {s}
-                  </button>
-                ))}
+              <div className="field">
+                <label>具体品类</label>
+                <input
+                  className="input"
+                  placeholder="例如：圆领针织衫、直筒牛仔裤"
+                  value={form.subcategory || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, subcategory: e.target.value })
+                  }
+                />
               </div>
-            </div>
-            <MultiChipField
-              label="风格"
-              options={S.STYLE_TAGS}
-              values={form.styleTags}
-              otherValue={form.styleOther}
-              onToggle={(v) => toggleMulti('styleTags', v)}
-              onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-              otherPlaceholder="其他"
-            />
-            <MultiChipField
-              label="季节"
-              options={S.SEASON_TAGS}
-              values={form.seasonTags}
-              otherValue={form.seasonOther}
-              onToggle={(v) => toggleMulti('seasonTags', v)}
-              onOtherChange={(v) => setForm({ ...form, seasonOther: v })}
-              otherPlaceholder="其他"
-            />
-            <div className="field">
-              <label>版型标签</label>
-              <div className="chips">
-                {S.FIT_TAGS.map((t) => (
-                  <button
-                    key={t}
-                    className={'chip ' + ((form.fitTags || []).includes(t) ? 'active' : '')}
-                    onClick={() => toggleMulti('fitTags', t)}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="field">
-              <label>我的补充描述</label>
-              <textarea
-                className="input"
-                placeholder=""
-                rows={3}
-                value={form.customNotes || ''}
-                onChange={(e) => setForm({ ...form, customNotes: e.target.value })}
+              <MultiChipField
+                label="颜色"
+                options={S.COLOR_PALETTE}
+                values={form.colors}
+                onToggle={(v) => toggleMulti("colors", v)}
+                otherValue={form.colorOther}
+                onOtherChange={(value) =>
+                  setForm({ ...form, colorOther: value })
+                }
               />
+              <MultiChipField
+                label="材质"
+                options={S.MATERIALS}
+                values={form.materials}
+                onToggle={(v) => toggleMulti("materials", v)}
+                otherValue={form.materialOther}
+                onOtherChange={(value) =>
+                  setForm({ ...form, materialOther: value })
+                }
+              />
+              <MultiChipField
+                label="厚薄"
+                options={S.WARMTH}
+                values={form.warmthTags}
+                onToggle={(v) => toggleMulti("warmthTags", v)}
+                otherValue={form.warmthOther}
+                onOtherChange={(value) =>
+                  setForm({ ...form, warmthOther: value })
+                }
+              />
+              <MultiChipField
+                label="版型"
+                options={S.FIT_TAGS}
+                values={form.fitTags}
+                onToggle={(v) => toggleMulti("fitTags", v)}
+                otherValue={form.fitOther}
+                onOtherChange={(value) => setForm({ ...form, fitOther: value })}
+              />
+              <MultiChipField
+                label="季节"
+                options={S.SEASON_TAGS}
+                values={form.seasonTags}
+                onToggle={(v) => toggleMulti("seasonTags", v)}
+              />
+              <MultiChipField
+                label="风格"
+                options={S.STYLE_TAGS}
+                values={form.styleTags}
+                onToggle={(v) => toggleMulti("styleTags", v)}
+              />
+              <MultiChipField
+                label="场景"
+                options={S.SCENE_TAGS}
+                values={form.sceneTags}
+                onToggle={(v) => toggleMulti("sceneTags", v)}
+              />
+              <div className="field">
+                <label>备注</label>
+                <textarea
+                  className="input"
+                  placeholder="例如：起球了、需干洗"
+                  rows={2}
+                  value={form.customNotes || ""}
+                  onChange={(e) =>
+                    setForm({ ...form, customNotes: e.target.value })
+                  }
+                />
+              </div>
             </div>
-            <div className="item-detail-desc" style={{ marginTop: 4 }}>
-              <div>{displayDesc}</div>
-            </div>
-            </div>
-            <div className="upload-toolbar upload-toolbar--sticky" style={{ marginTop: 14 }}>
+            <div
+              className="upload-toolbar upload-toolbar--sticky"
+              style={{ marginTop: 14 }}
+            >
               <button
                 className="outline"
                 onClick={() => {
                   setForm(buildForm(item));
-                  setOriginal(item.originalImage || item.image || '');
-                  setProcessed(item.image || '');
+                  setOriginal(item.originalImage || item.image || "");
+                  setProcessed(item.image || "");
                   setReuploading(false);
+                  setAnalysisNote("");
+                  setErrorNote("");
                   setEditing(false);
                 }}
               >
                 取消
               </button>
-              <button className="primary" onClick={submitSave} disabled={processing}>
+              <button
+                className="primary"
+                onClick={submitSave}
+                disabled={processing}
+              >
                 保存修改
               </button>
             </div>
@@ -1828,65 +2057,87 @@
   );
 
   // ============== Upload Sheet ==============
-  // v12：表单减负 —— 核心必填只有「名称 + 分类」，颜色/厚薄/风格/场景/季节全部折叠到"更多信息（可选）"里；
-  // 补充说明（customNotes）在核心区常驻，用户上传当下就可以写"这件春秋穿 / 妈妈送的 / 起球了"这样的自然语言，
-  // 后续 AI 推荐会把这段一起吃进评分。
-  // v13：颜色 / 厚薄 / 风格 / 场景 / 季节 / 材质 全部支持多选 + "其他"自由输入。
-  // 上传当下即可写「我的补充描述」，供 AI 推荐一起参考。
-  const UploadSheet = ({ onClose, onSave }) => {
-    const [step, setStep] = useState('pick'); // pick | preview | form
-    const [original, setOriginal] = useState('');
-    const [processed, setProcessed] = useState('');
+  // 上传完成后自动识别；用户只需核对受控字段后保存。
+  const UploadSheet = ({ onClose, onSave, initialCategory }) => {
+    const [step, setStep] = useState("pick"); // pick | preview | form
+    const [original, setOriginal] = useState("");
+    const [processed, setProcessed] = useState("");
     const [useCutout, setUseCutout] = useState(true);
     const [processing, setProcessing] = useState(false);
-    const [errorNote, setErrorNote] = useState('');
-    const [showAdvanced, setShowAdvanced] = useState(false);
+    const [analysisNote, setAnalysisNote] = useState("");
+    const [errorNote, setErrorNote] = useState("");
     const fileRef = useRef(null);
     const [form, setForm] = useState({
-      name: '',
-      category: '上衣',
+      name: "",
+      category:
+        initialCategory && initialCategory !== "全部"
+          ? initialCategory
+          : "上衣",
+      subcategory: "",
       colors: [],
-      colorOther: '',
+      colorOther: "",
       warmthTags: [],
-      warmthOther: '',
+      warmthOther: "",
       materials: [],
-      materialOther: '',
+      materialOther: "",
+      fitTags: [],
+      fitOther: "",
       styleTags: [],
-      styleOther: '',
       sceneTags: [],
-      sceneOther: '',
       seasonTags: [],
-      seasonOther: '',
-      customNotes: '',
+      customNotes: "",
     });
 
     const chooseFile = () => fileRef.current?.click();
     const onFile = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        setErrorNote('请选择图片文件');
+      if (!file.type.startsWith("image/")) {
+        setErrorNote("请选择图片文件");
         return;
       }
-      setErrorNote('');
+      setErrorNote("");
       setProcessing(true);
       try {
         const dataUrl = await S.readFileAsDataURL(file);
         if (S.estimateSize(dataUrl) > 4 * 1024 * 1024) {
-          setErrorNote('图片较大，建议换一张更小的图，或稍后处理会较慢');
+          setErrorNote("图片较大，建议换一张更小的图，或稍后处理会较慢");
         }
         setOriginal(dataUrl);
-        setStep('preview');
-        setProcessing(true);
-        const cut = await S.removeBackground(dataUrl);
-        setProcessed(cut);
+        setStep("preview");
+        const [cutResult, analysis] = await Promise.allSettled([
+          S.removeBackground(dataUrl),
+          S.analyzeClothingImage(dataUrl),
+        ]);
+        if (cutResult.status === "fulfilled") setProcessed(cutResult.value);
+        if (analysis.status === "fulfilled") {
+          const result = analysis.value;
+          setForm((current) => ({
+            ...current,
+            name:
+              result.name ||
+              current.name ||
+              file.name.replace(/\.[^.]+$/, "") ||
+              "新单品",
+            category: result.category || current.category,
+            subcategory: result.subcategory || "",
+            colors: result.color ? result.color.split("、") : [],
+            materials: result.material ? result.material.split("、") : [],
+            warmthTags: result.warmth ? result.warmth.split("、") : [],
+            fitTags: result.fit ? result.fit.split("、") : [],
+            styleTags: result.style_tags ? result.style_tags.split("、") : [],
+            sceneTags: result.scene_tags ? result.scene_tags.split("、") : [],
+            seasonTags: result.season ? result.season.split("、") : [],
+          }));
+          setAnalysisNote("已根据图片预填，请确认后保存");
+        } else {
+          setAnalysisNote(
+            "未自动识别：" + (analysis.reason?.message || "服务暂不可用"),
+          );
+        }
         setProcessing(false);
-        setForm((f) => ({
-          ...f,
-          name: f.name || file.name.replace(/\.[^.]+$/, '') || '新单品',
-        }));
       } catch (err) {
-        setErrorNote('读取图片失败，请重试');
+        setErrorNote("读取图片失败，请重试");
         setProcessing(false);
       }
     };
@@ -1905,9 +2156,9 @@
       onSave({
         ...form,
         // 同步 legacy 单值字段
-        color: form.colors[0] || form.colorOther || '',
-        warmth: form.warmthTags[0] || form.warmthOther || '',
-        material: form.materials[0] || form.materialOther || '',
+        color: form.colors[0] || "",
+        warmth: form.warmthTags[0] || "",
+        material: form.materials[0] || "",
         image,
         originalImage: original,
       });
@@ -1915,13 +2166,13 @@
 
     return (
       <Sheet
-        title={step === 'form' ? '完善单品信息' : '上传新单品'}
+        title={step === "form" ? "完善单品信息" : "上传新单品"}
         subtitle={
-          step === 'pick'
-            ? '选择一张真实衣物照片，将自动抠图'
-            : step === 'preview'
-            ? '预览抠图效果'
-            : ''
+          step === "pick"
+            ? "选择一张真实衣物照片，将自动抠图"
+            : step === "preview"
+              ? "预览抠图效果"
+              : ""
         }
         onClose={onClose}
       >
@@ -1930,9 +2181,9 @@
           accept="image/*"
           ref={fileRef}
           onChange={onFile}
-          style={{ display: 'none' }}
+          style={{ display: "none" }}
         />
-        {step === 'pick' && (
+        {step === "pick" && (
           <>
             <div className="upload-preview" onClick={chooseFile}>
               <div className="hint">
@@ -1945,20 +2196,20 @@
             </div>
             <button
               className="primary"
-              style={{ width: '100%' }}
+              style={{ width: "100%" }}
               onClick={chooseFile}
             >
               选择图片
             </button>
             {errorNote && (
-              <div className="tiny center mt-2" style={{ color: '#b56f6f' }}>
+              <div className="tiny center mt-2" style={{ color: "#b56f6f" }}>
                 {errorNote}
               </div>
             )}
           </>
         )}
 
-        {step === 'preview' && (
+        {step === "preview" && (
           <>
             <div className="dual-preview">
               <div className="cell">
@@ -1967,7 +2218,7 @@
               </div>
               <div className="cell">
                 <span className="badge">
-                  {processing ? '抠图中…' : '抠图结果'}
+                  {processing ? "抠图中…" : "抠图结果"}
                 </span>
                 {processing ? (
                   <div className="spinner" />
@@ -1978,57 +2229,56 @@
             </div>
             <div className="upload-toolbar">
               <button
-                className={useCutout ? 'primary' : 'outline'}
-                onClick={() => setUseCutout(true)}
+                className="outline"
+                onClick={() => {
+                  setUseCutout(false);
+                  setStep("form");
+                }}
               >
-                使用抠图版
+                原图
               </button>
               <button
-                className={!useCutout ? 'primary' : 'outline'}
-                onClick={() => setUseCutout(false)}
+                className="outline"
+                onClick={() => {
+                  setUseCutout(true);
+                  setStep("form");
+                }}
+                disabled={processing || !processed}
               >
-                使用原图
+                抠图
               </button>
             </div>
             {errorNote && (
-              <div className="tiny center mb-2" style={{ color: '#b56f6f' }}>
+              <div className="tiny center mb-2" style={{ color: "#b56f6f" }}>
                 {errorNote}
               </div>
             )}
-            <div className="upload-toolbar">
-              <button className="outline" onClick={chooseFile}>
-                换一张
-              </button>
-              <button
-                className="primary"
-                onClick={() => setStep('form')}
-                disabled={processing}
-              >
-                下一步
-              </button>
-            </div>
           </>
         )}
 
-        {step === 'form' && (
+        {step === "form" && (
           <>
-            <div className="dual-preview" style={{ gridTemplateColumns: '1fr' }}>
-              <div className="cell" style={{ aspectRatio: '4/3' }}>
+            <div
+              className="dual-preview"
+              style={{ gridTemplateColumns: "1fr" }}
+            >
+              <div className="cell" style={{ aspectRatio: "4/3" }}>
                 <img
                   src={useCutout && processed ? processed : original}
                   alt="预览"
                 />
               </div>
             </div>
+            {analysisNote && (
+              <div className="tiny center mb-2">{analysisNote}</div>
+            )}
             <div className="field">
               <label>衣物名称</label>
               <input
                 className="input"
                 placeholder="例如：燕麦色针织衫"
                 value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
             </div>
             <div className="field">
@@ -2037,7 +2287,7 @@
                 {S.CATEGORIES.map((c) => (
                   <button
                     key={c}
-                    className={'chip ' + (form.category === c ? 'active' : '')}
+                    className={"chip " + (form.category === c ? "active" : "")}
                     onClick={() => setForm({ ...form, category: c })}
                   >
                     {c}
@@ -2046,10 +2296,75 @@
               </div>
             </div>
             <div className="field">
-              <label>补充说明</label>
+              <label>具体品类</label>
+              <input
+                className="input"
+                placeholder="例如：圆领针织衫、直筒牛仔裤"
+                value={form.subcategory}
+                onChange={(e) =>
+                  setForm({ ...form, subcategory: e.target.value })
+                }
+              />
+            </div>
+            <MultiChipField
+              label="颜色"
+              options={S.COLOR_PALETTE}
+              values={form.colors}
+              onToggle={(v) => toggleMulti("colors", v)}
+              otherValue={form.colorOther}
+              onOtherChange={(value) => setForm({ ...form, colorOther: value })}
+            />
+            <MultiChipField
+              label="材质"
+              options={S.MATERIALS}
+              values={form.materials}
+              onToggle={(v) => toggleMulti("materials", v)}
+              otherValue={form.materialOther}
+              onOtherChange={(value) =>
+                setForm({ ...form, materialOther: value })
+              }
+            />
+            <MultiChipField
+              label="厚薄"
+              options={S.WARMTH}
+              values={form.warmthTags}
+              onToggle={(v) => toggleMulti("warmthTags", v)}
+              otherValue={form.warmthOther}
+              onOtherChange={(value) =>
+                setForm({ ...form, warmthOther: value })
+              }
+            />
+            <MultiChipField
+              label="版型"
+              options={S.FIT_TAGS}
+              values={form.fitTags}
+              onToggle={(v) => toggleMulti("fitTags", v)}
+              otherValue={form.fitOther}
+              onOtherChange={(value) => setForm({ ...form, fitOther: value })}
+            />
+            <MultiChipField
+              label="季节"
+              options={S.SEASON_TAGS}
+              values={form.seasonTags}
+              onToggle={(v) => toggleMulti("seasonTags", v)}
+            />
+            <MultiChipField
+              label="风格"
+              options={S.STYLE_TAGS}
+              values={form.styleTags}
+              onToggle={(v) => toggleMulti("styleTags", v)}
+            />
+            <MultiChipField
+              label="场景"
+              options={S.SCENE_TAGS}
+              values={form.sceneTags}
+              onToggle={(v) => toggleMulti("sceneTags", v)}
+            />
+            <div className="field">
+              <label>备注</label>
               <textarea
                 className="input"
-                placeholder="例如：春秋穿 / 起球了 / 妈妈送的 / 只搭牛仔"
+                placeholder="例如：起球了、需干洗"
                 value={form.customNotes}
                 onChange={(e) =>
                   setForm({ ...form, customNotes: e.target.value })
@@ -2058,73 +2373,12 @@
               />
             </div>
 
-            <button
-              className="outline"
-              style={{ width: '100%', marginTop: 4 }}
-              onClick={() => setShowAdvanced((v) => !v)}
-            >
-              {showAdvanced ? '收起' : '更多'}
-            </button>
-
-            {showAdvanced && (
-              <>
-                <MultiChipField
-                  label="颜色"
-                  options={S.COLOR_PALETTE}
-                  values={form.colors}
-                  otherValue={form.colorOther}
-                  onToggle={(v) => toggleMulti('colors', v)}
-                  onOtherChange={(v) => setForm({ ...form, colorOther: v })}
-                  otherPlaceholder="其他"
-                />
-                <MultiChipField
-                  label="厚薄"
-                  options={S.WARMTH}
-                  values={form.warmthTags}
-                  otherValue={form.warmthOther}
-                  onToggle={(v) => toggleMulti('warmthTags', v)}
-                  onOtherChange={(v) => setForm({ ...form, warmthOther: v })}
-                  otherPlaceholder="其他"
-                />
-                <MultiChipField
-                  label="材质"
-                  options={S.MATERIALS}
-                  values={form.materials}
-                  otherValue={form.materialOther}
-                  onToggle={(v) => toggleMulti('materials', v)}
-                  onOtherChange={(v) => setForm({ ...form, materialOther: v })}
-                  otherPlaceholder="其他"
-                />
-                <MultiChipField
-                  label="风格"
-                  options={S.STYLE_TAGS}
-                  values={form.styleTags}
-                  otherValue={form.styleOther}
-                  onToggle={(v) => toggleMulti('styleTags', v)}
-                  onOtherChange={(v) => setForm({ ...form, styleOther: v })}
-                  otherPlaceholder="其他"
-                />
-                <MultiChipField
-                  label="季节"
-                  options={S.SEASON_TAGS}
-                  values={form.seasonTags}
-                  otherValue={form.seasonOther}
-                  onToggle={(v) => toggleMulti('seasonTags', v)}
-                  onOtherChange={(v) => setForm({ ...form, seasonOther: v })}
-                  otherPlaceholder="其他"
-                />
-              </>
-            )}
-
-            <div className="upload-toolbar">
-              <button
-                className="outline"
-                onClick={() => setStep('preview')}
-              >
+            <div className="upload-toolbar upload-form-actions">
+              <button className="outline" onClick={() => setStep("preview")}>
                 上一步
               </button>
               <button className="primary" onClick={submit}>
-                保存到衣橱
+                保存
               </button>
             </div>
           </>
@@ -2133,15 +2387,14 @@
     );
   };
 
-  // 通用「多选 chips + 其他自由输入」组件
+  // 通用多选 chips；所有选项均为受控标准字段。
   const MultiChipField = ({
     label,
     options,
     values,
-    otherValue,
     onToggle,
+    otherValue,
     onOtherChange,
-    otherPlaceholder,
   }) => (
     <div className="field">
       <label>{label}</label>
@@ -2149,35 +2402,46 @@
         {options.map((o) => (
           <button
             key={o}
-            className={'chip ' + ((values || []).includes(o) ? 'active' : '')}
+            className={"chip " + ((values || []).includes(o) ? "active" : "")}
             onClick={() => onToggle(o)}
           >
             {o}
           </button>
         ))}
+        {onOtherChange && (
+          <button
+            type="button"
+            className={"chip " + (otherValue ? "active" : "")}
+            onClick={() => {
+              if (otherValue) onOtherChange("");
+              else onOtherChange(" ");
+            }}
+          >
+            其他
+          </button>
+        )}
       </div>
-      <div className="multi-other-row">
-        <span className="multi-other-k">其他</span>
+      {onOtherChange && otherValue !== "" && (
         <input
-          className="input multi-other-input"
-          placeholder={otherPlaceholder || '手动输入'}
-          value={otherValue || ''}
-          onChange={(e) => onOtherChange(e.target.value)}
+          className="input"
+          placeholder={"填写其他" + label}
+          value={otherValue.trimStart()}
+          onChange={(event) => onOtherChange(event.target.value)}
         />
-      </div>
+      )}
     </div>
   );
 
   // ============== Save Link Sheet ==============
   const SaveLinkSheet = ({ onClose, onSave, defaultStyle }) => {
-    const [url, setUrl] = useState('');
-    const [note, setNote] = useState('');
-    const [tagInput, setTagInput] = useState('');
-    const [err, setErr] = useState('');
+    const [url, setUrl] = useState("");
+    const [note, setNote] = useState("");
+    const [tagInput, setTagInput] = useState("");
+    const [err, setErr] = useState("");
     const submit = () => {
       const v = url.trim();
       if (!v) {
-        setErr('链接不能为空');
+        setErr("链接不能为空");
         return;
       }
       const tags = tagInput
@@ -2187,7 +2451,7 @@
       const name = note.trim();
       onSave({
         url: v,
-        note: '',
+        note: "",
         tags,
         title: name || S.guessTitleFromUrl(v),
       });
@@ -2206,7 +2470,7 @@
             value={url}
             onChange={(e) => {
               setUrl(e.target.value);
-              setErr('');
+              setErr("");
             }}
             onBlur={(e) => {
               const v = e.target.value.trim();
@@ -2235,15 +2499,11 @@
           />
         </div>
         {err && (
-          <div className="tiny mb-2" style={{ color: '#b56f6f' }}>
+          <div className="tiny mb-2" style={{ color: "#b56f6f" }}>
             {err}
           </div>
         )}
-        <button
-          className="primary"
-          style={{ width: '100%' }}
-          onClick={submit}
-        >
+        <button className="primary" style={{ width: "100%" }} onClick={submit}>
           保存到灵感库
         </button>
       </Sheet>
@@ -2260,14 +2520,16 @@
   }) => (
     <div className="modal-mask" onClick={onClose}>
       <div className="confirm-popover" onClick={(e) => e.stopPropagation()}>
-        <div className="confirm-popover-title">{title || '确认删除？'}</div>
-        <div className="confirm-popover-message">{message || '删除后将无法恢复。'}</div>
+        <div className="confirm-popover-title">{title || "确认删除？"}</div>
+        <div className="confirm-popover-message">
+          {message || "删除后将无法恢复。"}
+        </div>
         <div className="confirm-popover-actions">
           <button className="ghost" onClick={onClose}>
-            {cancelText || '取消'}
+            {cancelText || "取消"}
           </button>
           <button className="danger-outline" onClick={onConfirm}>
-            {confirmText || '删除'}
+            {confirmText || "删除"}
           </button>
         </div>
       </div>
@@ -2292,10 +2554,10 @@
     const artRef = useRef(null);
     const chipStyle = {
       fontSize: 12,
-      color: '#5b4bdb',
-      background: '#efeaff',
+      color: "#5b4bdb",
+      background: "#efeaff",
       borderRadius: 999,
-      padding: '3px 10px',
+      padding: "3px 10px",
       lineHeight: 1.4,
     };
     if (!outfit) return null;
@@ -2316,19 +2578,19 @@
       const items = (outfit.selected_items || []).filter((p) => p && p.image);
       if (!items.length) {
         window.dispatchEvent(
-          new CustomEvent('yijian:toast', { detail: '暂无单品图片可保存' }),
+          new CustomEvent("yijian:toast", { detail: "暂无单品图片可保存" }),
         );
         return;
       }
       try {
         const size = 1080;
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         const g = ctx.createLinearGradient(0, 0, size, size);
-        g.addColorStop(0, '#ede9fb');
-        g.addColorStop(1, '#f8eee8');
+        g.addColorStop(0, "#ede9fb");
+        g.addColorStop(1, "#f8eee8");
         ctx.fillStyle = g;
         ctx.fillRect(0, 0, size, size);
         const loaded = await Promise.all(
@@ -2336,7 +2598,7 @@
             (p) =>
               new Promise((res) => {
                 const im = new Image();
-                im.crossOrigin = 'anonymous';
+                im.crossOrigin = "anonymous";
                 im.onload = () => res(im);
                 im.onerror = () => res(null);
                 im.src = p.image;
@@ -2344,7 +2606,7 @@
           ),
         );
         const pics = loaded.filter(Boolean);
-        if (!pics.length) throw new Error('图片加载失败');
+        if (!pics.length) throw new Error("图片加载失败");
         const cols = pics.length <= 1 ? 1 : 2;
         const rows = Math.ceil(pics.length / cols);
         const pad = 64;
@@ -2367,11 +2629,14 @@
           ctx.arcTo(cx, cy + cellH, cx, cy, rr);
           ctx.arcTo(cx, cy, cx + cellW, cy, rr);
           ctx.closePath();
-          ctx.fillStyle = 'rgba(255,255,255,.72)';
+          ctx.fillStyle = "rgba(255,255,255,.72)";
           ctx.fill();
           ctx.clip();
           const inner = 0.86;
-          const scale = Math.min((cellW * inner) / im.width, (cellH * inner) / im.height);
+          const scale = Math.min(
+            (cellW * inner) / im.width,
+            (cellH * inner) / im.height,
+          );
           const dw = im.width * scale;
           const dh = im.height * scale;
           const dx = cx + (cellW - dw) / 2;
@@ -2379,96 +2644,122 @@
           ctx.drawImage(im, dx, dy, dw, dh);
           ctx.restore();
         });
-        const png = canvas.toDataURL('image/png');
-        const a = document.createElement('a');
+        const png = canvas.toDataURL("image/png");
+        const a = document.createElement("a");
         a.href = png;
-        a.download = '衣见-搭配效果图.png';
+        a.download = "衣见-搭配效果图.png";
         a.click();
       } catch (e) {
         window.dispatchEvent(
-          new CustomEvent('yijian:toast', {
-            detail: '保存图片失败：' + (e.message || '请重试'),
+          new CustomEvent("yijian:toast", {
+            detail: "保存图片失败：" + (e.message || "请重试"),
           }),
         );
       }
     };
 
     return (
-      <Sheet
-        variant="detail"
-        onClose={onClose}
-      >
+      <Sheet variant="detail" onClose={onClose}>
         <Flatlay
           picks={outfit.selected_items || []}
           onReplace={onReplace}
           onRemove={onRemove}
           onAdd={onAdd}
-          footer={
-            [
-              outfit._source === 'backend-ai' || outfit._source === 'local-fallback'
-                ? '智能推荐'
-                : '为你从衣橱挑选',
-              weather && weather.weatherLabel
-                ? (weather.temperature != null ? weather.temperature + '°C · ' : '') +
-                  weather.weatherLabel
-                : null,
-              style,
-              scene,
-            ]
-              .filter(Boolean)
-              .join(' · ')
-          }
+          footer={[
+            outfit._source === "backend-ai" ? "智能推荐" : "本地规则搭配",
+            weather && weather.weatherLabel
+              ? (weather.temperature != null
+                  ? weather.temperature + "°C · "
+                  : "") + weather.weatherLabel
+              : null,
+            style,
+            scene,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
           forwardRef={artRef}
         />
         {(() => {
           // 推荐来源小标签：帮助判断本次到底走了 AI 还是本地规则，样式低调。
           const src = outfit._source || outfit.source;
-          const isAI = src === 'backend-ai' || src === 'ai';
-          const label = isAI ? 'AI 生成' : '本地规则';
+          const isAI = src === "backend-ai" || src === "ai";
+          const label = isAI ? "AI 生成" : "本地规则";
           return (
             <div
               style={{
-                display: 'inline-flex',
-                alignItems: 'center',
+                display: "inline-flex",
+                alignItems: "center",
                 gap: 4,
                 fontSize: 11,
                 lineHeight: 1.4,
-                color: isAI ? '#5b4bdb' : '#8a8a99',
-                background: isAI ? '#efeaff' : '#f2f2f5',
-                border: '1px solid ' + (isAI ? '#e0d8ff' : '#e6e6ec'),
+                color: isAI ? "#5b4bdb" : "#8a8a99",
+                background: isAI ? "#efeaff" : "#f2f2f5",
+                border: "1px solid " + (isAI ? "#e0d8ff" : "#e6e6ec"),
                 borderRadius: 999,
-                padding: '2px 8px',
-                margin: '0 0 10px',
+                padding: "2px 8px",
+                margin: "0 0 10px",
               }}
             >
               {label}
             </div>
           );
         })()}
-        {(outfit.summary || outfit.color_reason || outfit.style_reason) && (
+        {outfit.demo_source_status && (
           <p
-            className="detail-summary"
-            style={{ margin: '0 0 14px', fontSize: 13, lineHeight: 1.6, color: '#4b4b57' }}
+            className="bl-reason"
+            style={{
+              margin: "0 0 10px",
+              color: "#756d8e",
+              fontSize: 12,
+              lineHeight: 1.45,
+            }}
           >
-            {String(outfit.summary || outfit.color_reason || outfit.style_reason || '')
-              .replace(/选择\s*id\s*[=:：]?\s*\d+/gi, '')
-              .replace(/id\s*[=:：]?\s*\d+/gi, '')
-              .replace(/\[\d+\]/g, '')
-              .replace(/[（(]\s*[）)]/g, '')
-              .replace(/未填写/g, '')
-              .replace(/主色调：\s*[·\s]*，形成同色系或邻近色关系。?/g, '')
-              .replace(/主色调：\s*[·\s]*[，。]?/g, '')
-              .replace(/\s+/g, ' ')
-              .replace(/\s+([，。、；：！？])/g, '$1')
-              .trim()
-              /* Task B：放宽硬截断，容纳简洁但完整的总结（2~3句），避免话没说完 */
-              .slice(0, 200)}
+            {outfit.demo_source_status}
           </p>
         )}
+        {outfit._source === "local-fallback" && (
+          <p className="bl-reason">
+            智能搭配暂时不可用；本次使用本地规则，未读取账号的博主与收藏偏好。
+          </p>
+        )}
+        {(() => {
+          const detailText = String(
+            outfit.summary || outfit.color_reason || outfit.style_reason || "",
+          )
+            .replace(/选择\s*id\s*[=:：]?\s*\d+/gi, "")
+            .replace(/id\s*[=:：]?\s*\d+/gi, "")
+            .replace(/\[\d+\]/g, "")
+            .replace(/[（(]\s*[）)]/g, "")
+            .replace(/未填写/g, "")
+            .replace(/主色调：\s*[·\s]*，形成同色系或邻近色关系。?/g, "")
+            .replace(/主色调：\s*[·\s]*[，。]?/g, "")
+            .replace(/\s+/g, " ")
+            .replace(/\s+([，。、；：！？])/g, "$1")
+            .trim()
+            .slice(0, 200);
+          if (
+            !detailText ||
+            detailText === String(outfit.demo_source_status || "").trim()
+          )
+            return null;
+          return (
+            <p
+              className="detail-summary"
+              style={{
+                margin: "0 0 14px",
+                fontSize: 13,
+                lineHeight: 1.6,
+                color: "#4b4b57",
+              }}
+            >
+              {detailText}
+            </p>
+          );
+        })()}
         {outfit.avoid && (
           <p
             className="detail-avoid"
-            style={{ margin: '0 0 14px', fontSize: 12, color: '#c2410c' }}
+            style={{ margin: "0 0 14px", fontSize: 12, color: "#c2410c" }}
           >
             今天不建议：{outfit.avoid}
           </p>
@@ -2478,30 +2769,37 @@
           type="button"
           className="link"
           onClick={downloadCard}
-          style={{ display: 'block', margin: '0 auto 10px', fontSize: 13 }}
+          style={{ display: "block", margin: "0 auto 10px", fontSize: 13 }}
         >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+          <span
+            style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+          >
             <Icon name="download" size={14} /> 保存搭配效果图
           </span>
         </button>
         <div className="outfit-action">
-          <button className="outline" onClick={onRegenerate} disabled={generating}>
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-              <Icon name="refresh" size={14} /> {generating ? '生成中…' : '换一套'}
+          <button
+            className="outline"
+            onClick={onRegenerate}
+            disabled={generating}
+          >
+            <span
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+            >
+              <Icon name="refresh" size={14} />{" "}
+              {generating ? "生成中…" : "换一套"}
             </span>
           </button>
           <button className="primary" onClick={onSave}>
-            {saveText || '保存'}
+            {saveText || "保存"}
           </button>
         </div>
 
-{generating && (
-  <div
-    style={{ marginTop: 8, fontSize: 12, color: '#64748b' }}
-  >
-    首次生成可能较慢（约 1 分钟），请耐心等待…
-  </div>
-)}
+        {generating && (
+          <div style={{ marginTop: 8, fontSize: 12, color: "#64748b" }}>
+            首次生成可能较慢（约 1 分钟），请耐心等待…
+          </div>
+        )}
       </Sheet>
     );
   };
@@ -2510,27 +2808,25 @@
   const ReplaceSheet = ({ target, wardrobe, onClose, onPick }) => {
     if (!target) return null;
     const cat = target.category;
-    const alts = wardrobe.filter((x) => x.category === cat && x.id !== target.id);
+    const alts = wardrobe.filter(
+      (x) => x.category === cat && x.id !== target.id,
+    );
     return (
       <Sheet
-        title={'替换 ' + cat}
-        subtitle={'当前：' + target.name}
+        title={"替换 " + cat}
+        subtitle={"当前：" + target.name}
         onClose={onClose}
       >
         {alts.length === 0 ? (
           <EmptyState
             big="◐"
-            title={'衣橱里还没有其他 ' + cat}
+            title={"衣橱里还没有其他 " + cat}
             tip="回到衣橱上传一件，就能在这里替换。"
           />
         ) : (
           <div className="wardrobe-grid">
             {alts.map((it) => (
-              <ItemCard
-                key={it.id}
-                item={it}
-                onClick={() => onPick(it)}
-              />
+              <ItemCard key={it.id} item={it} onClick={() => onPick(it)} />
             ))}
           </div>
         )}
@@ -2540,18 +2836,22 @@
 
   // ============== Add Item Sheet（任务 1：从衣橱追加一件到当前搭配） ==============
   const AddItemSheet = ({ wardrobe, existingIds, onClose, onPick }) => {
-    const [cat, setCat] = useState('全部');
-    const cats = ['全部', ...S.CATEGORIES];
+    const [cat, setCat] = useState("全部");
+    const cats = ["全部", ...S.CATEGORIES];
     const taken = new Set(existingIds || []);
     const pool = (wardrobe || []).filter((x) => !taken.has(x.id));
-    const alts = cat === '全部' ? pool : pool.filter((x) => x.category === cat);
+    const alts = cat === "全部" ? pool : pool.filter((x) => x.category === cat);
     return (
-      <Sheet title="添加单品" subtitle="从衣橱挑选一件加入这套搭配" onClose={onClose}>
+      <Sheet
+        title="添加单品"
+        subtitle="从衣橱挑选一件加入这套搭配"
+        onClose={onClose}
+      >
         <div className="tabs">
           {cats.map((c) => (
             <button
               key={c}
-              className={'tab ' + (c === cat ? 'selected' : '')}
+              className={"tab " + (c === cat ? "selected" : "")}
               onClick={() => setCat(c)}
             >
               {c}
@@ -2580,22 +2880,22 @@
     if (!record) return null;
     return (
       <Sheet
-        title={record.date + ' 的穿搭'}
+        title={record.date + " 的穿搭"}
         subtitle={
           record.style +
-          ' / ' +
+          " / " +
           record.scene +
           (formatRecordWeather(record.weather)
-            ? ' · ' + formatRecordWeather(record.weather)
-            : '')
+            ? " · " + formatRecordWeather(record.weather)
+            : "")
         }
         onClose={onClose}
       >
         <Flatlay
           picks={record.outfit?.selected_items || []}
-          title={record.outfit?.title || '未命名搭配'}
+          title={record.outfit?.title || "未命名搭配"}
           meta={record.date}
-          footer={record.date ? '你的穿搭日记' : ''}
+          footer={record.date ? "你的穿搭日记" : ""}
         />
         <div className="reason-list">
           {record.outfit?.style_reason && (
@@ -2625,7 +2925,7 @@
         </div>
         <button
           className="outline"
-          style={{ width: '100%', marginTop: 16 }}
+          style={{ width: "100%", marginTop: 16 }}
           onClick={() => {
             onDelete(record);
             onClose();
@@ -2638,14 +2938,21 @@
   };
 
   // ============== Profile Sheet ==============
-  const ProfileSheet = ({ profile, onClose, onSave, onToast }) => {
-    const isAuthed = profile.authStatus === 'demo_logged_in' && profile.email;
+  const ProfileSheet = ({
+    profile,
+    onClose,
+    onSave,
+    onToast,
+    onOpenPreferences,
+  }) => {
+    const isAuthed = profile.authStatus === "demo_logged_in" && profile.email;
 
     // ============ 已登录：资料编辑视图 ============
     if (isAuthed) {
       return (
         <ProfileEditView
           profile={profile}
+          onOpenPreferences={onOpenPreferences}
           onClose={onClose}
           onSave={onSave}
           onToast={onToast}
@@ -2665,12 +2972,14 @@
 
   // 邮箱注册 / 登录 视图（demo，仅前端）
   const AuthView = ({ profile, onClose, onSave, onToast }) => {
-    const [mode, setMode] = useState(profile.passwordHash ? 'login' : 'register');
-    const [email, setEmail] = useState(profile.email || '');
-    const [pw, setPw] = useState('');
-    const [pw2, setPw2] = useState('');
+    const [mode, setMode] = useState(
+      profile.passwordHash ? "login" : "register",
+    );
+    const [email, setEmail] = useState(profile.email || "");
+    const [pw, setPw] = useState("");
+    const [pw2, setPw2] = useState("");
     const [showPw, setShowPw] = useState(false);
-    const [err, setErr] = useState('');
+    const [err, setErr] = useState("");
     const [busy, setBusy] = useState(false);
 
     const applyRemoteAuth = async (remote, fallbackMessage) => {
@@ -2682,19 +2991,23 @@
       onSave({
         ...profile,
         email: u.email || email.trim(),
-        name: u.display_name || profile.name || '衣见的主理人',
+        name: u.display_name || profile.name || "衣见的主理人",
         avatar: u.avatar != null ? u.avatar : profile.avatar,
         bio: u.bio != null ? u.bio : profile.bio,
-        authStatus: 'demo_logged_in',
+        authStatus: "demo_logged_in",
         backendUserId: u.id,
       });
-      try { await S.syncAllFromBackend(); } catch { /* 同步失败时后端不可达，保持本地为空，不展示旧账号数据 */ }
+      try {
+        await S.syncAllFromBackend();
+      } catch {
+        /* 同步失败时后端不可达，保持本地为空，不展示旧账号数据 */
+      }
       onToast && onToast(fallbackMessage);
     };
 
     const doRegister = async () => {
       if (!S.validateEmail(email)) {
-        setErr('邮箱格式不正确');
+        setErr("邮箱格式不正确");
         return;
       }
       const strength = S.passwordStrength(pw);
@@ -2703,16 +3016,20 @@
         return;
       }
       if (pw !== pw2) {
-        setErr('两次输入的密码不一致');
+        setErr("两次输入的密码不一致");
         return;
       }
       try {
         setBusy(true);
-        const remote = await S.authRegister(email.trim(), pw, profile.name || '衣见的主理人');
-        await applyRemoteAuth(remote, '注册成功');
+        const remote = await S.authRegister(
+          email.trim(),
+          pw,
+          profile.name || "衣见的主理人",
+        );
+        await applyRemoteAuth(remote, "注册成功");
         return;
       } catch (e) {
-        setErr((e && e.message) || '账号服务暂时不可用，请稍后再试');
+        setErr((e && e.message) || "账号服务暂时不可用，请稍后再试");
       } finally {
         setBusy(false);
       }
@@ -2720,16 +3037,16 @@
 
     const doLogin = async () => {
       if (!S.validateEmail(email)) {
-        setErr('邮箱格式不正确');
+        setErr("邮箱格式不正确");
         return;
       }
       try {
         setBusy(true);
         const remote = await S.authLogin(email.trim(), pw);
-        await applyRemoteAuth(remote, '登录成功');
+        await applyRemoteAuth(remote, "登录成功");
         return;
       } catch (e) {
-        setErr((e && e.message) || '登录失败，请检查邮箱和密码');
+        setErr((e && e.message) || "登录失败，请检查邮箱和密码");
       } finally {
         setBusy(false);
       }
@@ -2737,25 +3054,25 @@
 
     return (
       <Sheet
-        title={mode === 'register' ? '注册账号' : '登录'}
+        title={mode === "register" ? "注册账号" : "登录"}
         subtitle="创建一个账号，开启你的衣见"
         onClose={onClose}
       >
         <div className="auth-tabs">
           <button
-            className={'auth-tab ' + (mode === 'login' ? 'active' : '')}
+            className={"auth-tab " + (mode === "login" ? "active" : "")}
             onClick={() => {
-              setMode('login');
-              setErr('');
+              setMode("login");
+              setErr("");
             }}
           >
             登录
           </button>
           <button
-            className={'auth-tab ' + (mode === 'register' ? 'active' : '')}
+            className={"auth-tab " + (mode === "register" ? "active" : "")}
             onClick={() => {
-              setMode('register');
-              setErr('');
+              setMode("register");
+              setErr("");
             }}
           >
             新建账号
@@ -2773,7 +3090,7 @@
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              setErr('');
+              setErr("");
             }}
           />
         </div>
@@ -2783,38 +3100,42 @@
           <div className="auth-pw-row">
             <input
               className="input auth-pw-input"
-              type={showPw ? 'text' : 'password'}
-              autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-              placeholder={mode === 'register' ? '至少 6 位，建议字母 + 数字' : '输入密码'}
+              type={showPw ? "text" : "password"}
+              autoComplete={
+                mode === "register" ? "new-password" : "current-password"
+              }
+              placeholder={
+                mode === "register" ? "至少 6 位，建议字母 + 数字" : "输入密码"
+              }
               value={pw}
               onChange={(e) => {
                 setPw(e.target.value);
-                setErr('');
+                setErr("");
               }}
             />
             <button
               type="button"
               className="auth-pw-toggle"
               onClick={() => setShowPw((v) => !v)}
-              aria-label={showPw ? '隐藏密码' : '显示密码'}
+              aria-label={showPw ? "隐藏密码" : "显示密码"}
             >
-              {showPw ? '隐藏' : '显示'}
+              {showPw ? "隐藏" : "显示"}
             </button>
           </div>
         </div>
 
-        {mode === 'register' && (
+        {mode === "register" && (
           <div className="field">
             <label>再次输入密码</label>
             <input
               className="input"
-              type={showPw ? 'text' : 'password'}
+              type={showPw ? "text" : "password"}
               autoComplete="new-password"
               placeholder="再次输入以确认"
               value={pw2}
               onChange={(e) => {
                 setPw2(e.target.value);
-                setErr('');
+                setErr("");
               }}
             />
           </div>
@@ -2828,36 +3149,256 @@
 
         <button
           className="primary"
-          style={{ width: '100%', marginTop: 8 }}
-          onClick={busy ? undefined : (mode === 'register' ? doRegister : doLogin)}
+          style={{ width: "100%", marginTop: 8 }}
+          onClick={
+            busy ? undefined : mode === "register" ? doRegister : doLogin
+          }
         >
-          {busy ? '提交中…' : (mode === 'register' ? '创建账号' : '登录')}
+          {busy ? "提交中…" : mode === "register" ? "创建账号" : "登录"}
         </button>
       </Sheet>
     );
   };
 
+  const BodyProfilePanel = ({ onToast }) => {
+    const [profile, setProfile] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState("");
+    const [open, setOpen] = useState(false);
+    useEffect(() => {
+      let active = true;
+      S.getBodyProfile()
+        .then((result) => {
+          if (active) {
+            setProfile(result);
+            setOpen(!!result.consented);
+          }
+        })
+        .catch(() => active && setError("身体资料暂时无法读取"));
+      return () => {
+        active = false;
+      };
+    }, []);
+    if (!profile)
+      return (
+        <div className="profile-row">
+          <div className="profile-row-k">搭配资料</div>
+          <div className="tiny">{error || "正在读取…"}</div>
+        </div>
+      );
+    const save = async (consented = true) => {
+      setSaving(true);
+      setError("");
+      try {
+        const result = await S.updateBodyProfile({ ...profile, consented });
+        setProfile(result);
+        setOpen(consented);
+        onToast &&
+          onToast(
+            consented ? "搭配资料已更新" : "身体资料已撤回，不会用于后续搭配",
+          );
+      } catch (err) {
+        setError(err.message || "保存失败，请重试");
+      } finally {
+        setSaving(false);
+      }
+    };
+    const numeric = (key) => (value) =>
+      setProfile({
+        ...profile,
+        [key]: value.target.value ? Number(value.target.value) : null,
+      });
+    return (
+      <section className="body-profile-panel">
+        <div className="profile-row-k">
+          <span>身材信息</span>
+          <button className="tiny" onClick={() => setOpen((value) => !value)}>
+            {open ? "收起" : profile.consented ? "查看与修改" : "填写"}
+          </button>
+        </div>
+        <p className="body-profile-summary">
+          {profile.consented
+            ? "已用于身型、比例与版型建议"
+            : "仅用于你的穿搭建议，不会公开展示"}
+        </p>
+        {open && (
+          <div className="body-profile-fields">
+            <label className="body-consent">
+              <input
+                type="checkbox"
+                checked={!!profile.consented}
+                onChange={(e) =>
+                  setProfile({ ...profile, consented: e.target.checked })
+                }
+              />{" "}
+              我同意衣见将以下资料用于本人的搭配建议
+            </label>
+            <h4>
+              基础信息 <em>必填</em>
+            </h4>
+            <div className="body-field-grid">
+              <label>
+                性别
+                <select
+                  className="input"
+                  value={profile.gender || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, gender: e.target.value })
+                  }
+                >
+                  <option value="">请选择</option>
+                  <option value="女">女</option>
+                  <option value="男">男</option>
+                  <option value="其他">其他</option>
+                </select>
+              </label>
+              <label>
+                身高（cm）
+                <input
+                  className="input"
+                  type="number"
+                  min="80"
+                  max="250"
+                  value={profile.height_cm || ""}
+                  onChange={numeric("height_cm")}
+                />
+              </label>
+              <label>
+                体重（kg）
+                <input
+                  className="input"
+                  type="number"
+                  min="20"
+                  max="350"
+                  value={profile.weight_kg || ""}
+                  onChange={numeric("weight_kg")}
+                />
+              </label>
+            </div>
+            <h4>
+              身形数据 <small>选填</small>
+            </h4>
+            <div className="body-choice">
+              <b>身材比例</b>
+              {["腕线过臀", "虎口过臀", "拇指过臀"].map((value) => (
+                <button
+                  type="button"
+                  key={value}
+                  className={profile.body_proportion === value ? "on" : ""}
+                  onClick={() =>
+                    setProfile({
+                      ...profile,
+                      body_proportion:
+                        profile.body_proportion === value ? "" : value,
+                    })
+                  }
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <div className="body-choice">
+              <b>身型</b>
+              {["倒三角型", "矩型", "O型", "正三角型", "沙漏型"].map(
+                (value) => (
+                  <button
+                    type="button"
+                    key={value}
+                    className={profile.body_shape === value ? "on" : ""}
+                    onClick={() =>
+                      setProfile({
+                        ...profile,
+                        body_shape: profile.body_shape === value ? "" : value,
+                      })
+                    }
+                  >
+                    {value}
+                  </button>
+                ),
+              )}
+            </div>
+            <div className="body-field-grid body-measure-grid">
+              <label>
+                腰围（cm）
+                <input
+                  className="input"
+                  type="number"
+                  value={profile.waist_cm || ""}
+                  onChange={numeric("waist_cm")}
+                />
+              </label>
+              <label>
+                臀围（cm）
+                <input
+                  className="input"
+                  type="number"
+                  value={profile.hip_cm || ""}
+                  onChange={numeric("hip_cm")}
+                />
+              </label>
+              <label>
+                肩宽（cm）
+                <input
+                  className="input"
+                  type="number"
+                  value={profile.shoulder_cm || ""}
+                  onChange={numeric("shoulder_cm")}
+                />
+              </label>
+            </div>
+            {error && <p className="tiny form-error">{error}</p>}
+            <div className="body-profile-actions">
+              <button
+                className="solid-action solid-action--accent"
+                disabled={saving}
+                onClick={() => save(profile.consented)}
+              >
+                {saving ? "保存中…" : "建立个人资料"}
+              </button>
+              {profile.consented && (
+                <button
+                  className="solid-action solid-action--quiet"
+                  disabled={saving}
+                  onClick={() => save(false)}
+                >
+                  撤回并清除
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+    );
+  };
+
   // 已登录：资料编辑（头像 / 用户名 / 简介 / 改密码 / 退出登录）
-  const ProfileEditView = ({ profile, onClose, onSave, onToast }) => {
+  const ProfileEditView = ({
+    profile,
+    onClose,
+    onSave,
+    onToast,
+    onOpenPreferences,
+  }) => {
     const [form, setForm] = useState({
-      avatar: profile.avatar || '',
-      name: profile.name || '',
-      email: profile.email || '',
-      bio: profile.bio || '',
+      avatar: profile.avatar || "",
+      name: profile.name || "",
+      email: profile.email || "",
+      bio: profile.bio || "",
     });
     const [nameEditing, setNameEditing] = useState(false);
+    const [bioEditing, setBioEditing] = useState(false);
     const [changePwOpen, setChangePwOpen] = useState(false);
     const [revealEmail, setRevealEmail] = useState(false);
     const [confirmLogout, setConfirmLogout] = useState(false);
 
     const maskEmail = (s) => {
-      const email = (s || '').trim();
-      if (!email) return '';
-      const at = email.indexOf('@');
+      const email = (s || "").trim();
+      if (!email) return "";
+      const at = email.indexOf("@");
       if (at <= 1) return email;
       const head = email.slice(0, 2);
       const tail = email.slice(at);
-      return head + '***' + tail;
+      return head + "***" + tail;
     };
 
     const EmailEye = ({ off }) => (
@@ -2874,15 +3415,13 @@
           strokeWidth="1.8"
         />
         <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-        {off && (
-          <path d="M4 20L20 4" stroke="currentColor" strokeWidth="1.8" />
-        )}
+        {off && <path d="M4 20L20 4" stroke="currentColor" strokeWidth="1.8" />}
       </svg>
     );
-    const [oldPw, setOldPw] = useState('');
-    const [newPw, setNewPw] = useState('');
-    const [newPw2, setNewPw2] = useState('');
-    const [pwErr, setPwErr] = useState('');
+    const [oldPw, setOldPw] = useState("");
+    const [newPw, setNewPw] = useState("");
+    const [newPw2, setNewPw2] = useState("");
+    const [pwErr, setPwErr] = useState("");
 
     const fileRef = useRef(null);
 
@@ -2890,8 +3429,8 @@
     const onAvatar = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        onToast && onToast('请选择图片文件');
+      if (!file.type.startsWith("image/")) {
+        onToast && onToast("请选择图片文件");
         return;
       }
       try {
@@ -2903,25 +3442,25 @@
           im.src = raw;
         });
         const size = 320;
-        const canvas = document.createElement('canvas');
+        const canvas = document.createElement("canvas");
         canvas.width = size;
         canvas.height = size;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext("2d");
         const scale = Math.min(img.width, img.height);
         const sx = (img.width - scale) / 2;
         const sy = (img.height - scale) / 2;
         ctx.drawImage(img, sx, sy, scale, scale, 0, 0, size, size);
-        const small = canvas.toDataURL('image/jpeg', 0.82);
+        const small = canvas.toDataURL("image/jpeg", 0.82);
         setForm((f) => ({ ...f, avatar: small }));
       } catch (err) {
-        onToast && onToast('读取头像失败，请重试');
+        onToast && onToast("读取头像失败，请重试");
       }
     };
 
     const changePassword = () => {
       const check = S.demoHashPassword(oldPw, profile.passwordSalt);
       if (check !== profile.passwordHash) {
-        setPwErr('原密码不正确');
+        setPwErr("原密码不正确");
         return;
       }
       const st = S.passwordStrength(newPw);
@@ -2930,7 +3469,7 @@
         return;
       }
       if (newPw !== newPw2) {
-        setPwErr('两次输入的新密码不一致');
+        setPwErr("两次输入的新密码不一致");
         return;
       }
       const salt = S.makeSalt();
@@ -2938,25 +3477,25 @@
       onSave({
         ...profile,
         avatar: form.avatar,
-        name: (form.name || '').trim() || '衣见的主理人',
-        bio: (form.bio || '').trim(),
+        name: (form.name || "").trim() || "衣见的主理人",
+        bio: (form.bio || "").trim(),
         passwordHash: hash,
         passwordSalt: salt,
       });
-      setOldPw('');
-      setNewPw('');
-      setNewPw2('');
-      setPwErr('');
+      setOldPw("");
+      setNewPw("");
+      setNewPw2("");
+      setPwErr("");
       setChangePwOpen(false);
-      onToast && onToast('密码已更新');
+      onToast && onToast("密码已更新");
     };
 
     const saveAll = () => {
       onSave({
         ...profile,
         avatar: form.avatar,
-        name: (form.name || '').trim() || '衣见的主理人',
-        bio: (form.bio || '').trim(),
+        name: (form.name || "").trim() || "衣见的主理人",
+        bio: (form.bio || "").trim(),
       });
     };
     const logout = () => {
@@ -2965,246 +3504,275 @@
 
     return (
       <>
-      <Sheet
-        title="个人资料"
-        subtitle=""
-        onClose={onClose}
-      >
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileRef}
-          onChange={onAvatar}
-          style={{ display: 'none' }}
-        />
+        <Sheet title="个人资料" subtitle="" onClose={onClose}>
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileRef}
+            onChange={onAvatar}
+            style={{ display: "none" }}
+          />
 
-        <div className="profile-hero">
-          <button
-            type="button"
-            className="profile-avatar-btn"
-            onClick={pickAvatar}
-            aria-label="修改头像"
-          >
-            {form.avatar ? (
-              <img src={form.avatar} alt="头像" />
-            ) : (
-              <span className="profile-avatar-initial">
-                {(form.name || '衣').slice(0, 1)}
+          <div className="profile-hero">
+            <button
+              type="button"
+              className="profile-avatar-btn"
+              onClick={pickAvatar}
+              aria-label="修改头像"
+            >
+              {form.avatar ? (
+                <img src={form.avatar} alt="头像" />
+              ) : (
+                <span className="profile-avatar-initial">
+                  {(form.name || "衣").slice(0, 1)}
+                </span>
+              )}
+              <span className="profile-avatar-edit">
+                <Icon name="edit" size={12} />
               </span>
-            )}
-            <span className="profile-avatar-edit">
-              <Icon name="edit" size={12} />
-            </span>
-          </button>
-          <div className="profile-hero-body">
-            <div className="profile-hero-name">
-              {form.name || '衣见的主理人'}
+            </button>
+            <div className="profile-hero-body">
+              <div className="profile-hero-name">
+                {form.name || "衣见的主理人"}
+              </div>
+              <div className="profile-hero-meta profile-email-row">
+                <span className="profile-email-text">
+                  {revealEmail ? form.email : maskEmail(form.email)}
+                </span>
+                <button
+                  type="button"
+                  className="profile-email-eye"
+                  onClick={() => setRevealEmail((v) => !v)}
+                  aria-label={revealEmail ? "隐藏邮箱" : "显示邮箱"}
+                >
+                  <EmailEye off={!revealEmail} />
+                </button>
+              </div>
             </div>
-            <div className="profile-hero-meta profile-email-row">
-              <span
-                className="profile-email-text"
+          </div>
+
+          {/* 用户名 */}
+          <div className="profile-row">
+            <div className="profile-row-k">用户名</div>
+            {nameEditing ? (
+              <input
+                className="input profile-row-input"
+                autoFocus
+                maxLength={20}
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onBlur={() => setNameEditing(false)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setNameEditing(false);
+                }}
+              />
+            ) : (
+              <button
+                className="profile-row-v"
+                onClick={() => setNameEditing(true)}
               >
-                {revealEmail ? form.email : maskEmail(form.email)}
+                <span>{form.name || "未设置"}</span>
+                <Icon name="chevron" size={14} />
+              </button>
+            )}
+          </div>
+
+          {/* 邮箱 */}
+          <div className="profile-row">
+            <div className="profile-row-k">登录邮箱</div>
+            <div className="profile-row-v profile-row-v-static profile-email-row">
+              <span className="profile-email-text">
+                {revealEmail ? form.email : maskEmail(form.email) || "—"}
               </span>
               <button
                 type="button"
                 className="profile-email-eye"
                 onClick={() => setRevealEmail((v) => !v)}
-                aria-label={revealEmail ? '隐藏邮箱' : '显示邮箱'}
+                aria-label={revealEmail ? "隐藏邮箱" : "显示邮箱"}
               >
                 <EmailEye off={!revealEmail} />
               </button>
             </div>
           </div>
-        </div>
 
-        {/* 用户名 */}
-        <div className="profile-row">
-          <div className="profile-row-k">用户名</div>
-          {nameEditing ? (
-            <input
-              className="input profile-row-input"
-              autoFocus
-              maxLength={20}
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              onBlur={() => setNameEditing(false)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') setNameEditing(false);
-              }}
-            />
-          ) : (
-            <button
-              className="profile-row-v"
-              onClick={() => setNameEditing(true)}
+          {/* 密码 */}
+          <div className="profile-row profile-row-multiline">
+            <div
+              className="profile-row-k"
+              style={{ display: "flex", justifyContent: "space-between" }}
             >
-              <span>{form.name || '未设置'}</span>
-              <Icon name="chevron" size={14} />
-            </button>
-          )}
-        </div>
-
-        {/* 邮箱 */}
-        <div className="profile-row">
-          <div className="profile-row-k">登录邮箱</div>
-          <div className="profile-row-v profile-row-v-static profile-email-row">
-            <span className="profile-email-text">
-              {revealEmail ? form.email : maskEmail(form.email) || '—'}
-            </span>
-            <button
-              type="button"
-              className="profile-email-eye"
-              onClick={() => setRevealEmail((v) => !v)}
-              aria-label={revealEmail ? '隐藏邮箱' : '显示邮箱'}
-            >
-              <EmailEye off={!revealEmail} />
-            </button>
-          </div>
-        </div>
-
-        {/* 密码 */}
-        <div className="profile-row profile-row-multiline">
-          <div
-            className="profile-row-k"
-            style={{ display: 'flex', justifyContent: 'space-between' }}
-          >
-            <span>密码</span>
-            <button
-              className="tiny"
-              style={{ fontWeight: 600, color: 'var(--primary)' }}
-              onClick={() => {
-                setChangePwOpen((v) => !v);
-                setPwErr('');
-              }}
-            >
-              {changePwOpen ? '收起' : '修改密码'}
-            </button>
-          </div>
-          {changePwOpen && (
-            <>
-              <input
-                className="input"
-                type="password"
-                autoComplete="current-password"
-                placeholder="原密码"
-                value={oldPw}
-                onChange={(e) => {
-                  setOldPw(e.target.value);
-                  setPwErr('');
-                }}
-                style={{ marginTop: 8 }}
-              />
-              <input
-                className="input"
-                type="password"
-                autoComplete="new-password"
-                placeholder="新密码（≥ 6 位）"
-                value={newPw}
-                onChange={(e) => {
-                  setNewPw(e.target.value);
-                  setPwErr('');
-                }}
-                style={{ marginTop: 6 }}
-              />
-              <input
-                className="input"
-                type="password"
-                autoComplete="new-password"
-                placeholder="再次输入新密码"
-                value={newPw2}
-                onChange={(e) => {
-                  setNewPw2(e.target.value);
-                  setPwErr('');
-                }}
-                style={{ marginTop: 6 }}
-              />
-              {pwErr && (
-                <div className="tiny form-error">{pwErr}</div>
-              )}
+              <span>密码</span>
               <button
-                className="primary"
-                style={{ width: '100%', marginTop: 8 }}
-                onClick={changePassword}
+                className="tiny"
+                style={{ fontWeight: 600, color: "var(--primary)" }}
+                onClick={() => {
+                  setChangePwOpen((v) => !v);
+                  setPwErr("");
+                }}
               >
-                更新密码
+                {changePwOpen ? "收起" : "修改密码"}
               </button>
-            </>
-          )}
-        </div>
+            </div>
+            {changePwOpen && (
+              <>
+                <input
+                  className="input"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="原密码"
+                  value={oldPw}
+                  onChange={(e) => {
+                    setOldPw(e.target.value);
+                    setPwErr("");
+                  }}
+                  style={{ marginTop: 8 }}
+                />
+                <input
+                  className="input"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="新密码（≥ 6 位）"
+                  value={newPw}
+                  onChange={(e) => {
+                    setNewPw(e.target.value);
+                    setPwErr("");
+                  }}
+                  style={{ marginTop: 6 }}
+                />
+                <input
+                  className="input"
+                  type="password"
+                  autoComplete="new-password"
+                  placeholder="再次输入新密码"
+                  value={newPw2}
+                  onChange={(e) => {
+                    setNewPw2(e.target.value);
+                    setPwErr("");
+                  }}
+                  style={{ marginTop: 6 }}
+                />
+                {pwErr && <div className="tiny form-error">{pwErr}</div>}
+                <button
+                  className="primary"
+                  style={{ width: "100%", marginTop: 8 }}
+                  onClick={changePassword}
+                >
+                  更新密码
+                </button>
+              </>
+            )}
+          </div>
 
-        {/* 简介 */}
-        <div className="profile-row profile-row-multiline">
-          <div className="profile-row-k">简介</div>
-          <textarea
-            className="input"
-            maxLength={40}
-            placeholder="一句话描述你的穿搭偏好"
-            value={form.bio}
-            onChange={(e) => setForm({ ...form, bio: e.target.value })}
-            style={{ minHeight: 46, marginTop: 8 }}
+          {/* 简介 */}
+          <div className="profile-row profile-row-multiline">
+            <div className="profile-row-k profile-inline-heading">
+              <span>简介</span>
+              <button
+                type="button"
+                className="icon-edit-button"
+                aria-label="编辑简介"
+                onClick={() => setBioEditing((value) => !value)}
+              >
+                <Icon name="edit" size={14} />
+              </button>
+            </div>
+            {bioEditing ? (
+              <textarea
+                className="input"
+                autoFocus
+                maxLength={40}
+                placeholder="一句话描述你的穿搭偏好"
+                value={form.bio}
+                onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                onBlur={() => setBioEditing(false)}
+                style={{ minHeight: 46, marginTop: 8 }}
+              />
+            ) : (
+              <p
+                className={
+                  "profile-bio-preview " + (form.bio ? "" : "is-empty")
+                }
+              >
+                {form.bio || "暂未填写简介"}
+              </p>
+            )}
+          </div>
+          <BodyProfilePanel onToast={onToast} />
+          <button className="pref-entry" onClick={onOpenPreferences}>
+            <span>
+              我的灵感库<small>喜欢、收藏与屏蔽的博主</small>
+            </span>
+            <Icon name="chevron" size={16} />
+          </button>
+
+          <div className="action-row profile-actions">
+            <button
+              className="solid-action solid-action--accent"
+              onClick={saveAll}
+            >
+              保存个人资料
+            </button>
+            <button
+              className="solid-action solid-action--quiet"
+              onClick={logout}
+            >
+              退出登录
+            </button>
+          </div>
+        </Sheet>
+        {confirmLogout && (
+          <DeleteConfirmSheet
+            title="确认退出登录？"
+            message="退出后本机会清空当前账号的衣橱和日记展示，重新登录后再从云端读取。"
+            confirmText="退出登录"
+            cancelText="取消"
+            onClose={() => setConfirmLogout(false)}
+            onConfirm={() => {
+              setConfirmLogout(false);
+              onSave({ ...profile, authStatus: "none", _logout: true });
+              onToast && onToast("已退出登录");
+            }}
           />
-        </div>
-
-        <div className="action-row profile-actions">
-          <button
-            className="solid-action solid-action--accent"
-            onClick={saveAll}
-          >
-            保存
-          </button>
-          <button
-            className="solid-action solid-action--quiet"
-            onClick={logout}
-          >
-            退出登录
-          </button>
-        </div>
-      </Sheet>
-      {confirmLogout && (
-        <DeleteConfirmSheet
-          title="确认退出登录？"
-          message="退出后本机会清空当前账号的衣橱和日记展示，重新登录后再从云端读取。"
-          confirmText="退出登录"
-          cancelText="取消"
-          onClose={() => setConfirmLogout(false)}
-          onConfirm={() => {
-            setConfirmLogout(false);
-            onSave({ ...profile, authStatus: 'none', _logout: true });
-            onToast && onToast('已退出登录');
-          }}
-        />
-      )}
+        )}
       </>
     );
   };
 
   // ============== Share Sheet ==============
-  // 分享 App 到微信 / 朋友圈 / QQ / QQ空间 / 微博 / 小红书 / 复制链接 / 系统分享
-  const ShareSheet = ({ onClose, onToast }) => {
-    const [copied, setCopied] = useState('');
-    const shareUrl =
-      (typeof window !== 'undefined' && window.location && window.location.href) ||
-      'https://yijian.demo';
-    const shareTitle = '衣见 · 你的智能衣橱穿搭助手';
-    const shareDesc =
-      '上传真实衣物，为你搭配今日 look，自动生成平面效果图。';
+  // 分享 App 或指定博主到微信 / 朋友圈 / QQ / QQ空间 / 微博 / 小红书 / 系统面板。
+  const ShareSheet = ({ onClose, onToast, target }) => {
+    const [copied, setCopied] = useState("");
+    const isBlogger = !!(target && (target.profile_url || target.url));
+    const shareUrl = isBlogger
+      ? target.id
+        ? S.getApiBase() +
+          "/api/v1/bloggers/" +
+          encodeURIComponent(target.id) +
+          "/visit"
+        : target.profile_url || target.url
+      : (typeof window !== "undefined" &&
+          window.location &&
+          window.location.href) ||
+        "https://yijian.demo";
+    const shareTitle = isBlogger ? target.name : "衣见 · 你的智能衣橱穿搭助手";
+    const shareDesc = isBlogger
+      ? "推荐这位穿搭博主：" + target.name
+      : "上传真实衣物，为你搭配今日 look，自动生成平面效果图。";
 
     const doCopy = async (label) => {
       try {
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(
-            shareTitle + ' - ' + shareUrl,
-          );
+          await navigator.clipboard.writeText(shareTitle + " - " + shareUrl);
         } else {
-          const ta = document.createElement('textarea');
-          ta.value = shareTitle + ' - ' + shareUrl;
+          const ta = document.createElement("textarea");
+          ta.value = shareTitle + " - " + shareUrl;
           document.body.appendChild(ta);
           ta.select();
-          document.execCommand('copy');
+          document.execCommand("copy");
           document.body.removeChild(ta);
         }
         setCopied(label);
-        setTimeout(() => setCopied(''), 1400);
+        setTimeout(() => setCopied(""), 1400);
         return true;
       } catch (e) {
         return false;
@@ -3219,22 +3787,27 @@
             text: shareDesc,
             url: shareUrl,
           });
-          onToast && onToast('已通过系统分享');
+          onToast && onToast("已通过系统分享");
         } catch (e) {
           /* user cancelled */
         }
       } else {
-        const ok = await doCopy('系统');
-        onToast && onToast(ok ? '当前浏览器不支持系统分享，已复制链接' : '当前浏览器不支持分享');
+        const ok = await doCopy("系统");
+        onToast &&
+          onToast(
+            ok
+              ? "当前浏览器不支持系统分享，已复制链接"
+              : "当前浏览器不支持分享",
+          );
       }
     };
 
     const platforms = [
       {
-        key: 'wechat',
-        label: '微信',
-        hint: '复制后粘贴给好友',
-        color: '#07c160',
+        key: "wechat",
+        label: "微信",
+        hint: "复制后粘贴给好友",
+        color: "#07c160",
         icon: (
           <svg viewBox="0 0 32 32" width="26" height="26" fill="currentColor">
             <path d="M12.5 6C6.7 6 2 9.9 2 14.6c0 2.7 1.6 5.2 4.2 6.8-.2.7-.7 2.6-.8 3 0 0 0 .2.1.3.1.1.3 0 .3 0l3.5-2c1 .3 2.1.4 3.2.4h.8c-.2-.7-.3-1.5-.3-2.3 0-4.8 4.7-8.7 10.5-8.7h.7C23.5 8.5 18.5 6 12.5 6zm-4 4a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4zm8 0a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4z" />
@@ -3242,144 +3815,191 @@
           </svg>
         ),
         onClick: async () => {
-          const ok = await doCopy('微信');
+          const ok = await doCopy("微信");
           onToast &&
             onToast(
               ok
-                ? '链接已复制，请打开微信粘贴给好友'
-                : '复制失败，请长按选中链接',
+                ? "链接已复制，请打开微信粘贴给好友"
+                : "复制失败，请长按选中链接",
             );
         },
       },
       {
-        key: 'moments',
-        label: '朋友圈',
-        hint: '复制后粘贴到朋友圈',
-        color: '#5eba7d',
+        key: "moments",
+        label: "朋友圈",
+        hint: "复制后粘贴到朋友圈",
+        color: "#5eba7d",
         icon: (
-          <svg viewBox="0 0 32 32" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 32 32"
+            width="26"
+            height="26"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <circle cx="16" cy="16" r="11" />
             <circle cx="16" cy="16" r="4.5" />
             <path d="M4 16h4M24 16h4M16 4v4M16 24v4" />
           </svg>
         ),
         onClick: async () => {
-          const ok = await doCopy('朋友圈');
+          const ok = await doCopy("朋友圈");
           onToast &&
-            onToast(
-              ok
-                ? '链接已复制，请打开微信朋友圈粘贴'
-                : '复制失败',
-            );
+            onToast(ok ? "链接已复制，请打开微信朋友圈粘贴" : "复制失败");
         },
       },
       {
-        key: 'qq',
-        label: 'QQ',
-        hint: '直接跳转 QQ 分享',
-        color: '#12b7f5',
+        key: "qq",
+        label: "QQ",
+        hint: "直接跳转 QQ 分享",
+        color: "#12b7f5",
         icon: (
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M21.395 15.035a40 40 0 0 0-.803-2.264l-1.079-2.695c.001-.032.014-.562.014-.836C19.526 4.632 17.351 0 12 0S4.474 4.632 4.474 9.241c0 .274.013.804.014.836l-1.08 2.695a39 39 0 0 0-.802 2.264c-1.021 3.283-.69 4.643-.438 4.673.54.065 2.103-2.472 2.103-2.472 0 1.469.756 3.387 2.394 4.771-.612.188-1.363.479-1.845.835-.434.32-.379.646-.301.778.343.578 5.883.369 7.482.189 1.6.18 7.14.389 7.483-.189.078-.132.132-.458-.301-.778-.483-.356-1.233-.646-1.846-.836 1.637-1.384 2.393-3.302 2.393-4.771 0 0 1.563 2.537 2.103 2.472.251-.03.581-1.39-.438-4.673" />
           </svg>
         ),
         onClick: () => {
           const url =
-            'https://connect.qq.com/widget/shareqq/index.html?url=' +
+            "https://connect.qq.com/widget/shareqq/index.html?url=" +
             encodeURIComponent(shareUrl) +
-            '&title=' +
+            "&title=" +
             encodeURIComponent(shareTitle) +
-            '&desc=' +
+            "&desc=" +
             encodeURIComponent(shareDesc);
-          window.open(url, '_blank', 'noopener');
-          onToast && onToast('已打开 QQ 分享面板');
+          window.open(url, "_blank", "noopener");
+          onToast && onToast("已打开 QQ 分享面板");
         },
       },
       {
-        key: 'qzone',
-        label: 'QQ 空间',
-        hint: '直接跳转 QZone',
-        color: '#fbc82f',
+        key: "qzone",
+        label: "QQ 空间",
+        hint: "直接跳转 QZone",
+        color: "#fbc82f",
         icon: (
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M23.9868 9.2012c-.032-.099-.127-.223-.334-.258-.207-.036-7.352-1.4063-7.352-1.4063s-.105-.022-.198-.07c-.092-.047-.127-.167-.127-.167S12.4472.954 12.3491.7679c-.099-.187-.245-.238-.349-.238-.104 0-.251.051-.349.238C11.5531.954 8.0245 7.3 8.0245 7.3s-.035.12-.128.167c-.092.047-.197.07-.197.07S.5546 8.9071.3466 8.9421c-.208.036-.302.16-.333.258a.477.477 0 00.125.4491L5.5013 15.14s.072.08.119.172c.016.104.005.21.005.21s-1.1891 7.243-1.2201 7.451c-.031.208.075.369.159.4301.083.062.233.106.421.013.189-.093 6.813-3.2614 6.813-3.2614s.098-.044.201-.061c.103-.017.201.061.201.061s6.624 3.1684 6.813 3.2614c.188.094.338.049.421-.013a.463.463 0 00.159-.43c-.021-.14-.93-5.6778-.93-5.6778.876-.5401 1.4251-1.0392 1.8492-1.7473-2.5944.9692-6.0069 1.7173-9.4163 1.8663-.9152.041-2.4104.097-3.4735-.015-.6781-.071-1.1702-.144-1.2432-.438-.053-.2151.054-.4601.5451-.8312a2640.8625 2640.8625 0 012.8614-2.1553c1.2852-.9681 3.5595-2.4703 3.5595-2.7314 0-.285-2.1443-.781-4.0376-.781-1.9452 0-2.2753.132-2.8114.168-.488.034-.769.005-.804-.138-.06-.2481.183-.3891.588-.5682.7091-.314 1.8603-.594 1.9843-.626.194-.052 3.0824-.8051 5.6188-.5351 1.3181.14 3.2444.668 3.2444 1.2762 0 .342-1.7212 1.4942-3.2254 2.5973-1.1492.8431-2.2173 1.5612-2.2173 1.6883 0 .342 3.5334 1.2411 6.6899 1.01l.003-.022c.048-.092.119-.172.119-.172l5.3627-5.4907a.477.477 0 00.127-.449z" />
           </svg>
         ),
         onClick: () => {
           const url =
-            'https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=' +
+            "https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=" +
             encodeURIComponent(shareUrl) +
-            '&title=' +
+            "&title=" +
             encodeURIComponent(shareTitle) +
-            '&desc=' +
+            "&desc=" +
             encodeURIComponent(shareDesc);
-          window.open(url, '_blank', 'noopener');
-          onToast && onToast('已打开 QQ 空间分享');
+          window.open(url, "_blank", "noopener");
+          onToast && onToast("已打开 QQ 空间分享");
         },
       },
       {
-        key: 'weibo',
-        label: '微博',
-        hint: '直接跳转微博发布',
-        color: '#e6162d',
+        key: "weibo",
+        label: "微博",
+        hint: "直接跳转微博发布",
+        color: "#e6162d",
         icon: (
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M10.098 20.323c-3.977.391-7.414-1.406-7.672-4.02-.259-2.609 2.759-5.047 6.74-5.441 3.979-.394 7.413 1.404 7.671 4.018.259 2.6-2.759 5.049-6.737 5.439l-.002.004zM9.05 17.219c-.384.616-1.208.884-1.829.602-.612-.279-.793-.991-.406-1.593.379-.595 1.176-.861 1.793-.601.622.263.82.972.442 1.592zm1.27-1.627c-.141.237-.449.353-.689.253-.236-.09-.313-.361-.177-.586.138-.227.436-.346.672-.24.239.09.315.36.18.601l.014-.028zm.176-2.719c-1.893-.493-4.033.45-4.857 2.118-.836 1.704-.026 3.591 1.886 4.21 1.983.64 4.318-.341 5.132-2.179.8-1.793-.201-3.642-2.161-4.149zm7.563-1.224c-.346-.105-.57-.18-.405-.615.375-.977.42-1.804 0-2.404-.781-1.112-2.915-1.053-5.364-.03 0 0-.766.331-.571-.271.376-1.217.315-2.224-.27-2.809-1.338-1.337-4.869.045-7.888 3.08C1.309 10.87 0 13.273 0 15.348c0 3.981 5.099 6.395 10.086 6.395 6.536 0 10.888-3.801 10.888-6.82 0-1.822-1.547-2.854-2.915-3.284v.01zm1.908-5.092c-.766-.856-1.908-1.187-2.96-.962-.436.09-.706.511-.616.932.09.42.511.691.932.602.511-.105 1.067.044 1.442.465.376.421.466.977.316 1.473-.136.406.089.856.51.992.405.119.857-.105.992-.512.33-1.021.12-2.178-.646-3.035l.03.045zm2.418-2.195c-1.576-1.757-3.905-2.419-6.054-1.968-.496.104-.812.587-.706 1.081.104.496.586.813 1.082.707 1.532-.331 3.185.15 4.296 1.383 1.112 1.246 1.429 2.943.947 4.416-.165.48.106 1.007.586 1.157.479.165.991-.104 1.157-.586.675-2.088.241-4.478-1.338-6.235l.03.045z" />
           </svg>
         ),
         onClick: () => {
           const url =
-            'https://service.weibo.com/share/share.php?url=' +
+            "https://service.weibo.com/share/share.php?url=" +
             encodeURIComponent(shareUrl) +
-            '&title=' +
-            encodeURIComponent(shareTitle + ' · ' + shareDesc);
-          window.open(url, '_blank', 'noopener');
-          onToast && onToast('已打开微博分享');
+            "&title=" +
+            encodeURIComponent(shareTitle + " · " + shareDesc);
+          window.open(url, "_blank", "noopener");
+          onToast && onToast("已打开微博分享");
         },
       },
       {
-        key: 'xhs',
-        label: '小红书',
-        hint: '复制后到小红书发布',
-        color: '#ff2442',
+        key: "xhs",
+        label: "小红书",
+        hint: "复制后到小红书发布",
+        color: "#ff2442",
         icon: (
-          <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            width="26"
+            height="26"
+            fill="currentColor"
+            aria-hidden="true"
+          >
             <path d="M22.405 9.879c.002.016.01.02.07.019h.725a.797.797 0 0 0 .78-.972.794.794 0 0 0-.884-.618.795.795 0 0 0-.692.794c0 .101-.002.666.001.777zm-11.509 4.808c-.203.001-1.353.004-1.685.003a2.528 2.528 0 0 1-.766-.126.025.025 0 0 0-.03.014L7.7 16.127a.025.025 0 0 0 .01.032c.111.06.336.124.495.124.66.01 1.32.002 1.981 0 .01 0 .02-.006.023-.015l.712-1.545a.025.025 0 0 0-.024-.036zM.477 9.91c-.071 0-.076.002-.076.01a.834.834 0 0 0-.01.08c-.027.397-.038.495-.234 3.06-.012.24-.034.389-.135.607-.026.057-.033.042.003.112.046.092.681 1.523.787 1.74.008.015.011.02.017.02.008 0 .033-.026.047-.044.147-.187.268-.391.371-.606.306-.635.44-1.325.486-1.706.014-.11.021-.22.03-.33l.204-2.616.022-.293c.003-.029 0-.033-.03-.034zm7.203 3.757a1.427 1.427 0 0 1-.135-.607c-.004-.084-.031-.39-.235-3.06a.443.443 0 0 0-.01-.082c-.004-.011-.052-.008-.076-.008h-1.48c-.03.001-.034.005-.03.034l.021.293c.076.982.153 1.964.233 2.946.05.4.186 1.085.487 1.706.103.215.223.419.37.606.015.018.037.051.048.049.02-.003.742-1.642.804-1.765.036-.07.03-.055.003-.112zm3.861-.913h-.872a.126.126 0 0 1-.116-.178l1.178-2.625a.025.025 0 0 0-.023-.035l-1.318-.003a.148.148 0 0 1-.135-.21l.876-1.954a.025.025 0 0 0-.023-.035h-1.56c-.01 0-.02.006-.024.015l-.926 2.068c-.085.169-.314.634-.399.938a.534.534 0 0 0-.02.191.46.46 0 0 0 .23.378.981.981 0 0 0 .46.119h.59c.041 0-.688 1.482-.834 1.972a.53.53 0 0 0-.023.172.465.465 0 0 0 .23.398c.15.092.342.12.475.12l1.66-.001c.01 0 .02-.006.023-.015l.575-1.28a.025.025 0 0 0-.024-.035zm-6.93-4.937H3.1a.032.032 0 0 0-.034.033c0 1.048-.01 2.795-.01 6.829 0 .288-.269.262-.28.262h-.74c-.04.001-.044.004-.04.047.001.037.465 1.064.555 1.263.01.02.03.033.051.033.157.003.767.009.938-.014.153-.02.3-.06.438-.132.3-.156.49-.419.595-.765.052-.172.075-.353.075-.533.002-2.33 0-4.66-.007-6.991a.032.032 0 0 0-.032-.032zm11.784 6.896c0-.014-.01-.021-.024-.022h-1.465c-.048-.001-.049-.002-.05-.049v-4.66c0-.072-.005-.07.07-.07h.863c.08 0 .075.004.075-.074V8.393c0-.082.006-.076-.08-.076h-3.5c-.064 0-.075-.006-.075.073v1.445c0 .083-.006.077.08.077h.854c.075 0 .07-.004.07.07v4.624c0 .095.008.084-.085.084-.37 0-1.11-.002-1.304 0-.048.001-.06.03-.06.03l-.697 1.519s-.014.025-.008.036c.006.01.013.008.058.008 1.748.003 3.495.002 5.243.002.03-.001.034-.006.035-.033v-1.539zm4.177-3.43c0 .013-.007.023-.02.024-.346.006-.692.004-1.037.004-.014-.002-.022-.01-.022-.024-.005-.434-.007-.869-.01-1.303 0-.072-.006-.071.07-.07l.733-.003c.041 0 .081.002.12.015.093.025.16.107.165.204.006.431.002 1.153.001 1.153zm2.67.244a1.953 1.953 0 0 0-.883-.222h-.18c-.04-.001-.04-.003-.042-.04V10.21c0-.132-.007-.263-.025-.394a1.823 1.823 0 0 0-.153-.53 1.533 1.533 0 0 0-.677-.71 2.167 2.167 0 0 0-1-.258c-.153-.003-.567 0-.72 0-.07 0-.068.004-.068-.065V7.76c0-.031-.01-.041-.046-.039H17.93s-.016 0-.023.007c-.006.006-.008.012-.008.023v.546c-.008.036-.057.015-.082.022h-.95c-.022.002-.028.008-.03.032v1.481c0 .09-.004.082.082.082h.913c.082 0 .072.128.072.128V11.19s.003.117-.06.117h-1.482c-.068 0-.06.082-.06.082v1.445s-.01.068.064.068h1.457c.082 0 .076-.006.076.079v3.225c0 .088-.007.081.082.081h1.43c.09 0 .082.007.082-.08v-3.27c0-.029.006-.035.033-.035l2.323-.003c.098 0 .191.02.28.061a.46.46 0 0 1 .274.407c.008.395.003.79.003 1.185 0 .259-.107.367-.33.367h-1.218c-.023.002-.029.008-.028.033.184.437.374.871.57 1.303a.045.045 0 0 0 .04.026c.17.005.34.002.51.003.15-.002.517.004.666-.01a2.03 2.03 0 0 0 .408-.075c.59-.18.975-.698.976-1.313v-1.981c0-.128-.01-.254-.034-.38 0 .078-.029-.641-.724-.998z" />
           </svg>
         ),
         onClick: async () => {
-          const ok = await doCopy('小红书');
+          const ok = await doCopy("小红书");
           onToast &&
             onToast(
               ok
-                ? '链接已复制，请打开小红书粘贴到笔记'
-                : '复制失败，请长按选中链接',
+                ? "链接已复制，请打开小红书粘贴到笔记"
+                : "复制失败，请长按选中链接",
             );
         },
       },
       {
-        key: 'copy',
-        label: '复制链接',
-        hint: '粘到任意 App',
-        color: '#7058df',
+        key: "copy",
+        label: "复制链接",
+        hint: "粘到任意 App",
+        color: "#7058df",
         icon: (
-          <svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 32 32"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <rect x="11" y="11" width="15" height="15" rx="3" />
             <path d="M21 11V8a3 3 0 0 0-3-3H8a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h3" />
           </svg>
         ),
         onClick: async () => {
-          const ok = await doCopy('链接');
-          onToast && onToast(ok ? '链接已复制到剪贴板' : '复制失败');
+          const ok = await doCopy("链接");
+          onToast && onToast(ok ? "链接已复制到剪贴板" : "复制失败");
         },
       },
       {
-        key: 'system',
-        label: '系统分享',
-        hint: '调起系统面板',
-        color: '#4a4360',
+        key: "system",
+        label: "系统分享",
+        hint: "调起系统面板",
+        color: "#4a4360",
         icon: (
-          <svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg
+            viewBox="0 0 32 32"
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
             <path d="M16 4v16" />
             <path d="M11 9l5-5 5 5" />
             <path d="M7 16v10h18V16" />
@@ -3391,8 +4011,10 @@
 
     return (
       <Sheet
-        title="转发衣见"
-        subtitle="把智能衣橱穿搭助手分享给朋友"
+        title={isBlogger ? "推荐 " + target.name : "转发衣见"}
+        subtitle={
+          isBlogger ? "把这位博主分享给朋友" : "把智能衣橱穿搭助手分享给朋友"
+        }
         onClose={onClose}
       >
         <div
@@ -3401,34 +4023,48 @@
             padding: 14,
             borderRadius: 16,
             marginBottom: 14,
-            display: 'flex',
+            display: "flex",
             gap: 12,
-            alignItems: 'center',
+            alignItems: "center",
           }}
         >
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 14,
-              background:
-                'linear-gradient(135deg,#785ff0,#5c43d0)',
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontFamily: 'Georgia,serif',
-              fontStyle: 'italic',
-              fontSize: 22,
-              flexShrink: 0,
-              boxShadow: '0 8px 18px rgba(100,75,220,.28)',
-            }}
-          >
-            衣
-          </div>
+          {isBlogger && target.avatar_url ? (
+            <img
+              src={target.avatar_url}
+              alt={target.name + "的头像"}
+              referrerPolicy="no-referrer"
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                objectFit: "cover",
+                flexShrink: 0,
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 14,
+                background: "linear-gradient(135deg,#785ff0,#5c43d0)",
+                color: "#fff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontFamily: "Georgia,serif",
+                fontStyle: "italic",
+                fontSize: 22,
+                flexShrink: 0,
+                boxShadow: "0 8px 18px rgba(100,75,220,.28)",
+              }}
+            >
+              {isBlogger ? String(target.name || "博").slice(0, 1) : "衣"}
+            </div>
+          )}
           <div style={{ flex: 1, minWidth: 0 }}>
             <strong
-              style={{ display: 'block', color: 'var(--ink)', fontSize: 14 }}
+              style={{ display: "block", color: "var(--ink)", fontSize: 14 }}
             >
               {shareTitle}
             </strong>
@@ -3437,9 +4073,9 @@
               style={{
                 marginTop: 3,
                 lineHeight: 1.4,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
               title={shareUrl}
             >
@@ -3450,8 +4086,8 @@
 
         <div
           style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4,1fr)',
+            display: "grid",
+            gridTemplateColumns: "repeat(4,1fr)",
             gap: 10,
             marginBottom: 6,
           }}
@@ -3461,34 +4097,36 @@
               key={p.key}
               onClick={p.onClick}
               style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
                 gap: 6,
-                padding: '10px 4px',
+                padding: "10px 4px",
                 borderRadius: 14,
-                background: 'rgba(255,255,255,.5)',
-                border: '1px solid rgba(255,255,255,.7)',
-                backdropFilter: 'blur(14px)',
-                WebkitBackdropFilter: 'blur(14px)',
-                transition: 'transform .18s ease',
+                background: "rgba(255,255,255,.5)",
+                border: "1px solid rgba(255,255,255,.7)",
+                backdropFilter: "blur(14px)",
+                WebkitBackdropFilter: "blur(14px)",
+                transition: "transform .18s ease",
               }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(.95)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = '')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = '')}
+              onMouseDown={(e) =>
+                (e.currentTarget.style.transform = "scale(.95)")
+              }
+              onMouseUp={(e) => (e.currentTarget.style.transform = "")}
+              onMouseLeave={(e) => (e.currentTarget.style.transform = "")}
             >
               <span
                 style={{
                   width: 44,
                   height: 44,
                   borderRadius: 14,
-                  background: 'rgba(255,255,255,.75)',
+                  background: "rgba(255,255,255,.75)",
                   color: p.color,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   boxShadow:
-                    '0 6px 14px rgba(60,45,100,.08), inset 0 1px 0 rgba(255,255,255,.7)',
+                    "0 6px 14px rgba(60,45,100,.08), inset 0 1px 0 rgba(255,255,255,.7)",
                 }}
               >
                 {p.icon}
@@ -3496,7 +4134,7 @@
               <span
                 style={{
                   fontSize: 11,
-                  color: 'var(--ink)',
+                  color: "var(--ink)",
                   fontWeight: 600,
                 }}
               >
@@ -3511,7 +4149,7 @@
             className="tiny center"
             style={{
               marginTop: 10,
-              color: 'var(--purple)',
+              color: "var(--purple)",
               fontWeight: 600,
             }}
           >
@@ -3525,12 +4163,13 @@
             marginTop: 14,
             padding: 10,
             borderRadius: 12,
-            background: 'rgba(112,88,223,.08)',
-            color: 'var(--ink-2)',
+            background: "rgba(112,88,223,.08)",
+            color: "var(--ink-2)",
             lineHeight: 1.5,
           }}
         >
-          由于微信 / 小红书没有开放 Web 分享入口，会先复制链接，请手动粘贴到对应 App。QQ / 微博 / QQ 空间会直接跳转官方分享页。
+          由于微信 / 小红书没有开放 Web 分享入口，会先复制链接，请手动粘贴到对应
+          App。QQ / 微博 / QQ 空间会直接跳转官方分享页。
         </div>
       </Sheet>
     );
@@ -3538,237 +4177,144 @@
 
   // ============== 博主推荐 ==============
   const STYLE_COLORS = {
-    '通勤': '#6366f1', '优雅知性': '#8b5cf6', '韩系': '#ec4899', '简约': '#64748b',
-    '复古': '#b45309', '甜美': '#f472b6', '户外运动': '#059669', '中性': '#334155',
-    '美式': '#dc2626', '甜酷': '#7c3aed', '日系': '#0891b2',
+    通勤: "#6366f1",
+    优雅知性: "#8b5cf6",
+    韩系: "#ec4899",
+    简约: "#64748b",
+    复古: "#b45309",
+    甜美: "#f472b6",
+    户外运动: "#059669",
+    中性: "#334155",
+    美式: "#dc2626",
+    甜酷: "#7c3aed",
+    日系: "#0891b2",
   };
 
   // ---- 博主视觉卡：数据处理小工具 ----
-  const FLOWH = [210, 260, 190, 240, 220, 250, 200, 230];
   const normTags = (b) => {
     let tags = b && b.tags;
     if (!Array.isArray(tags)) {
       try {
-        tags = JSON.parse(tags || '[]');
+        tags = JSON.parse(tags || "[]");
       } catch (e) {
         tags = [];
       }
     }
     return Array.isArray(tags) ? tags.filter(Boolean) : [];
   };
-  const initialOf = (name) => (name || '博').charAt(0) || '博';
-  const styleColor = (tag) => STYLE_COLORS[tag] || '#a78bfa';
+  const styleColor = (tag) => STYLE_COLORS[tag] || "#a78bfa";
   const coverList = (b) => {
     if (!b) return [];
-    const cands = b.covers || b.images || b.cover_images || b.photos || b.thumbnails;
+    const cands =
+      b.covers || b.images || b.cover_images || b.photos || b.thumbnails;
     let arr = Array.isArray(cands) ? cands.filter(Boolean) : [];
     const single = b.cover || b.image || b.thumbnail;
     if (!arr.length && single) arr = [single];
-    return arr;
+    return [
+      ...new Set(
+        arr
+          .map((x) => (typeof x === "string" ? x : x.image_url))
+          .filter(Boolean),
+      ),
+    ];
   };
   const openBloggerHome = (b) => {
-    const url = b && (b.profile_url || b.url);
-    if (url) window.open(url, '_blank', 'noopener');
+    const sourceUrl = b && (b.profile_url || b.url);
+    if (sourceUrl && /^https:\/\//.test(sourceUrl)) {
+      const url = b.id
+        ? S.getApiBase() +
+          "/api/v1/bloggers/" +
+          encodeURIComponent(b.id) +
+          "/visit"
+        : sourceUrl;
+      window.open(url, "_blank", "noopener,noreferrer");
+      S.recordBloggerEvent(b.recommendation_id, "click").catch(() => {});
+      if (S.getApiToken())
+        S.sendFeedback({
+          action_type: "view_blogger",
+          blogger_id: b.id,
+          recommendation_id: b.recommendation_id,
+        }).catch(() => {});
+    }
   };
 
-  const BloggerCover = ({ src, color, initial, className, style }) => {
-    if (src) {
-      return (
-        <img
-          className={'bl-cover ' + (className || '')}
-          src={src}
-          style={style}
-          alt=""
-        />
-      );
-    }
+  const BloggerCover = ({
+    src,
+    className,
+    style,
+    avatar = false,
+    name = "",
+  }) => {
+    const [failed, setFailed] = useState(false);
+    const [loaded, setLoaded] = useState(false);
+    useEffect(() => {
+      setFailed(false);
+      setLoaded(false);
+    }, [src]);
     return (
       <div
-        className={'bl-cover ph ' + (className || '')}
-        style={{ ...(style || {}), background: 'linear-gradient(135deg,' + color + 'cc,' + color + '77)' }}
+        className={"bl-cover bl-media-frame " + (className || "")}
+        style={style}
       >
-        {initial}
+        {!loaded && <span className="bl-media-skeleton" aria-hidden="true" />}
+        {src && !failed && (
+          <img
+            src={src}
+            alt={avatar ? name + "的头像" : name + "的真实穿搭预览"}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className={loaded ? "loaded" : ""}
+            onLoad={() => setLoaded(true)}
+            onError={() => setFailed(true)}
+          />
+        )}
       </div>
     );
   };
 
-  const DislikeBtn = ({ onClick, small }) => (
-    <button
-      className={'bl-dislike' + (small ? ' sm' : '')}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick();
-      }}
-      aria-label="不感兴趣"
-    >
-      <Icon name="close" size={small ? 11 : 13} />
-    </button>
-  );
-
-  // 不感兴趣二次确认弹窗（小号居中）
-  const DislikeDialog = ({ onCancel, onConfirm }) => (
-    <div className="bl-mask" onClick={onCancel}>
-      <div className="bl-dialog" onClick={(e) => e.stopPropagation()}>
-        <h4>不感兴趣？</h4>
-        <p>将减少推荐该类风格的博主</p>
-        <div className="bl-acts">
-          <button className="bl-cancel" onClick={onCancel}>
-            取消
-          </button>
-          <button className="bl-confirm" onClick={onConfirm}>
-            确认
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
-  // 单列卡：三宫格略图 + 头像 + 名称 + 风格备注 +「去看看」
-  const BloggerSingleCard = ({ blogger, onOpen, onDislike }) => {
-    const b = blogger;
-    if (!b) return null;
-    const name = b.name || '博主';
-    const initial = initialOf(name);
-    const tags = normTags(b);
-    const color = styleColor(tags[0]);
-    const covers = coverList(b);
-    return (
-      <div className="bl-vcard">
-        <DislikeBtn onClick={onDislike} />
-        <div className="bl-vcovers" onClick={onOpen}>
-          {[0, 1, 2].map((i) => (
-            <BloggerCover key={i} src={covers[i]} color={color} initial={initial} />
-          ))}
-        </div>
-        <div className="bl-vfoot">
-          <div className="bl-vavatar" style={{ background: color }}>
-            {initial}
-          </div>
-          <div className="bl-vinfo">
-            <div className="bl-vname">{name}</div>
-            <div className="bl-vmeta">{tags.join(' / ')}</div>
-          </div>
-          <button className="bl-vgo" onClick={onOpen}>
-            去看看
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // 双列瀑布流大图卡：整卡可点
-  const BloggerFlowCard = ({ blogger, idx, onOpen, onDislike }) => {
-    const b = blogger;
-    if (!b) return null;
-    const name = b.name || '博主';
-    const initial = initialOf(name);
-    const tags = normTags(b);
-    const color = styleColor(tags[0]);
-    const covers = coverList(b);
-    const h = FLOWH[idx % FLOWH.length];
-    return (
-      <div className="bl-fcard" onClick={onOpen}>
-        <DislikeBtn onClick={onDislike} />
-        <BloggerCover src={covers[0]} color={color} initial={initial} style={{ height: h + 'px' }} />
-        <div className="bl-fcap">
-          <div className="bl-favatar" style={{ background: color }}>
-            {initial}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div className="bl-fname">{name}</div>
-            <div className="bl-ftag">{tags.join(' / ')}</div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // 首页横滑卡：整卡可点
-  const BloggerRailCard = ({ blogger, onOpen, onDislike }) => {
-    const b = blogger;
-    if (!b) return null;
-    const name = b.name || '博主';
-    const initial = initialOf(name);
-    const tags = normTags(b);
-    const color = styleColor(tags[0]);
-    const covers = coverList(b);
-    return (
-      <div className="bl-hcard" onClick={onOpen}>
-        <DislikeBtn onClick={onDislike} small />
-        <BloggerCover src={covers[0]} color={color} initial={initial} />
-        <div className="bl-hcap">
-          <div className="bl-favatar" style={{ background: color }}>
-            {initial}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div className="bl-hn">{name}</div>
-            <div className="bl-hm">{tags.join(' / ')}</div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // 首页「猜你喜欢」横滑推荐行（替换原博主推荐栏）
-  const HomeBloggerRail = ({ onOpenStyleBrowse }) => {
+  function useBloggers(tag, recommendations = false, limit = 200) {
     const [list, setList] = useState([]);
-    const [pending, setPending] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const [revision, setRevision] = useState(0);
+    const hasRows = useRef(false);
+    const retry = () => setRevision((x) => x + 1);
     useEffect(() => {
-      let alive = true;
-      S.fetchBloggerRecommendations().then((l) => {
-        if (alive) setList((l || []).slice(0, 20));
-      });
+      const account = () => {
+        setList([]);
+        retry();
+      };
+      const refreshVisible = () => {
+        if (!document.hidden) retry();
+      };
+      const refreshTimer = setInterval(refreshVisible, 60000);
+      window.addEventListener("yijian:taste-change", retry);
+      window.addEventListener("yijian:account-change", account);
+      document.addEventListener("visibilitychange", refreshVisible);
       return () => {
-        alive = false;
+        clearInterval(refreshTimer);
+        window.removeEventListener("yijian:taste-change", retry);
+        window.removeEventListener("yijian:account-change", account);
+        document.removeEventListener("visibilitychange", refreshVisible);
       };
     }, []);
-    const doConfirm = () => {
-      const bg = pending;
-      setPending(null);
-      if (!bg) return;
-      setList((prev) => prev.filter((x) => x !== bg));
-      const tag = normTags(bg)[0];
-      if (tag) S.recordStyleBehavior(tag, 'dislike_style');
-    };
-    if (!list.length) return null;
-    return (
-      <>
-        <div className="bl-section-head">
-          <h2 className="bl-h2">猜你喜欢</h2>
-          <button className="bl-link" onClick={onOpenStyleBrowse}>
-            查看更多 <Icon name="chevron" size={13} />
-          </button>
-        </div>
-        <div className="bl-hscroll">
-          {list.map((bg, i) => (
-            <BloggerRailCard
-              key={(bg && (bg.id || bg.profile_url)) || i}
-              blogger={bg}
-              onOpen={() => openBloggerHome(bg)}
-              onDislike={() => setPending(bg)}
-            />
-          ))}
-        </div>
-        {pending && (
-          <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
-        )}
-      </>
-    );
-  };
-
-  // 「按风格逛」完整板块页：吸顶 chips + 单列/双列切换
-  const StyleBrowsePage = ({ inspireTag, setInspireTag, onNav }) => {
-    const [viewMode, setViewMode] = useState('single');
-    const [list, setList] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [pending, setPending] = useState(null);
-    const styleKeys = Object.keys(STYLE_COLORS);
     useEffect(() => {
       let alive = true;
-      setLoading(true);
-      S.fetchBloggers(inspireTag)
-        .then((l) => {
-          if (alive) setList(l || []);
+      const token = S.getApiToken();
+      if (!hasRows.current) setLoading(true);
+      setError(false);
+      (recommendations ? S.fetchBloggerRecommendations() : S.fetchBloggers(tag))
+        .then((rows) => {
+          if (!alive || token !== S.getApiToken()) return;
+          const next = rows.slice(0, limit);
+          hasRows.current = !!next.length;
+          setList(next);
+        })
+        .catch(() => {
+          if (alive) {
+            setList([]);
+            setError(true);
+          }
         })
         .finally(() => {
           if (alive) setLoading(false);
@@ -3776,29 +4322,911 @@
       return () => {
         alive = false;
       };
-    }, [inspireTag]);
-    const doConfirm = () => {
+    }, [tag, revision, recommendations, limit]);
+    return { list, loading, error, retry };
+  }
+
+  async function bloggerAction(b, action) {
+    try {
+      await S.sendFeedback({
+        blogger_id: b.id,
+        action_type: action,
+        recommendation_id: b.recommendation_id,
+      });
+      window.dispatchEvent(
+        new CustomEvent("yijian:toast", {
+          detail:
+            action === "block_blogger"
+              ? "已屏蔽，将减少此类风格推荐"
+              : action === "like_blogger"
+                ? "已喜欢，将用于推荐与搭配"
+                : action === "restore_blogger"
+                  ? "已恢复推荐"
+                  : "已取消喜欢",
+        }),
+      );
+      return true;
+    } catch (e) {
+      window.dispatchEvent(
+        new CustomEvent("yijian:toast", {
+          detail: e.message || "保存失败，请重试",
+        }),
+      );
+      return false;
+    }
+  }
+
+  const BloggerLike = ({ blogger }) => {
+    const [busy, setBusy] = useState(false);
+    const [liked, setLiked] = useState(!!blogger.liked);
+    const [saved, setSaved] = useState(!!blogger.saved);
+    useEffect(() => {
+      setLiked(!!blogger.liked);
+      setSaved(!!blogger.saved);
+    }, [blogger]);
+    const likeLabel =
+      (liked ? "取消喜欢" : "喜欢") + "「" + blogger.name + "」";
+    const saveLabel =
+      (saved ? "取消收藏" : "收藏") + "「" + blogger.name + "」";
+    return (
+      <div className="bl-icon-actions">
+        <button
+          className="bl-reaction heart"
+          disabled={busy}
+          aria-pressed={liked}
+          aria-label={likeLabel}
+          title={likeLabel}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setBusy(true);
+            if (
+              await bloggerAction(
+                blogger,
+                liked ? "unlike_blogger" : "like_blogger",
+              )
+            )
+              setLiked(!liked);
+            setBusy(false);
+          }}
+        >
+          <ReactionIcon kind="heart" active={liked} />
+        </button>
+        <button
+          className="bl-reaction star"
+          disabled={busy}
+          aria-pressed={saved}
+          aria-label={saveLabel}
+          title={saveLabel}
+          onClick={async (e) => {
+            e.stopPropagation();
+            setBusy(true);
+            try {
+              await S.setBloggerCollection(
+                blogger.id,
+                !saved,
+                blogger.recommendation_id,
+              );
+              setSaved(!saved);
+              window.dispatchEvent(
+                new CustomEvent("yijian:toast", {
+                  detail: saved ? "已取消收藏" : "已保存到「我的灵感库」",
+                }),
+              );
+            } catch (error) {
+              window.dispatchEvent(
+                new CustomEvent("yijian:toast", {
+                  detail: error.message || "收藏未保存，请重试",
+                }),
+              );
+            } finally {
+              setBusy(false);
+            }
+          }}
+        >
+          <ReactionIcon kind="star" active={saved} />
+        </button>
+      </div>
+    );
+  };
+
+  const ReactionIcon = ({ kind, active }) => (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill={active ? "currentColor" : "none"}
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {kind === "heart" ? (
+        <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
+      ) : (
+        <path d="m12 2.8 2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.36l-5.7 3 1.09-6.36-4.62-4.5 6.38-.92L12 2.8Z" />
+      )}
+    </svg>
+  );
+
+  const EyeIcon = () => (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+      <circle cx="12" cy="12" r="2.6" />
+    </svg>
+  );
+
+  const BlockedEyeIcon = () => (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.2A11.2 11.2 0 0 1 12 5c6 0 9.5 7 9.5 7a15 15 0 0 1-2.1 3" />
+      <path d="M6.2 6.3C3.8 8.1 2.5 12 2.5 12s3.5 7 9.5 7a9.8 9.8 0 0 0 3.1-.5" />
+    </svg>
+  );
+
+  const LibraryTabIcon = ({ kind }) => {
+    if (kind === "liked") return <ReactionIcon kind="heart" active />;
+    if (kind === "saved") return <ReactionIcon kind="star" active />;
+    return <BlockedEyeIcon />;
+  };
+
+  const InspirationLibraryPage = ({
+    links,
+    onBack,
+    onNav,
+    onLogin,
+    onOpenSaveLink,
+    onDeleteLink,
+    onUpdateLink,
+  }) => {
+    const [tab, setTab] = useState("liked");
+    const [data, setData] = useState(null);
+    const [error, setError] = useState(false);
+    const [busy, setBusy] = useState(null);
+    const [editing, setEditing] = useState(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editNote, setEditNote] = useState("");
+    const [pendingUnlike, setPendingUnlike] = useState(null);
+    const [pendingRestore, setPendingRestore] = useState(null);
+    const [expandedNotes, setExpandedNotes] = useState({});
+    const [revision, setRevision] = useState(0);
+    useEffect(() => {
+      const refresh = () => setRevision((x) => x + 1);
+      const account = () => {
+        setData(null);
+        refresh();
+      };
+      window.addEventListener("yijian:taste-change", refresh);
+      window.addEventListener("yijian:account-change", account);
+      return () => {
+        window.removeEventListener("yijian:taste-change", refresh);
+        window.removeEventListener("yijian:account-change", account);
+      };
+    }, []);
+    useEffect(() => {
+      let alive = true;
+      const token = S.getApiToken();
+      if (token) {
+        setError(false);
+        S.fetchTaste()
+          .then((d) => {
+            if (alive && token === S.getApiToken()) setData(d);
+          })
+          .catch(() => {
+            if (alive) setError(true);
+          });
+      }
+      return () => {
+        alive = false;
+      };
+    }, [revision]);
+    const groups = [
+      {
+        key: "liked",
+        label: "喜欢",
+        items: data?.liked_bloggers || [],
+        action: "unlike_blogger",
+        undo: "取消喜欢",
+      },
+      { key: "saved", label: "收藏", items: links || [] },
+      {
+        key: "blocked",
+        label: "屏蔽",
+        items: data?.blocked_details || [],
+        action: "restore_blogger",
+        undo: "取消屏蔽",
+      },
+    ];
+    const current = groups.find((g) => g.key === tab);
+    const openEdit = (item) => {
+      setEditing(item);
+      setEditTitle(item.title || "");
+      setEditNote(item.note || "");
+    };
+    const saveEdit = async () => {
+      const title = editTitle.trim();
+      if (!editing || !title) return;
+      setBusy(editing.id);
+      const ok = await onUpdateLink(editing, { title, note: editNote.trim() });
+      setBusy(null);
+      if (ok) setEditing(null);
+    };
+    return (
+      <div className="page preferences-page">
+        <div className="bl-detail-head">
+          <button className="bl-back" aria-label="返回" onClick={onBack}>
+            <Icon name="back" size={20} />
+          </button>
+          <h2 className="bl-h2">我的灵感库</h2>
+          <button
+            className="library-add"
+            onClick={onOpenSaveLink}
+            aria-label="保存灵感链接"
+            title="保存灵感链接"
+          >
+            <Icon name="plus" size={18} />
+          </button>
+        </div>
+        <div className="pref-tabs" aria-label="灵感库分类">
+          {groups.map((g) => (
+            <button
+              key={g.key}
+              aria-pressed={tab === g.key}
+              onClick={() => setTab(g.key)}
+            >
+              <LibraryTabIcon kind={g.key} />
+              <span className="pref-tab-label">{g.label}</span>
+              <span>{g.items.length}</span>
+            </button>
+          ))}
+        </div>
+        {!S.getApiToken() ? (
+          <div className="pref-empty">
+            <p>登录后保存喜欢的博主和穿搭灵感。</p>
+            <button className="primary" onClick={onLogin}>
+              登录 / 注册
+            </button>
+          </div>
+        ) : error ? (
+          <div className="pref-empty" role="alert">
+            <p>灵感库暂未同步，请重试。</p>
+            <button onClick={() => setRevision((x) => x + 1)}>重新加载</button>
+          </div>
+        ) : !data ? (
+          <p className="pref-empty" role="status">
+            正在读取偏好…
+          </p>
+        ) : (
+          <div>
+            {!current.items.length ? (
+              <div className="pref-empty">
+                <p>
+                  还没有
+                  {current.label === "屏蔽"
+                    ? "屏蔽的博主"
+                    : current.label + "的内容"}
+                </p>
+                <button className="bl-link" onClick={() => onNav("inspire")}>
+                  去发现喜欢的风格
+                </button>
+              </div>
+            ) : tab === "saved" ? (
+              current.items.map((item) => (
+                <div className="library-item" key={item.id}>
+                  <div className="library-item-head">
+                    <div className="pref-item-info">
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {item.title}
+                      </a>
+                      {!!item.tags?.length && (
+                        <small>{item.tags.join(" / ")}</small>
+                      )}
+                    </div>
+                    <a
+                      className="library-open"
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={"查看「" + item.title + "」主页"}
+                      title="查看主页"
+                    >
+                      <Icon name="chevron" size={20} />
+                    </a>
+                  </div>
+                  {item.note && (
+                    <button
+                      className={
+                        "library-note" +
+                        (expandedNotes[item.id] ? " expanded" : "")
+                      }
+                      aria-expanded={!!expandedNotes[item.id]}
+                      onClick={() =>
+                        setExpandedNotes((currentNotes) => ({
+                          ...currentNotes,
+                          [item.id]: !currentNotes[item.id],
+                        }))
+                      }
+                    >
+                      <span>{item.note}</span>
+                      <em>{expandedNotes[item.id] ? "收起" : "展开"}</em>
+                    </button>
+                  )}
+                  <div className="library-item-actions">
+                    <div className="library-inline-actions">
+                      <button
+                        className="library-edit"
+                        onClick={() => openEdit(item)}
+                      >
+                        编辑
+                      </button>
+                      <button
+                        className="pref-undo"
+                        onClick={() => onDeleteLink(item)}
+                      >
+                        取消收藏
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              current.items.map((b) => (
+                <div className="pref-item" key={b.id}>
+                  <div className="pref-item-info">
+                    <a
+                      href={b.profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {b.name}
+                    </a>
+                    <small>{(b.tags || []).join(" / ")}</small>
+                  </div>
+                  <div className="pref-item-actions">
+                    <button
+                      className={
+                        "pref-undo" + (tab === "liked" ? " liked" : "")
+                      }
+                      disabled={busy !== null}
+                      aria-label={current.undo + "「" + b.name + "」"}
+                      onClick={async () => {
+                        if (tab === "liked") {
+                          setPendingUnlike(b);
+                          return;
+                        }
+                        if (tab === "blocked") {
+                          setPendingRestore(b);
+                          return;
+                        }
+                        setBusy(b.id);
+                        await bloggerAction(b, current.action);
+                        setBusy(null);
+                      }}
+                    >
+                      {busy === b.id ? (
+                        "处理中"
+                      ) : tab === "liked" ? (
+                        <ReactionIcon kind="heart" active />
+                      ) : (
+                        current.undo
+                      )}
+                    </button>
+                    <a
+                      className="library-open"
+                      href={b.profile_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={"查看「" + b.name + "」主页"}
+                      title="查看主页"
+                    >
+                      <Icon name="chevron" size={20} />
+                    </a>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+        {pendingUnlike && (
+          <div className="modal-mask" onClick={() => setPendingUnlike(null)}>
+            <div
+              className="rename-popover pref-confirm"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="unlike-confirm-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sheet-title" id="unlike-confirm-title">
+                取消喜欢？
+              </div>
+              <p>取消后，将减少「{pendingUnlike.name}」对推荐和搭配的影响。</p>
+              <div className="rename-actions">
+                <button
+                  className="ghost"
+                  onClick={() => setPendingUnlike(null)}
+                >
+                  保留
+                </button>
+                <button
+                  className="primary"
+                  disabled={busy !== null}
+                  onClick={async () => {
+                    const target = pendingUnlike;
+                    setBusy(target.id);
+                    const ok = await bloggerAction(target, "unlike_blogger");
+                    setBusy(null);
+                    if (ok) setPendingUnlike(null);
+                  }}
+                >
+                  {busy ? "处理中" : "取消"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {pendingRestore && (
+          <div className="modal-mask" onClick={() => setPendingRestore(null)}>
+            <div
+              className="rename-popover pref-confirm"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="restore-confirm-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sheet-title" id="restore-confirm-title">
+                取消屏蔽？
+              </div>
+              <p>取消后，将恢复「{pendingRestore.name}」的推荐。</p>
+              <div className="rename-actions">
+                <button
+                  className="ghost"
+                  onClick={() => setPendingRestore(null)}
+                >
+                  保留
+                </button>
+                <button
+                  className="primary"
+                  disabled={busy !== null}
+                  onClick={async () => {
+                    const target = pendingRestore;
+                    setBusy(target.id);
+                    const ok = await bloggerAction(target, "restore_blogger");
+                    setBusy(null);
+                    if (ok) setPendingRestore(null);
+                  }}
+                >
+                  {busy ? "处理中" : "取消"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {editing && (
+          <div className="modal-mask" onClick={() => setEditing(null)}>
+            <div
+              className="rename-popover library-editor"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="library-edit-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sheet-title" id="library-edit-title">
+                编辑收藏
+              </div>
+              <label>
+                名称
+                <input
+                  className="input"
+                  value={editTitle}
+                  maxLength={200}
+                  autoFocus
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  placeholder="例如：适合小个子的通勤博主"
+                />
+              </label>
+              <label>
+                备注
+                <textarea
+                  className="textarea"
+                  value={editNote}
+                  maxLength={1000}
+                  onChange={(e) => setEditNote(e.target.value)}
+                  placeholder="记录参考意义，例如：配色克制、适合梨形身材、可参考秋冬通勤。"
+                />
+              </label>
+              <div className="library-char-count">{editNote.length}/1000</div>
+              <div className="rename-actions">
+                <button className="ghost" onClick={() => setEditing(null)}>
+                  取消
+                </button>
+                <button
+                  className="primary"
+                  disabled={!editTitle.trim() || busy !== null}
+                  onClick={saveEdit}
+                >
+                  {busy ? "保存中" : "保存"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const DislikeBtn = ({ onClick, small }) => (
+    <button
+      className={"bl-dislike" + (small ? " sm" : "")}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      aria-label="更多推荐选项"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <circle cx="5" cy="12" r="1.6" />
+        <circle cx="12" cy="12" r="1.6" />
+        <circle cx="19" cy="12" r="1.6" />
+      </svg>
+    </button>
+  );
+
+  // 推荐走全局分享弹窗；屏蔽需二次确认，恢复入口统一放在我的灵感库。
+  const DislikeDialog = ({ onCancel, onConfirm, blogger }) => {
+    const [busy, setBusy] = useState(false);
+    const [confirmingBlock, setConfirmingBlock] = useState(false);
+    const choose = async () => {
+      setBusy(true);
+      try {
+        await onConfirm("block_blogger");
+      } finally {
+        setBusy(false);
+      }
+    };
+    return (
+      <Sheet
+        title={confirmingBlock ? "确认屏蔽" : blogger?.name || "推荐选项"}
+        onClose={onCancel}
+      >
+        {confirmingBlock ? (
+          <div className="pref-block-confirm">
+            <p>屏蔽后不再推荐这位博主，并会适度减少相关风格推荐。</p>
+            <div className="rename-actions">
+              <button
+                className="ghost"
+                disabled={busy}
+                onClick={() => setConfirmingBlock(false)}
+              >
+                取消
+              </button>
+              <button
+                className="primary compact-confirm"
+                disabled={busy}
+                onClick={choose}
+              >
+                {busy ? "处理中" : "确认"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="pref-options">
+            <button
+              onClick={() => {
+                onCancel();
+                window.dispatchEvent(
+                  new CustomEvent("yijian:open-share", { detail: { blogger } }),
+                );
+              }}
+            >
+              <span>
+                推荐<small>分享给朋友</small>
+              </span>
+              <Icon name="share" size={17} />
+            </button>
+            <button onClick={() => setConfirmingBlock(true)}>
+              <span>
+                屏蔽<small>不再推荐本人，并适度减少相关风格</small>
+              </span>
+              <Icon name="chevron" size={16} />
+            </button>
+          </div>
+        )}
+      </Sheet>
+    );
+  };
+
+  function useBloggerExposure(blogger) {
+    const ref = useRef(null);
+    useEffect(() => {
+      if (
+        !blogger?.recommendation_id ||
+        !ref.current ||
+        !window.IntersectionObserver
+      )
+        return;
+      let sent = false,
+        visible = false,
+        pending = false,
+        timer;
+      const check = () => {
+        clearTimeout(timer);
+        if (!visible || document.hidden || sent || pending) return;
+        timer = setTimeout(() => {
+          if (document.hidden || !visible) return;
+          pending = true;
+          S.recordBloggerEvent(blogger.recommendation_id, "impression")
+            .then(() => {
+              sent = true;
+            })
+            .catch(() => {})
+            .finally(() => {
+              pending = false;
+            });
+        }, 750);
+      };
+      const observer = new IntersectionObserver(
+        (entries) => {
+          visible =
+            entries[0].isIntersecting && entries[0].intersectionRatio >= 0.5;
+          check();
+        },
+        { threshold: [0.5] },
+      );
+      observer.observe(ref.current);
+      document.addEventListener("visibilitychange", check);
+      return () => {
+        observer.disconnect();
+        clearTimeout(timer);
+        document.removeEventListener("visibilitychange", check);
+      };
+    }, [blogger?.recommendation_id]);
+    return ref;
+  }
+
+  // 单列卡：三张已审核预览图，点击统一进入博主主页。
+  const BloggerSingleCard = ({ blogger, onOpen, onDislike }) => {
+    const exposure = useBloggerExposure(blogger);
+    const b = blogger;
+    if (!b) return null;
+    const name = b.name || "博主";
+    const tags = normTags(b);
+    const covers = coverList(b);
+    const previewSources = [
+      covers[0] || null,
+      covers[1] || null,
+      covers[2] || null,
+    ];
+    return (
+      <div className="bl-vcard" ref={exposure}>
+        <DislikeBtn onClick={onDislike} />
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={"查看" + name + "的主页"}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onOpen();
+            }
+          }}
+          className={"bl-vcovers count-" + Math.min(3, previewSources.length)}
+          onClick={onOpen}
+        >
+          {previewSources.map((src, i) => (
+            <BloggerCover key={(src || "loading") + i} src={src} name={name} />
+          ))}
+        </div>
+        <div className="bl-vfoot">
+          <div className="bl-vinfo">
+            <div className="bl-vname">{name}</div>
+            <div className="bl-vmeta">{tags.join(" / ")}</div>
+          </div>
+          <button
+            className="bl-vgo"
+            onClick={onOpen}
+            aria-label={"查看" + name + "的主页"}
+            title="查看主页"
+          >
+            <EyeIcon />
+          </button>
+        </div>
+        <div className="bl-card-actions">
+          <BloggerLike blogger={b} />
+        </div>
+      </div>
+    );
+  };
+
+  // 双列瀑布流大图卡：整卡可点
+  const BloggerFlowCard = ({ blogger, onOpen, onDislike }) => {
+    const exposure = useBloggerExposure(blogger);
+    const b = blogger;
+    if (!b) return null;
+    const name = b.name || "博主";
+    const tags = normTags(b);
+    const covers = coverList(b);
+    return (
+      <div className="bl-fcard" ref={exposure}>
+        <DislikeBtn onClick={onDislike} />
+        <button
+          className="bl-open"
+          onClick={onOpen}
+          aria-label={"查看" + name + "的主页"}
+        >
+          <BloggerCover src={covers[0]} name={name} />
+        </button>
+        <div className="bl-fcap">
+          <div style={{ minWidth: 0 }}>
+            <div className="bl-fname">{name}</div>
+            <div className="bl-ftag">{tags.join(" / ")}</div>
+          </div>
+        </div>
+        <div className="bl-card-actions">
+          <BloggerLike blogger={b} />
+        </div>
+      </div>
+    );
+  };
+
+  // 首页横滑卡：整卡可点
+  const BloggerRailCard = ({ blogger, onOpen, onDislike }) => {
+    const exposure = useBloggerExposure(blogger);
+    const b = blogger;
+    if (!b) return null;
+    const name = b.name || "博主";
+    const tags = normTags(b);
+    const covers = coverList(b);
+    return (
+      <div className="bl-hcard" ref={exposure}>
+        <DislikeBtn onClick={onDislike} small />
+        <button
+          className="bl-open"
+          onClick={onOpen}
+          aria-label={"查看" + name + "的主页"}
+        >
+          <BloggerCover src={covers[0]} name={name} />
+        </button>
+        <div className="bl-hcap">
+          <div style={{ minWidth: 0 }}>
+            <div className="bl-hn">{name}</div>
+            <div className="bl-hm">{tags.join(" / ")}</div>
+          </div>
+        </div>
+        <div className="bl-card-actions">
+          <BloggerLike blogger={b} />
+        </div>
+      </div>
+    );
+  };
+
+  // 首页「猜你喜欢」横滑推荐行（替换原博主推荐栏）
+  const HomeBloggerRail = ({ onOpenStyleBrowse }) => {
+    const { list, loading, error, retry } = useBloggers(null, true, 20);
+    const [pending, setPending] = useState(null);
+    const doConfirm = async (action) => {
       const bg = pending;
-      setPending(null);
       if (!bg) return;
-      setList((prev) => prev.filter((x) => x !== bg));
-      const tag = normTags(bg)[0] || inspireTag;
-      if (tag) S.recordStyleBehavior(tag, 'dislike_style');
+      if (await bloggerAction(bg, action)) setPending(null);
+    };
+    // 标题始终渲染：即使 loading / 空数据也保留「猜你喜欢」标题与占位，绝不整块吞掉
+    return (
+      <>
+        <div className="bl-section-head">
+          <h2 className="bl-h2">猜你喜欢</h2>
+          <button
+            className="bl-eye-link"
+            onClick={onOpenStyleBrowse}
+            aria-label="查看全部博主"
+            title="查看全部博主"
+          >
+            <span>查看全部</span>
+            <Icon name="chevron" size={18} />
+          </button>
+        </div>
+        {error && (
+          <button className="bl-link" onClick={retry}>
+            推荐未同步，点击重试
+          </button>
+        )}
+        {list.length ? (
+          <div className="bl-hscroll">
+            {list.map((bg, i) => (
+              <BloggerRailCard
+                key={(bg && (bg.id || bg.profile_url)) || i}
+                blogger={bg}
+                onOpen={() => openBloggerHome(bg)}
+                onDislike={() => setPending(bg)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="blogger-empty">
+            {loading ? "加载中…" : "暂时没有推荐博主～"}
+          </div>
+        )}
+        {pending && (
+          <DislikeDialog
+            blogger={pending}
+            onCancel={() => setPending(null)}
+            onConfirm={doConfirm}
+          />
+        )}
+      </>
+    );
+  };
+
+  // 「按风格逛」完整板块页：自然滚动的页头、chips 与单列/双列切换。
+  const StyleBrowsePage = ({ inspireTag, setInspireTag, onNav }) => {
+    const [viewMode, setViewMode] = useState("single");
+    const { list, loading, error, retry } = useBloggers(inspireTag);
+    const [pending, setPending] = useState(null);
+    const [showScrollTop, setShowScrollTop] = useState(false);
+    const chipsRef = useRef(null);
+    const styleKeys = Object.keys(STYLE_COLORS);
+    useEffect(() => {
+      const content = chipsRef.current?.closest(".content");
+      if (!content) return undefined;
+      const check = () => {
+        const top = content.getBoundingClientRect().top;
+        setShowScrollTop(chipsRef.current.getBoundingClientRect().bottom < top);
+      };
+      content.addEventListener("scroll", check, { passive: true });
+      check();
+      return () => content.removeEventListener("scroll", check);
+    }, []);
+    const doConfirm = async (action) => {
+      const bg = pending;
+      if (!bg) return;
+      if (await bloggerAction(bg, action)) setPending(null);
     };
     return (
       <div className="page">
-        <div className="bl-detail-sticky">
+        <>
           <div className="bl-detail-head">
-            <button className="bl-back" onClick={() => onNav('inspire')} aria-label="返回">
+            <button
+              className="bl-back"
+              onClick={() => onNav("inspire")}
+              aria-label="返回"
+            >
               <Icon name="back" size={20} />
             </button>
             <h2 className="bl-h2">按风格逛</h2>
           </div>
-          <div className="bl-chips">
+          <div className="bl-chips" ref={chipsRef}>
             {styleKeys.map((t) => (
               <button
                 key={t}
-                className={'bl-chip' + (t === inspireTag ? ' active' : '')}
+                className={"bl-chip" + (t === inspireTag ? " active" : "")}
                 onClick={() => setInspireTag(t)}
               >
                 {t}
@@ -3809,34 +5237,34 @@
             <span className="bl-tools-label">精选搭配</span>
             <div className="bl-layout-toggle">
               <button
-                className={viewMode === 'single' ? 'on' : ''}
-                onClick={() => setViewMode('single')}
+                className={viewMode === "single" ? "on" : ""}
+                onClick={() => setViewMode("single")}
                 aria-label="单列"
               >
                 <Icon name="rows" size={18} />
               </button>
               <button
-                className={viewMode === 'flow' ? 'on' : ''}
-                onClick={() => setViewMode('flow')}
+                className={viewMode === "flow" ? "on" : ""}
+                onClick={() => setViewMode("flow")}
                 aria-label="双列"
               >
                 <Icon name="grid" size={18} />
               </button>
             </div>
           </div>
-        </div>
+        </>
         <div style={{ marginTop: 12 }}>
+          {error && <button onClick={retry}>推荐未同步，点击重试</button>}
           {loading ? (
             <div className="blogger-empty">加载中…</div>
           ) : list.length === 0 ? (
             <div className="blogger-empty">这个风格暂时没有博主～</div>
-          ) : viewMode === 'flow' ? (
+          ) : viewMode === "flow" ? (
             <div className="bl-flow">
               {list.map((bg, i) => (
                 <BloggerFlowCard
                   key={(bg && (bg.id || bg.profile_url)) || i}
                   blogger={bg}
-                  idx={i}
                   onOpen={() => openBloggerHome(bg)}
                   onDislike={() => setPending(bg)}
                 />
@@ -3854,13 +5282,32 @@
           )}
         </div>
         {pending && (
-          <DislikeDialog onCancel={() => setPending(null)} onConfirm={doConfirm} />
+          <DislikeDialog
+            blogger={pending}
+            onCancel={() => setPending(null)}
+            onConfirm={doConfirm}
+          />
+        )}
+        {showScrollTop && (
+          <button
+            className="BackToTop visible"
+            aria-label="返回顶部"
+            title="返回顶部"
+            onClick={() => {
+              chipsRef.current
+                ?.closest(".content")
+                ?.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+          >
+            <Icon name="chevron" size={20} />
+            TOP
+          </button>
         )}
       </div>
     );
   };
 
-  // 「我的收藏」完整板块页：吸顶标题 + 保存 + 完整收藏列表（增删改沿用）
+  // 旧版收藏列表保留用于数据兼容，不再进入路由。
   const CollectionsPage = ({
     links,
     onOpenSaveLink,
@@ -3871,7 +5318,7 @@
   }) => {
     const pressTimer = useRef(null);
     const [renamingLink, setRenamingLink] = useState(null);
-    const [renameValue, setRenameValue] = useState('');
+    const [renameValue, setRenameValue] = useState("");
     const clearPressTimer = () => {
       if (pressTimer.current) {
         window.clearTimeout(pressTimer.current);
@@ -3881,14 +5328,15 @@
     const openRename = (link) => {
       clearPressTimer();
       setRenamingLink(link);
-      setRenameValue((link && link.title) || '');
+      setRenameValue((link && link.title) || "");
     };
     const submitRename = async () => {
       if (!renamingLink) return;
-      const ok = onRenameLink && (await onRenameLink(renamingLink, renameValue));
+      const ok =
+        onRenameLink && (await onRenameLink(renamingLink, renameValue));
       if (ok) {
         setRenamingLink(null);
-        setRenameValue('');
+        setRenameValue("");
       }
     };
     const startLongPress = (link) => {
@@ -3902,12 +5350,27 @@
       <div className="page">
         <div className="bl-detail-sticky">
           <div className="bl-detail-head">
-            <button className="bl-back" onClick={() => onNav('inspire')} aria-label="返回">
+            <button
+              className="bl-back"
+              onClick={() => onNav("inspire")}
+              aria-label="返回"
+            >
               <Icon name="back" size={20} />
             </button>
-            <h2 className="bl-h2">我的收藏</h2>
-            <button className="primary" style={{ padding: "7px 14px", fontSize: 12.5, borderRadius: 999, boxShadow: "none" }} onClick={onOpenSaveLink}>
-              <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
+            <h2 className="bl-h2">我的灵感库</h2>
+            <button
+              className="primary"
+              style={{
+                padding: "7px 14px",
+                fontSize: 12.5,
+                borderRadius: 999,
+                boxShadow: "none",
+              }}
+              onClick={onOpenSaveLink}
+            >
+              <span
+                style={{ display: "inline-flex", gap: 4, alignItems: "center" }}
+              >
                 <Icon name="plus" size={14} /> 保存
               </span>
             </button>
@@ -3918,7 +5381,7 @@
             <EmptyState
               big="✦"
               title="还没有保存的灵感"
-              tip="看到喜欢的小红书 / 抖音 / 淘宝内容，粘贴链接进来。"
+              tip="点击博主卡片上的五角星，或粘贴喜欢的内容链接。"
             />
           ) : (
             links
@@ -3938,6 +5401,7 @@
                   onTouchCancel={clearPressTimer}
                 >
                   <strong>{l.title}</strong>
+                  {l.bloggerId && <span className="saved-kind">博主收藏</span>}
                   <span className="url">{l.url}</span>
                   {l.note && <div className="note">{l.note}</div>}
                   {l.tags && l.tags.length > 0 && (
@@ -3950,7 +5414,7 @@
                     </div>
                   )}
                   <div className="link-card-row">
-                    <div style={{ display: 'flex', gap: 6 }}>
+                    <div style={{ display: "flex", gap: 6 }}>
                       <button
                         className="icon-btn"
                         onClick={() => onCopyLink(l)}
@@ -3970,17 +5434,21 @@
                     </div>
                     <button
                       className="tiny"
-                      style={{ color: 'var(--accent)', fontWeight: 600, marginRight: 10 }}
+                      style={{
+                        color: "var(--accent)",
+                        fontWeight: 600,
+                        marginRight: 10,
+                      }}
                       onClick={() => openRename(l)}
                     >
                       重命名
                     </button>
                     <button
                       className="tiny"
-                      style={{ color: '#a04b60', fontWeight: 600 }}
+                      style={{ color: "#a04b60", fontWeight: 600 }}
                       onClick={() => onDeleteLink(l)}
                     >
-                      删除
+                      取消收藏
                     </button>
                   </div>
                 </div>
@@ -3989,7 +5457,10 @@
         </div>
         {renamingLink && (
           <div className="modal-mask" onClick={() => setRenamingLink(null)}>
-            <div className="rename-popover" onClick={(e) => e.stopPropagation()}>
+            <div
+              className="rename-popover"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="sheet-title">重命名灵感</div>
               <input
                 className="input"
@@ -3997,8 +5468,8 @@
                 autoFocus
                 onChange={(e) => setRenameValue(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') submitRename();
-                  if (e.key === 'Escape') setRenamingLink(null);
+                  if (e.key === "Enter") submitRename();
+                  if (e.key === "Escape") setRenamingLink(null);
                 }}
                 placeholder="例如：春日通勤配色"
               />
@@ -4018,7 +5489,6 @@
   };
 
   window.YijianUI = {
-    StatusBar,
     Icon,
     WeatherIcon,
     Select,
@@ -4033,7 +5503,7 @@
     BottomNav,
     HomeBloggerRail,
     StyleBrowsePage,
-    CollectionsPage,
+    InspirationLibraryPage,
     Sheet,
     UploadSheet,
     SaveLinkSheet,

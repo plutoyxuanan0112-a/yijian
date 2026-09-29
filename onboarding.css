@@ -1,0 +1,562 @@
+/* ============================================================
+ * 衣见 · 新手引导样式 v3
+ * 聚焦式：手机框内淡暗 + 圆角紫色描边高亮 + 玻璃宋体气泡
+ * ============================================================ */
+
+.ob-hidden { display: none !important; }
+
+/* 引导期间：所有底部 sheet（替换 / 添加单品 / 详情）最高约 75%，
+ * 顶部留出 1/4 空白放气泡（箭头向下指向 sheet），sheet 内部自行滚动。 */
+body.ob-open .sheet { max-height: 75% !important; }
+
+/* 根容器：本身不拦截事件，交互交给具体子元素 */
+.ob-root {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  pointer-events: none;
+}
+/* 引导期间 Eira 是固定讲解角色，不允许用户拖动或重新定位。 */
+body.ob-open .ob-eira-float {
+  pointer-events: none;
+  cursor: default;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* 遮罩（SVG）：仅在手机框内淡暗，目标处圆角镂空；视觉层，不拦截点击 */
+.ob-dim {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.ob-dim-path {
+  fill: rgba(20, 16, 40, 0.36);
+}
+
+/* 暗区拦截层：围绕高亮镂空区的 4 块透明捕获层，强制拦截暗区所有点击，
+ * 只有镂空高亮区（无 blocker 覆盖）内的控件/下拉/sheet 可操作。 */
+.ob-block {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: auto;
+  background: transparent;
+}
+
+/* 圆角紫色描边高亮：柔和「呼吸」高亮（scale + opacity + 光晕） */
+.ob-ring {
+  position: fixed;
+  border: 2px solid #7058df;
+  box-shadow:
+    0 0 0 4px rgba(112, 88, 223, 0.18),
+    0 8px 22px rgba(112, 88, 223, 0.22);
+  background: transparent;
+  pointer-events: none;
+  z-index: 100000;
+  transform-origin: center center;
+  animation: ob-ring-breathe 2.1s ease-in-out infinite;
+}
+@keyframes ob-ring-breathe {
+  0%, 100% {
+    transform: scale(1);
+    border-color: rgba(112, 88, 223, 0.85);
+    box-shadow: 0 0 0 4px rgba(112, 88, 223, 0.16), 0 8px 22px rgba(112, 88, 223, 0.20);
+  }
+  50% {
+    transform: scale(1.028);
+    border-color: rgba(124, 101, 214, 1);
+    box-shadow: 0 0 0 8px rgba(112, 88, 223, 0.09), 0 10px 28px rgba(112, 88, 223, 0.30);
+  }
+}
+
+/* 单一「跳过引导」入口 */
+.ob-skip {
+  position: fixed;
+  z-index: 100002;
+  pointer-events: auto;
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 12.5px;
+  color: #4a4360;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 16px rgba(75, 57, 133, 0.14);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.ob-skip:active { transform: scale(0.94); }
+
+/* 纯白椭圆/胶囊气泡 + 紫色虚线描边（宋体、文字居中） */
+.ob-bubble {
+  position: fixed;
+  z-index: 100001;
+  pointer-events: auto;
+  width: max-content;
+  max-width: min(220px, calc(100vw - 28px));
+  min-width: 88px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  text-align: center;
+  font-family: "Songti SC", "SimSun", serif;
+  color: #34235c;
+  background: #FFFFFF;
+  border: 2px dashed #7B6FD0;
+  box-shadow: 0 12px 26px rgba(112, 88, 223, 0.18);
+}
+.ob-title {
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  word-break: normal;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+.ob-desc {
+  margin-top: 3px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #6c5ba0;
+  word-break: normal;
+  overflow-wrap: normal;
+  text-wrap: balance;
+}
+.ob-desc-hint {
+  color: #c0453f;
+  font-weight: 600;
+}
+.ob-actions {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.ob-bubble--confirm .ob-actions {
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+.ob-bubble--confirm .ob-btn-text {
+  min-width: 0;
+  padding: 2px 0 1px;
+  font-size: 11px;
+  color: #5a4bb0;
+  text-align: right;
+}
+.ob-btn {
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 11.5px;
+  border-radius: 999px;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+.ob-btn:active { transform: scale(0.95); }
+.ob-btn-primary {
+  padding: 6px 14px;
+  color: #fff;
+  font-weight: 600;
+  background: linear-gradient(135deg, #7c66e8, #6a4fd6);
+  box-shadow: 0 8px 18px rgba(112, 88, 223, 0.32);
+}
+.ob-btn-primary:hover { filter: brightness(1.05); }
+.ob-btn-primary.ob-disabled {
+  background: linear-gradient(135deg, #cfc8ec, #c3bbe4);
+  box-shadow: none;
+  filter: none;
+  opacity: 0.75;
+}
+.ob-btn-primary.ob-disabled:hover { filter: none; }
+.ob-btn-text {
+  padding: 6px 4px;
+  color: #6a5fd0;
+  font-weight: 600;
+  background: transparent;
+}
+
+/* 气泡尾巴：纯白 + 紫色描边，指向小猫 */
+.ob-arrow {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  background: #FFFFFF;
+  border: 2px solid #7B6FD0;
+  transform: rotate(45deg);
+}
+.ob-arrow.up   { border-right: 0; border-bottom: 0; }
+.ob-arrow.down { border-left: 0; border-top: 0; }
+.ob-arrow.left  { border-right: 0; border-top: 0; }
+.ob-arrow.right { border-left: 0; border-bottom: 0; }
+
+/* 居中弹窗（欢迎 / 恭喜 / 登录） */
+.ob-modal-wrap {
+  position: fixed;
+  z-index: 100001;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.ob-modal {
+  width: 100%;
+  max-width: 198px;
+  position: relative;
+  overflow: visible;
+  text-align: center;
+  padding: 14px 16px 12px;
+  border-radius: 26px;
+  font-family: "Songti SC", "SimSun", serif;
+  color: #34235c;
+  background: #FFFFFF;
+  border: 2px dashed #7B6FD0;
+  box-shadow: 0 22px 52px rgba(112, 88, 223, 0.24);
+  animation: ob-modal-in 0.34s cubic-bezier(0.2, 0.9, 0.28, 1.1);
+}
+/* 有 Eira 趴在上沿的弹窗：顶部预留空间，让标题在 Eira 下方 */
+.ob-modal-has-eira { padding-top: 34px; }
+@keyframes ob-modal-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+.ob-modal-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  /* 中文按字断行 + 平衡换行，长标题（如恭喜卡）自然换成居中的两行，绝不溢出卡片 */
+  word-break: normal;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+/* 恭喜卡：收窄卡宽、文字居中不出框 */
+.ob-modal-congrats { max-width: 206px; }
+.ob-modal-congrats .ob-modal-title { font-size: 13px; }
+/* A1：欢迎语强制单行居中，末尾「～」绝不孤立掉行；整体再收紧一圈更精致 */
+.ob-modal-welcome { max-width: 188px; padding: 12px 12px 10px; }
+.ob-modal-welcome.ob-modal-has-eira { padding-top: 32px; }
+.ob-modal-welcome .ob-modal-title {
+  white-space: nowrap;
+  font-size: 12.5px;
+  letter-spacing: 0;
+}
+.ob-modal-welcome .ob-actions { margin-top: 9px; }
+.ob-modal-welcome .ob-btn-primary { padding: 7px 24px; font-size: 11px; }
+.ob-modal-desc {
+  margin-top: 6px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: #6c5ba0;
+}
+/* A2：弹窗按钮居中、宽度自适应（「开始」不再通栏拉满） */
+.ob-modal .ob-actions {
+  margin-top: 11px;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.ob-modal .ob-btn-primary { width: auto; padding: 8px 28px; font-size: 11.5px; }
+.ob-modal .ob-btn-text { width: auto; padding: 5px 10px; font-size: 10px; }
+
+/* ============================================================
+ * 萌宠 Eira —— 官方原型 exact 抠图 PNG（整图，不拆件）
+ *   .ob-eira-img 整体走官方五态规格动效，由 data-state 驱动：
+ *     idle    → 轻柔呼吸（上浮 + 极微摆 + 微缩放，循环）
+ *     tap     → 一次轻按（下压后回弹归位）
+ *     loading → 持续来回轻摇上下浮（循环，用于加载页）
+ *     success → 一次雀跃上跳（回落归位）
+ *     error   → 一次左右摇头（否定/失败）
+ *   transform-origin 落在身体重心 50% 68%，无独立摇头/眨眼/挥手拆件。
+ * ============================================================ */
+.ob-eira { width: 120px; user-select: none; -webkit-user-select: none; }
+.ob-eira-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transform-origin: 50% 68%;
+  animation: ob-eira-idle 2.6s ease-in-out infinite;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;                    /* 拖拽热区在外层 .ob-eira-float 上 */
+}
+
+/* idle：官方整体呼吸（上浮 + 极微摆 + 轻微缩放） */
+@keyframes ob-eira-idle {
+  0%, 100% { transform: translateY(0) rotate(-0.5deg); }
+  50%      { transform: translateY(-4px) rotate(0.5deg) scale(1.006, 1.012); }
+}
+
+/* tap：一次性轻按（scale 1 → 0.96 → 1.035 → 1，回弹归位） */
+.ob-eira[data-state="tap"] .ob-eira-img { animation: ob-eira-tap 0.42s ease-in-out 1; }
+@keyframes ob-eira-tap {
+  0%   { transform: scale(1); }
+  38%  { transform: scale(0.96); }
+  70%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+/* loading：持续来回轻摇 + 上下浮（用于页面加载遮罩，循环播放） */
+.ob-eira[data-state="loading"] .ob-eira-img { animation: ob-eira-loading 1.1s ease-in-out infinite; }
+@keyframes ob-eira-loading {
+  0%   { transform: translateY(0) rotate(-1.2deg); }
+  50%  { transform: translateY(-7px) rotate(1.2deg); }
+  100% { transform: translateY(0) rotate(-1.2deg); }
+}
+
+/* success：一次性雀跃上跳（Y 0→-18→3→-2→0，scale 微弹） */
+.ob-eira[data-state="success"] .ob-eira-img { animation: ob-eira-success 0.75s ease-out 1; }
+@keyframes ob-eira-success {
+  0%   { transform: translateY(0) scale(1); }
+  28%  { transform: translateY(-18px) scale(1.025); }
+  58%  { transform: translateY(3px) scale(0.985); }
+  80%  { transform: translateY(-2px) scale(1.008); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* error：一次左右摇头（X 0→-5→5→-5→5→0，否定/失败） */
+.ob-eira[data-state="error"] .ob-eira-img { animation: ob-eira-error 0.55s ease-in-out 1; }
+@keyframes ob-eira-error {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-5px); }
+  40%  { transform: translateX(5px); }
+  60%  { transform: translateX(-5px); }
+  80%  { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+
+/* 尊重系统「减少动态效果」偏好：关闭一切循环/一次性动画 */
+@media (prefers-reduced-motion: reduce) {
+  .ob-eira-img,
+  .ob-eira[data-state="tap"] .ob-eira-img,
+  .ob-eira[data-state="loading"] .ob-eira-img,
+  .ob-eira[data-state="success"] .ob-eira-img,
+  .ob-eira[data-state="error"] .ob-eira-img { animation: none !important; }
+}
+
+/* 弹窗上沿：Eira 半悬在卡片顶边 */
+.ob-eira-perch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 145px;
+  transform: translate(-50%, -72%);
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.75)) drop-shadow(0 8px 12px rgba(112, 88, 223, 0.32));
+  pointer-events: none;
+}
+/* 引导中跟随高亮的 talk 态：整体再放大一些（气泡仍保持小） */
+.ob-eira-float {
+  position: fixed;
+  width: 135px;
+  z-index: 100001;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.7)) drop-shadow(0 8px 14px rgba(112, 88, 223, 0.26));
+  transition: filter 0.15s ease;
+}
+.ob-eira-float:active,
+.ob-eira-float.ob-eira-dragging { cursor: grabbing; }
+.ob-eira-float.ob-eira-dragging { filter: drop-shadow(0 12px 20px rgba(112, 88, 223, 0.38)); }
+
+/* ============================================================
+ * 常驻萌宠 Eira —— 非引导时也停在左下角，可拖动、点击弹菜单
+ * 直接挂在 body 上（独立于引导遮罩层），避开底部导航栏。
+ * ============================================================ */
+.ob-eira-persist {
+  position: fixed;
+  width: 103px;
+  z-index: 99997;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.7)) drop-shadow(0 8px 14px rgba(112, 88, 223, 0.24));
+  transition: filter 0.15s ease, transform 0.2s cubic-bezier(0.2, 0.9, 0.28, 1.1);
+  animation: ob-eira-persist-in 0.4s cubic-bezier(0.2, 0.9, 0.28, 1.1);
+}
+@keyframes ob-eira-persist-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.9); }
+  to   { opacity: 1; transform: none; }
+}
+.ob-eira-persist:active,
+.ob-eira-persist.ob-eira-dragging { cursor: grabbing; }
+.ob-eira-persist.ob-eira-dragging { filter: drop-shadow(0 12px 20px rgba(112, 88, 223, 0.36)); }
+
+/* 常驻 Eira 点击弹出的小菜单（白底紫虚线胶囊） */
+.ob-eira-menu {
+  position: fixed;
+  z-index: 99998;
+  pointer-events: auto;
+  width: max-content;
+  max-width: 176px;
+  padding: 5px 9px 6px;
+  border-radius: 999px;
+  font-family: "Songti SC", "SimSun", serif;
+  background: #FFFFFF;
+  border: 2px dashed #7B6FD0;
+  box-shadow: 0 14px 30px rgba(112, 88, 223, 0.22);
+  animation: ob-modal-in 0.26s cubic-bezier(0.2, 0.9, 0.28, 1.1);
+}
+.ob-eira-menu-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #34235c;
+  text-align: center;
+  margin-bottom: 2px;
+  max-width: 140px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.34;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  text-wrap: balance;
+}
+.ob-eira-menu-item {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #5a4bb0;
+  padding: 4px 9px;
+  margin-top: 3px;
+  border-radius: 999px;
+  background: rgba(123, 111, 208, 0.09);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.ob-eira-menu-item:first-of-type {
+  color: #fff;
+  background: linear-gradient(135deg, #7c66e8, #6a4fd6);
+  box-shadow: 0 8px 16px rgba(112, 88, 223, 0.28);
+}
+.ob-eira-menu-item:active { transform: scale(0.96); }
+
+/* ============================================================
+ * 页面加载遮罩：Eira loading + 进度条 + 文案
+ * ============================================================ */
+.ob-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100010;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: linear-gradient(180deg, #ede8fb 0%, #f5f2fc 46%, #ffffff 100%);
+  transition: opacity 0.5s ease;
+}
+.ob-loader.ob-loader-out { opacity: 0; pointer-events: none; }
+.ob-loader .ob-loader-eira { width: 132px; }
+.ob-loader .ob-loader-eira .ob-eira-img {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.8)) drop-shadow(0 12px 20px rgba(112, 88, 223, 0.28));
+}
+.ob-loader-bar {
+  margin-top: 22px;
+  width: 190px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(123, 111, 208, 0.18);
+  overflow: hidden;
+}
+.ob-loader-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #a892f5, #6a4fd6);
+  transition: width 0.25s ease;
+}
+.ob-loader-text {
+  margin-top: 14px;
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #5a4bb0;
+}
+.ob-loader-text .ob-loader-dots::after {
+  content: "";
+  animation: ob-loader-dots 1.2s steps(4, end) infinite;
+}
+@keyframes ob-loader-dots {
+  0%   { content: ""; }
+  25%  { content: "·"; }
+  50%  { content: "··"; }
+  75%  { content: "···"; }
+  100% { content: ""; }
+}
+
+
+/* ============================================================
+ * 动态点击指引：拟人化「小鼠标指针」轻点手势（纯视觉，不拦截点击）
+ * 指针热点(4,3)锚定在容器 (0,0)，容器由 JS 定位到目标中心；
+ * 指针做「下压 + 回弹」循环，配合目标本身的呼吸高亮，指出该点哪里。
+ * ============================================================ */
+.ob-cursor {
+  position: fixed;
+  z-index: 100001;
+  width: 0; height: 0;
+  pointer-events: none;
+}
+.ob-cursor-svg {
+  position: absolute;
+  /* viewBox 34×40 缩放到 28px；热点(4,3)→元素内约(3.3px,2.5px)，
+   * 用 left/top 把热点对齐到容器原点(=目标中心)，箭头落在其右下方 */
+  left: -3px;
+  top: -2px;
+  width: 28px;
+  height: auto;
+  overflow: visible;
+  transform-origin: 3px 2px;
+  animation: ob-cursor-press 1.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 3px 6px rgba(112, 88, 223, 0.34));
+}
+/* 下压 + 回弹：指针轻点目标后回弹 */
+@keyframes ob-cursor-press {
+  0%   { transform: translate(3px, -4px) scale(1); }
+  40%  { transform: translate(0, 0) scale(0.86); }
+  55%  { transform: translate(0, 0) scale(0.86); }
+  100% { transform: translate(3px, -4px) scale(1); }
+}
+.ob-cursor-arrow {
+  fill: url(#obCursorG);
+  stroke: #7c5ee0;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+/* 热点处的柔光圈：随点按扩散淡出 */
+.ob-cursor-halo {
+  fill: rgba(124, 101, 214, 0.30);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ob-cursor-halo 1.4s ease-out infinite;
+}
+@keyframes ob-cursor-halo {
+  0%   { transform: scale(0.3); opacity: 0; }
+  40%  { transform: scale(0.6); opacity: 0.85; }
+  75%  { transform: scale(1.8); opacity: 0; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+/* 重看引导按钮 */
+.ob-replay {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 99998;
+  pointer-events: auto;
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 12px;
+  color: #4a4360;
+  padding: 8px 13px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 6px 16px rgba(75, 57, 133, 0.16);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  transition: transform 0.15s ease;
+}
+.ob-replay:active { transform: scale(0.94); }

@@ -1,0 +1,287 @@
+:root {
+  font-family:
+    "PingFang SC",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Microsoft YaHei",
+    sans-serif;
+  color: #23272f;
+  background: #f6f7f8;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 28px 80px;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-start;
+  padding-bottom: 30px;
+  border-bottom: 1px solid #dfe3e8;
+}
+.eyebrow {
+  margin: 0 0 9px;
+  color: #667085;
+  font-size: 13px;
+}
+h1 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: 0;
+}
+.intro {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: #667085;
+  line-height: 1.65;
+}
+button,
+select,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+.refresh,
+.approve,
+.reject,
+.archive {
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 8px 13px;
+  background: #fff;
+  font-weight: 600;
+}
+.refresh:hover {
+  background: #eef2f6;
+}
+.filters {
+  padding: 22px 0;
+  border-bottom: 1px solid #dfe3e8;
+}
+.segmented {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.segmented button {
+  background: transparent;
+  border: 0;
+  padding: 7px 10px;
+  color: #667085;
+  border-bottom: 2px solid transparent;
+}
+.segmented .selected {
+  color: #216b51;
+  border-bottom-color: #216b51;
+  font-weight: 700;
+}
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+.category-tabs button {
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 7px 11px;
+  background: #fff;
+  color: #475467;
+}
+.category-tabs button.selected {
+  color: #176148;
+  border-color: #216b51;
+  background: #edf7f1;
+  font-weight: 700;
+}
+.filter-row {
+  display: grid;
+  grid-template-columns: 150px 180px 1fr auto;
+  gap: 10px;
+  margin-top: 16px;
+}
+select,
+input {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  outline-color: #216b51;
+}
+.filter-row strong {
+  align-self: center;
+  color: #667085;
+  font-size: 14px;
+  white-space: nowrap;
+}
+.error {
+  margin: 20px 0;
+  padding: 12px;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 6px;
+}
+.state {
+  color: #667085;
+  padding: 40px 0;
+  text-align: center;
+}
+.list {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+article {
+  padding: 21px 22px;
+  border: 1px solid #dfe3e8;
+  background: #fff;
+  border-radius: 8px;
+}
+.item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.kind,
+.status,
+.tags span {
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  margin-right: 6px;
+}
+.kind {
+  color: #344054;
+  background: #f2f4f7;
+}
+.status.draft {
+  color: #8a5d10;
+  background: #fff8e8;
+}
+.status.approved {
+  color: #176148;
+  background: #eaf7f0;
+}
+.status.rejected {
+  color: #b42318;
+  background: #fef3f2;
+}
+.status.archived {
+  color: #667085;
+  background: #f2f4f7;
+}
+.id {
+  color: #98a2b3;
+  font-size: 13px;
+}
+h2 {
+  margin: 12px 0 6px;
+  font-size: 19px;
+}
+p {
+  line-height: 1.65;
+}
+.goal,
+.formula {
+  margin: 7px 0;
+  color: #344054;
+  font-weight: 600;
+}
+.content {
+  white-space: pre-wrap;
+  margin: 9px 0;
+  color: #475467;
+}
+.tags {
+  margin: 12px 0 6px;
+}
+.tags span {
+  color: #486270;
+  background: #eef4f5;
+}
+.warning,
+.source,
+.review-note {
+  margin: 7px 0;
+  font-size: 13px;
+  color: #667085;
+}
+.warning {
+  color: #9c5b12;
+}
+.review-note {
+  color: #7f56d9;
+}
+.source {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border-left: 3px solid #a7d5be;
+  background: #f6faf7;
+}
+.source > span {
+  color: #216b51;
+  font-weight: 700;
+}
+.source p {
+  margin: 3px 0;
+}
+.source a {
+  display: inline-block;
+  margin-top: 5px;
+  color: #176148;
+  font-weight: 700;
+  text-decoration: none;
+}
+.source a:hover {
+  text-decoration: underline;
+}
+footer {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+.approve {
+  color: #fff;
+  background: #216b51;
+  border-color: #216b51;
+}
+.reject {
+  color: #b42318;
+}
+.archive {
+  color: #667085;
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+@media (max-width: 650px) {
+  main {
+    padding: 28px 16px 64px;
+  }
+  header {
+    display: block;
+  }
+  .refresh {
+    margin-top: 18px;
+  }
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+  .filter-row strong {
+    padding-left: 2px;
+  }
+}

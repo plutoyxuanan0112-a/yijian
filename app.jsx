@@ -9,7 +9,6 @@
   const U = window.YijianUI;
 
   const {
-    StatusBar,
     Icon,
     Toast,
     HomePage,
@@ -18,7 +17,7 @@
     RecordsPage,
     BottomNav,
     StyleBrowsePage,
-    CollectionsPage,
+    InspirationLibraryPage,
     UploadSheet,
     SaveLinkSheet,
     OutfitDetailSheet,
@@ -32,12 +31,67 @@
     ItemDetailSheet,
     DeleteConfirmSheet,
   } = U;
+  // 游客引导演示使用结构占位衣物，真实示例照片由 Eira 后续上传后替换。
+  const DEMO_WARDROBE = (window.YijianDemoCatalog && window.YijianDemoCatalog.items) || [];
+  const DEMO_WARDROBE_STORAGE_KEY = 'yijian_demo_wardrobe_items';
+  function normalizeDemoItems(items) {
+    return (items || []).map((item) => ({
+      ...(S.normalizeItem ? S.normalizeItem(item) : item),
+      isDemo: true,
+    }));
+  }
+  function getDemoWardrobe() {
+    try {
+      const raw = localStorage.getItem(DEMO_WARDROBE_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) return normalizeDemoItems(parsed);
+      }
+    } catch (e) {}
+    return normalizeDemoItems(DEMO_WARDROBE);
+  }
+  function saveDemoWardrobe(items) {
+    try {
+      localStorage.setItem(
+        DEMO_WARDROBE_STORAGE_KEY,
+        JSON.stringify(normalizeDemoItems(items)),
+      );
+    } catch (e) {}
+  }
+  function buildControlledDemoOutfit(items, style, scene) {
+    const byId = (id) => items.find((item) => item.id === id);
+    const picks = [
+      byId('demo-top-2'),
+      byId('demo-bottom-1'),
+      byId('demo-shoes-1'),
+    ].filter(Boolean);
+    return {
+      title: (style || '简约') + ' · ' + (scene || '通勤') + ' · 演示搭配',
+      selected_items: picks.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        reason: '演示固定组合：用于体验替换、删除和添加操作',
+        image: item.image,
+        color: item.color,
+        isDemo: true,
+      })),
+      style_reason: '',
+      weather_reason: '当前展示示例衣服搭配组合，上传真实衣物，解锁你的专属搭配。',
+      scene_reason: '正式搭配会结合你的真实衣橱、场景和已审核规则重新计算。',
+      summary: '',
+      tips: ['点击换一件、删除或添加，体验搭配编辑。'],
+      _source: 'demo-local-rule',
+      source: 'demo-local-rule',
+    };
+  }
 
   const App = () => {
     // 未登录时不读取本机 localStorage 中可能残留的用户数据。
     const hasToken = () => !!S.getApiToken();
     // 页面
     const [page, setPage] = useState('home');
+    const [preferenceReturn, setPreferenceReturn] = useState({ page: 'inspire', profile: false });
     const [inspireTag, setInspireTag] = useState('优雅知性');
     // 数据（未登录时一律为空，绝不把 localStorage 里的旧缓存灌进来展示）
     const [wardrobe, setWardrobe] = useState(() => (hasToken() ? S.getWardrobe() : []));
@@ -53,8 +107,11 @@
     const [profile, setProfile] = useState(() => S.getProfile());
     const [outfit, setOutfit] = useState(null);
     const [generating, setGenerating] = useState(false);
+    const [demoMode, setDemoMode] = useState(false);
     // Sheets
     const [openSheet, setOpenSheet] = useState(null); // 'upload' | 'link' | 'detail' | 'replace' | 'record' | 'itemDetail'
+    const [shareTarget, setShareTarget] = useState(null);
+    const [uploadCategory, setUploadCategory] = useState('全部');
     const [replaceTarget, setReplaceTarget] = useState(null);
     const [detailRecord, setDetailRecord] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
@@ -71,20 +128,48 @@
     }, []);
 
     useEffect(() => {
+      const sync = () => setLinks(S.getApiToken() ? S.getLinks() : []);
+      window.addEventListener('yijian:collections-change', sync);
+      return () => window.removeEventListener('yijian:collections-change', sync);
+    }, []);
+
+    useEffect(() => {
+      const login = () => setOpenSheet('profile');
+      const account = () => {
+        if (!S.getApiToken()) {
+          setProfile(S.getProfile());
+          setWardrobe([]); setRecords([]); setLinks([]); setOutfit(null);
+        }
+      };
+      window.addEventListener('yijian:login-needed', login);
+      window.addEventListener('yijian:account-change', account);
+      return () => {
+        window.removeEventListener('yijian:login-needed', login);
+        window.removeEventListener('yijian:account-change', account);
+      };
+    }, []);
+
+    useEffect(() => {
       const h = (e) => showToast(e.detail);
       window.addEventListener('yijian:toast', h);
       const openDetail = () => outfit && setOpenSheet('detail');
       window.addEventListener('yijian:open-detail', openDetail);
+      const openShare = (e) => {
+        setShareTarget(e.detail?.blogger || null);
+        setOpenSheet('share');
+      };
+      window.addEventListener('yijian:open-share', openShare);
       return () => {
         window.removeEventListener('yijian:toast', h);
         window.removeEventListener('yijian:open-detail', openDetail);
+        window.removeEventListener('yijian:open-share', openShare);
       };
     }, [outfit, showToast]);
 
     // Render 免费实例冷启动探活：App 启动时静默唤醒后端，避免用户点「生成」时才触发 30~60s 冷启动
     useEffect(() => {
       try {
-        fetch(S.getApiBase() + '/', { method: 'GET' }).catch(() => {});
+        fetch(S.getApiBase() + '/api/v1/ping', { method: 'GET' }).catch(() => {});
       } catch (e) {}
     }, []);
 
@@ -113,6 +198,10 @@
           setLinks(fresh.links || S.getLinks());
         } catch (e) {
           if (!alive) return;
+          if (e.status !== 401) {
+            if (e.code !== 'STALE_ACCOUNT') showToast('同步暂未完成，已保留登录和本地数据');
+            return;
+          }
           S.clearUserSession();
           setProfile(S.getProfile());
           setWardrobe([]);
@@ -146,6 +235,10 @@
 
     const isLoggedIn = profile && profile.authStatus === 'demo_logged_in';
 
+    useEffect(() => {
+      if (isLoggedIn && demoMode) setDemoMode(false);
+    }, [isLoggedIn, demoMode]);
+
     const remindLogin = useCallback(
       (actionText) => {
         showToast('先注册或登录后，再' + actionText);
@@ -154,9 +247,47 @@
       [showToast],
     );
 
+    // onboarding.js 只负责引导呈现，示例状态由当前核心 App 管理。
+    useEffect(() => {
+      window.YijianDemo = {
+        seed: function () {
+          if (isLoggedIn || !DEMO_WARDROBE.length) return;
+          setDemoMode(true);
+          setWardrobe((current) =>
+            current && current.length ? current : getDemoWardrobe(),
+          );
+        },
+        goHome: function () { setPage('home'); },
+        goWardrobe: function () { setPage('wardrobe'); },
+        goInspire: function () { setPage('inspire'); },
+        setDemoWeather: function () {
+          setWeather({
+            ...S.DEFAULT_WEATHER,
+            isFallback: false,
+            isDemo: true,
+            city: '模拟城市',
+            weatherLabel: '晴',
+          });
+          setGeoStatus('ok');
+          setGeoLocating(false);
+        },
+        isLoggedIn: function () { return !!isLoggedIn; },
+        isDemo: function () { return !!demoMode; },
+        demoSourceStatus: function () {
+          return (window.YijianDemoCatalog && window.YijianDemoCatalog.sourceStatus) ||
+            '真实示例衣物待上传';
+        },
+      };
+      return () => {
+        if (window.YijianDemo && window.YijianDemo.isLoggedIn === undefined) {
+          delete window.YijianDemo;
+        }
+      };
+    }, [isLoggedIn, demoMode]);
+
     // 生成
     const doGenerate = useCallback(async () => {
-      if (!isLoggedIn) {
+      if (!isLoggedIn && !demoMode) {
         remindLogin('生成你的搭配');
         return;
       }
@@ -171,8 +302,21 @@
         setPage('wardrobe');
         return;
       }
+      // 游客演示只走当前核心版本的本地规则，不调用后端 AI，
+      // 避免未上传的占位衣物进入正式推荐，也避免引导结果受模型随机性影响。
+      if (!isLoggedIn && demoMode) {
+        const demoResult = buildControlledDemoOutfit(wardrobe, style, scene);
+        demoResult.demo_source_status =
+          '当前展示示例衣服搭配组合，上传真实衣物，解锁你的专属搭配。';
+        setOutfit(demoResult);
+        setOpenSheet('detail');
+        showToast('已用示意衣物完成演示搭配');
+        return;
+      }
       setGenerating(true);
-      S.recordStyleBehavior(style, 'choose_style');
+      const generatingToken = S.getApiToken();
+      await S.recordStyleBehavior(style, 'choose_style');
+      if (generatingToken !== S.getApiToken()) { setGenerating(false); return; }
       let w = weather;
       if (!w) w = S.DEFAULT_WEATHER;
       try {
@@ -182,6 +326,7 @@
           style,
           scene,
         });
+        if (generatingToken !== S.getApiToken()) return;
         // 填充 image 信息
         result.selected_items = (result.selected_items || [])
           .map((it) => {
@@ -199,17 +344,17 @@
         setOutfit(result);
         setOpenSheet('detail'); // 生成后直接弹出详情卡片
         // v15：普通用户不感知 AI/回退/服务商，只给结果反馈
-        if (result._source === 'backend-ai' || result._source === 'local-fallback') {
-          showToast('已为你搭配完成');
-        }
+        showToast(result._source === 'backend-ai' ? '已参考账号偏好完成搭配' : '智能搭配暂不可用，已提供本地规则搭配');
       } catch (e) {
-        showToast('已为你搭配完成');
+        if (generatingToken !== S.getApiToken() || e.code === 'STALE_ACCOUNT' || e.status === 401) return;
+        showToast('智能搭配暂不可用，已提供本地规则搭配');
         const fb = S.localRuleOutfit({
           wardrobeItems: wardrobe,
           weather: w,
           style,
           scene,
         });
+        fb._source = 'local-fallback';
         fb.selected_items = (fb.selected_items || [])
           .map((it) => {
             const w = wardrobe.find((x) => x.id === it.id);
@@ -228,7 +373,7 @@
       } finally {
         setGenerating(false);
       }
-    }, [wardrobe, weather, style, scene, showToast]);
+    }, [isLoggedIn, demoMode, remindLogin, wardrobe, weather, style, scene, showToast]);
 
     // 天气
     const doFetchWeather = useCallback(async () => {
@@ -260,11 +405,12 @@
     }, [showToast, weather, geoLocating]);
 
     // 上传 / 保存外链 / 保存穿搭
-    const openUploadSheet = useCallback(() => {
+    const openUploadSheet = useCallback((category = '全部') => {
       if (!isLoggedIn) {
         remindLogin('上传你的衣服');
         return;
       }
+      setUploadCategory(typeof category === 'string' ? category : '全部');
       setOpenSheet('upload');
     }, [isLoggedIn, remindLogin]);
 
@@ -286,29 +432,34 @@
     }, [isLoggedIn, remindLogin]);
 
     const handleSaveOutfit = useCallback(async () => {
-      if (!isLoggedIn) {
+      if (!isLoggedIn && !demoMode) {
         remindLogin('保存这套搭配');
         return;
       }
       if (!outfit) return;
+      if (!isLoggedIn && demoMode) {
+        const saved = S.saveOutfitRecord({ outfit, weather, scene, style });
+        setRecords(S.getOutfits());
+        setOpenSheet(null);
+        showToast('演示搭配已保存到本地日记');
+        window.dispatchEvent(new CustomEvent('yijian:outfit-saved', {
+          detail: { demo: true },
+        }));
+        return saved;
+      }
       let saved;
       try {
         saved = await S.saveOutfitRecordRemote({ outfit, weather, scene, style });
         showToast('已保存到日记');
       } catch (e) {
-        saved = S.saveOutfitRecord({
-          outfit,
-          weather,
-          scene,
-          style,
-        });
-        showToast('已保存到日记');
+        showToast('搭配未保存到账号，请重试');
+        return;
       }
       setRecords(S.getOutfits());
       S.recordStyleBehavior(style, 'save_outfit');
       setOpenSheet(null);
       return saved;
-    }, [isLoggedIn, remindLogin, outfit, weather, scene, style, showToast]);
+    }, [isLoggedIn, demoMode, remindLogin, outfit, weather, scene, style, showToast]);
 
     // 首次挂载时若已存过真实天气则沿用；否则先给默认。
     // 注意：不能因为浏览器 permissions API 返回 'denied' 就直接把 UI 状态设成 'denied'——
@@ -372,6 +523,12 @@
       if (!deleteTarget) return;
       const deletingItem = deleteTarget;
       try {
+        if (deletingItem.isDemo) {
+          setWardrobe((current) => current.filter((item) => item.id !== deletingItem.id));
+          setDeleteTarget(null);
+          showToast('已从示例衣橱移除');
+          return;
+        }
         await S.deleteWardrobeItemRemote(deletingItem);
         const fresh = await S.syncWardrobeFromBackend().catch(() => S.getWardrobe());
         setWardrobe(fresh);
@@ -396,6 +553,25 @@
         showToast('正在保存…');
         try {
           const isLoggedIn = profile && profile.authStatus === 'demo_logged_in';
+          const isDemoItem =
+            ((selectedItem && selectedItem.isDemo) ||
+              String(id).indexOf('demo-') === 0 ||
+              wardrobe.some((item) => item.id === id && item.isDemo));
+          if (isDemoItem) {
+            setWardrobe((current) => {
+              const base = current && current.length ? current : getDemoWardrobe();
+              const next = base.map((item) =>
+                item.id === id ? { ...item, ...patch, isDemo: true } : item
+              );
+              saveDemoWardrobe(next);
+              return next;
+            });
+            setSelectedItem(null);
+            setOpenSheet(null);
+            showToast('示例单品已更新');
+            return;
+          }
+
           if (isLoggedIn) {
             await S.updateWardrobeItemRemote(id, patch);
             const fresh = await S.syncWardrobeFromBackend();
@@ -430,13 +606,15 @@
           }
         }
       },
-      [profile, showToast],
+      [profile, selectedItem, wardrobe, showToast],
     );
 
     // 链接保存
     const handleSaveLink = useCallback(
       async (link) => {
-        const saved = await S.addLink(link);
+        let saved;
+        try { saved = await S.addLink(link); }
+        catch (e) { showToast('收藏未保存到账号，请重试'); return; }
         if (saved) {
           setLinks(S.getLinks());
           setOpenSheet(null);
@@ -449,29 +627,30 @@
     );
     const handleDeleteLink = useCallback((link) => {
       setConfirmSheet({
-        title: '删除这条灵感？',
-        message: (link.title || '这条灵感') + ' 删除后不可恢复。',
-        confirmText: '删除',
+        title: '取消这条收藏？',
+        message: '将从我的灵感库中移除「' + (link.title || '这条灵感') + '」。',
+        confirmText: '取消收藏',
         onConfirm: async () => {
-          await S.deleteLink(link.id);
+          try { await S.deleteLink(link.id); }
+          catch (e) { showToast('删除未同步，请重试'); return; }
           setLinks(S.getLinks());
           setConfirmSheet(null);
-          showToast('已删除灵感');
+          showToast('已取消收藏');
         },
       });
     }, [showToast]);
-    const handleRenameLink = useCallback(
-      async (link, title) => {
+    const handleUpdateLink = useCallback(
+      async (link, fields) => {
         if (!link) return false;
-        const nextTitle = title === undefined ? window.prompt('给这条灵感取个名字', link.title || '') : title;
-        if (nextTitle === null) return false;
-        const updated = await S.renameLink(link.id, nextTitle);
+        let updated;
+        try { updated = await S.updateLink(link.id, fields); }
+        catch (e) { showToast('修改未同步，请重试'); return false; }
         if (!updated) {
-          showToast('名字不能为空');
+          showToast('名称不能为空，备注最多 1000 字');
           return false;
         }
         setLinks(S.getLinks());
-        showToast('已重命名');
+        showToast('已保存名称与备注');
         return true;
       },
       [showToast],
@@ -707,25 +886,26 @@
             inspireTag={inspireTag}
             setInspireTag={setInspireTag}
             onOpenSaveLink={openSaveLinkSheet}
-            onNav={setPage}
+            onNav={target => {
+              if (target === 'library') setPreferenceReturn({ page: 'inspire', profile: false });
+              setPage(target);
+            }}
           />
         );
+      if (['library', 'preferences', 'collections'].includes(page))
+        return <InspirationLibraryPage links={links} onNav={setPage}
+          onLogin={() => setOpenSheet('profile')} onOpenSaveLink={openSaveLinkSheet}
+          onDeleteLink={handleDeleteLink} onUpdateLink={handleUpdateLink}
+          onCopyLink={handleCopyLink}
+          onBack={() => {
+            setPage(preferenceReturn.page);
+            if (preferenceReturn.profile) setOpenSheet('profile');
+          }} />;
       if (page === 'styleBrowse')
         return (
           <StyleBrowsePage
             inspireTag={inspireTag}
             setInspireTag={setInspireTag}
-            onNav={setPage}
-          />
-        );
-      if (page === 'collections')
-        return (
-          <CollectionsPage
-            links={links}
-            onOpenSaveLink={openSaveLinkSheet}
-            onDeleteLink={handleDeleteLink}
-            onRenameLink={handleRenameLink}
-            onCopyLink={handleCopyLink}
             onNav={setPage}
           />
         );
@@ -744,44 +924,49 @@
     return (
       <div className="stage">
         <div className="phone">
-          <StatusBar />
-          {page === 'home' && (
-          <div className="topbar">
-            <div className="brand">衣见</div>
-            <div className="top-actions">
-              <button
-                className="circle"
-                aria-label="转发衣见"
-                onClick={() => setOpenSheet('share')}
-              >
-                <Icon name="share" size={16} />
-              </button>
-              <button
-                className="circle profile-top-btn"
-                aria-label="个人中心"
-                onClick={() => setOpenSheet('profile')}
-              >
-                {profile.avatar ? (
-                  <img
-                    src={profile.avatar}
-                    alt="头像"
-                    className="profile-top-avatar"
-                  />
-                ) : (
-                  <Icon name="user" size={16} />
-                )}
-              </button>
+          <div className="content">
+            {page === 'home' && (
+            <div className="topbar">
+              <div className="brand">衣见</div>
+              <div className="top-actions">
+                <button
+                  className="circle"
+                  aria-label="转发衣见"
+                  onClick={() => {
+                    setShareTarget(null);
+                    setOpenSheet('share');
+                  }}
+                >
+                  <Icon name="share" size={16} />
+                </button>
+                <button
+                  className="circle profile-top-btn"
+                  aria-label="个人中心"
+                  onClick={() => setOpenSheet('profile')}
+                >
+                  {profile.avatar ? (
+                    <img
+                      src={profile.avatar}
+                      alt="头像"
+                      className="profile-top-avatar"
+                    />
+                  ) : (
+                    <Icon name="user" size={16} />
+                  )}
+                </button>
+              </div>
             </div>
+            )}
+            {renderPage()}
           </div>
-          )}
-          <div className="content">{renderPage()}</div>
           <BottomNav
-            active={page === 'styleBrowse' || page === 'collections' ? 'inspire' : page}
+            active={['styleBrowse', 'library', 'collections', 'preferences'].includes(page) ? 'inspire' : page}
             onChange={setPage}
           />
 
           {openSheet === 'upload' && (
             <UploadSheet
+              initialCategory={uploadCategory}
               onClose={() => setOpenSheet(null)}
               onSave={handleSaveItem}
             />
@@ -842,7 +1027,11 @@
           )}
           {openSheet === 'share' && (
             <ShareSheet
-              onClose={() => setOpenSheet(null)}
+              target={shareTarget}
+              onClose={() => {
+                setOpenSheet(null);
+                setShareTarget(null);
+              }}
               onToast={showToast}
             />
           )}
@@ -852,6 +1041,11 @@
               onClose={() => setOpenSheet(null)}
               onSave={handleSaveProfile}
               onToast={showToast}
+              onOpenPreferences={() => {
+                setPreferenceReturn({ page, profile: true });
+                setOpenSheet(null);
+                setPage('library');
+              }}
             />
           )}
           {openSheet === 'creatorsAll' && (
@@ -869,7 +1063,6 @@
               }}
               onUpdate={handleUpdateItem}
               onDelete={handleDeleteItem}
-              onToast={showToast}
             />
           )}
           {deleteTarget && (
