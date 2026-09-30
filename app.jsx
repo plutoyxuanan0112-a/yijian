@@ -133,12 +133,22 @@
       return () => window.removeEventListener('yijian:collections-change', sync);
     }, []);
 
+    // 匿名内测首屏直接提供演示衣橱，避免必须重新进入引导才能看到示例衣物。
+    useEffect(() => {
+      if (!S.getApiToken() && DEMO_WARDROBE.length) {
+        setDemoMode(true);
+        setWardrobe((current) => current && current.length ? current : getDemoWardrobe());
+      }
+    }, []);
+
     useEffect(() => {
       const login = () => setOpenSheet('profile');
       const account = () => {
         if (!S.getApiToken()) {
           setProfile(S.getProfile());
-          setWardrobe([]); setRecords([]); setLinks([]); setOutfit(null);
+          setDemoMode(true);
+          setWardrobe(DEMO_WARDROBE.length ? getDemoWardrobe() : []);
+          setRecords([]); setLinks([]); setOutfit(null);
         }
       };
       window.addEventListener('yijian:login-needed', login);

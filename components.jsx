@@ -4221,13 +4221,8 @@
   const openBloggerHome = (b) => {
     const sourceUrl = b && (b.profile_url || b.url);
     if (sourceUrl && /^https:\/\//.test(sourceUrl)) {
-      const url = b.id
-        ? S.getApiBase() +
-          "/api/v1/bloggers/" +
-          encodeURIComponent(b.id) +
-          "/visit"
-        : sourceUrl;
-      window.open(url, "_blank", "noopener,noreferrer");
+      // 直接打开已审核的博主主页，避免依赖旧后端的 /visit 中转路由。
+      window.open(sourceUrl, "_blank", "noopener,noreferrer");
       S.recordBloggerEvent(b.recommendation_id, "click").catch(() => {});
       if (S.getApiToken())
         S.sendFeedback({
