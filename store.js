@@ -24,6 +24,31 @@
   const DEFAULT_API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname)
     ? 'http://127.0.0.1:8000' : 'https://yijian-backend.onrender.com';
   const LEGACY_API_BASES = ['https://yijian-backend-ir33.onrender.com'];
+  let bloggerMediaSeedPromise = null;
+  async function loadBloggerMediaSeed() {
+    if (!bloggerMediaSeedPromise) {
+      bloggerMediaSeedPromise = fetch('./blogger-media-seed.json', { cache: 'force-cache' })
+        .then((res) => (res.ok ? res.json() : []))
+        .then((rows) => {
+          const map = {};
+          (Array.isArray(rows) ? rows : []).forEach((row) => {
+            let covers = [];
+            try { covers = typeof row.covers === 'string' ? JSON.parse(row.covers) : (row.covers || []); } catch (e) {}
+            map[row.id] = { avatar_url: row.avatar_url || '', covers: Array.isArray(covers) ? covers : [] };
+          });
+          return map;
+        })
+        .catch(() => ({}));
+    }
+    return bloggerMediaSeedPromise;
+  }
+  function mergeBloggerMedia(rows, mediaMap) {
+    return (Array.isArray(rows) ? rows : []).map((row) => {
+      if (Array.isArray(row.covers) && row.covers.length) return row;
+      const media = mediaMap && mediaMap[row.id];
+      return media ? { ...row, avatar_url: row.avatar_url || media.avatar_url, covers: media.covers } : row;
+    });
+  }
   function getApiBase() {
     const fromWindow = (window.YIJIAN_API_BASE || '').trim();
     if (fromWindow) return fromWindow.replace(/\/$/, '');
@@ -3562,13 +3587,13 @@
   async function fetchBloggerRecommendations() {
       const data = await apiFetch('/api/v1/bloggers/recommendations');
       const list = (data && (data.items || data.bloggers || data.recommendations)) || (Array.isArray(data) ? data : []);
-      return list.slice(0, 20);
+      return mergeBloggerMedia(list, await loadBloggerMediaSeed()).slice(0, 20);
   }
   async function fetchBloggers(tag) {
       const path = '/api/v1/bloggers?track=true' + (tag ? '&tag=' + encodeURIComponent(tag) : '');
       const data = await apiFetch(path);
       const list = (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
-      return list;
+      return mergeBloggerMedia(list, await loadBloggerMediaSeed());
   }
   function recordBloggerEvent(recommendationId, action) {
     if (!recommendationId) return Promise.resolve();
