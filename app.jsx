@@ -92,7 +92,7 @@
     // 页面
     const [page, setPage] = useState('home');
     const [preferenceReturn, setPreferenceReturn] = useState({ page: 'inspire', profile: false });
-    const [inspireTag, setInspireTag] = useState('优雅知性');
+    const [inspireTag, setInspireTag] = useState('全部');
     // 数据（未登录时一律为空，绝不把 localStorage 里的旧缓存灌进来展示）
     const [wardrobe, setWardrobe] = useState(() => (hasToken() ? S.getWardrobe() : []));
     const [records, setRecords] = useState(() => (hasToken() ? S.getOutfits() : []));

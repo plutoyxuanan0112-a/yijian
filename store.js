@@ -2498,14 +2498,17 @@
     '配饰',
   ];
   const STYLE_TAGS = [
-    '简约',
+    '通勤',
+    '优雅知性',
     '韩系',
-    '法式',
-    '学院',
+    '简约',
     '复古',
+    '甜美',
+    '户外运动',
+    '中性',
+    '美式',
     '甜酷',
-    '运动风',
-    '户外机能',
+    '日系',
   ];
   const SCENE_TAGS = [
     '通勤',
@@ -3579,7 +3582,7 @@
   }
   // 「按风格逛」兜底：按 tag 过滤（无 tag 或该风格为空则返回全部）
   function seedByTag(tag) {
-    if (!tag) return BLOGGER_SEED.slice();
+    if (!tag || tag === '全部') return BLOGGER_SEED.slice();
     const filtered = BLOGGER_SEED.filter(function (b) {
       return Array.isArray(b.tags) && b.tags.indexOf(tag) !== -1;
     });
@@ -3597,7 +3600,8 @@
   }
   async function fetchBloggers(tag) {
       try {
-        const path = '/api/v1/bloggers?track=true' + (tag ? '&tag=' + encodeURIComponent(tag) : '');
+        const selectedTag = tag === '全部' ? '' : tag;
+        const path = '/api/v1/bloggers?track=true' + (selectedTag ? '&tag=' + encodeURIComponent(selectedTag) : '');
         const data = await apiFetch(path);
         const list = (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
         if (list.length) return mergeBloggerMedia(list, await loadBloggerMediaSeed());

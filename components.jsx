@@ -940,7 +940,7 @@
       retry: retryPreview,
     } = useBloggers(inspireTag, false, 2);
     const [pending, setPending] = useState(null);
-    const styleKeys = Object.keys(STYLE_COLORS);
+    const styleKeys = ["全部", ...Object.keys(STYLE_COLORS)];
     const doConfirm = async () => {
       const bg = pending;
       if (!bg) return;
@@ -5187,7 +5187,7 @@
     const [pending, setPending] = useState(null);
     const [showScrollTop, setShowScrollTop] = useState(false);
     const chipsRef = useRef(null);
-    const styleKeys = Object.keys(STYLE_COLORS);
+    const styleKeys = ["全部", ...Object.keys(STYLE_COLORS)];
     useEffect(() => {
       const content = chipsRef.current?.closest(".content");
       if (!content) return undefined;
