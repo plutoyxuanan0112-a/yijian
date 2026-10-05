@@ -367,7 +367,7 @@
   // 单品卡片：右上角删除符号只负责发起确认，不直接删除。
   const ItemCard = ({ item, onClick, onDelete, isDemo }) => {
     const bg = item.image;
-    const demoItem = isDemo || item.isDemo;
+    const demoItem = isDemo || item.isDemo || item.isExample;
     return (
       <div className="item-card" onClick={onClick}>
         <div className="item-photo">
@@ -4376,18 +4376,19 @@
     return (
       <div className="bl-icon-actions">
         <button
+          type="button"
           className="bl-reaction heart"
           disabled={busy}
           aria-pressed={liked}
           aria-label={likeLabel}
-          title={likeLabel}
           onClick={async (e) => {
             e.stopPropagation();
+            e.preventDefault();
             if (!S.getApiToken()) {
               window.dispatchEvent(new Event("yijian:login-needed"));
               window.dispatchEvent(
                 new CustomEvent("yijian:toast", {
-                  detail: "登录后才能收藏博主",
+                  detail: "登录后才能喜欢博主",
                 }),
               );
               return;
@@ -4406,13 +4407,23 @@
           <ReactionIcon kind="heart" active={liked} />
         </button>
         <button
+          type="button"
           className="bl-reaction star"
           disabled={busy}
           aria-pressed={saved}
           aria-label={saveLabel}
-          title={saveLabel}
           onClick={async (e) => {
             e.stopPropagation();
+            e.preventDefault();
+            if (!S.getApiToken()) {
+              window.dispatchEvent(new Event("yijian:login-needed"));
+              window.dispatchEvent(
+                new CustomEvent("yijian:toast", {
+                  detail: "登录后才能收藏博主",
+                }),
+              );
+              return;
+            }
             setBusy(true);
             try {
               await S.setBloggerCollection(
