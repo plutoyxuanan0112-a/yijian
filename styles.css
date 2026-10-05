@@ -1133,6 +1133,10 @@ h2 {
 .sheet.sheet-edit {
   max-height: 75%;
 }
+/* 上传后完善单品信息也只占应用容器约四分之三。 */
+.sheet.sheet-upload {
+  max-height: 75%;
+}
 .close-x {
   width: 30px;
   height: 30px;

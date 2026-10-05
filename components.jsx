@@ -2176,6 +2176,7 @@
               : ""
         }
         onClose={onClose}
+        variant="upload"
       >
         <input
           type="file"
