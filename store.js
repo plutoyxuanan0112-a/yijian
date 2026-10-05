@@ -346,6 +346,8 @@
       customNotes: item.customNotes || '',
       image: item.image || '',
       originalImage: item.originalImage || '',
+      isDemo: !!item.isDemo,
+      isExample: !!item.isExample,
       createdAt: item.createdAt || Date.now(),
       updatedAt: item.updatedAt || item.createdAt || Date.now(),
     };

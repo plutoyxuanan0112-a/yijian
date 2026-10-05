@@ -727,14 +727,17 @@ h2 {
 .item-demo-tag {
   position: absolute;
   top: 6px;
-  right: 6px;
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--muted);
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 6px;
+  right: 34px;
+  background: var(--purple);
+  color: #fff;
+  font-size: 10px;
+  line-height: 22px;
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  border-radius: 50%;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  z-index: 2;
 }
 .item-delete {
   position: absolute;
