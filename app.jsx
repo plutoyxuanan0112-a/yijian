@@ -189,7 +189,8 @@
       const boot = async () => {
         if (!S.getApiToken()) {
           S.clearLocalUserData && S.clearLocalUserData();
-          setWardrobe([]);
+          setDemoMode(true);
+          setWardrobe(DEMO_WARDROBE.length ? getDemoWardrobe() : []);
           setRecords([]);
           setLinks([]);
           setOutfit(null);
