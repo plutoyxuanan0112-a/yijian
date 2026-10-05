@@ -727,8 +727,8 @@ h2 {
 .item-demo-tag {
   position: absolute;
   top: 6px;
-  right: 34px;
-  background: var(--purple);
+  right: 6px;
+  background: #7d7d86;
   color: #fff;
   font-size: 10px;
   line-height: 22px;

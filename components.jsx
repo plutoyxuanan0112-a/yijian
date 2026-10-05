@@ -376,8 +376,9 @@
           ) : (
             <span style={{ color: "var(--muted)", fontSize: 22 }}>◐</span>
           )}
-          {demoItem && <span className="item-demo-tag">例</span>}
-          {onDelete && (
+          {demoItem ? (
+            <span className="item-demo-tag">例</span>
+          ) : onDelete ? (
             <button
               type="button"
               className="item-delete"
@@ -390,7 +391,7 @@
             >
               ×
             </button>
-          )}
+          ) : null}
         </div>
         <div className="item-name" title={item.name}>
           {item.name}
