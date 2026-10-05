@@ -2367,7 +2367,7 @@
 
   async function generateAIOutfit(input) {
     // v17 真实后端路径：AI Key 只在服务端环境变量中，前端不展示、不保存、不直连模型。
-    // 后端未配置 AI_API_KEY 或不可用时，沿用本地规则兜底，不破坏 UI。
+    // 登录用户必须使用后端 AI；失败时明确报错，不能静默改用本地规则。
     const started = Date.now();
     if (getApiToken()) {
       try {
@@ -2390,15 +2390,6 @@
             extra_request: input.extra || input.extraRequest || '',
           }),
         }, 65000);
-        // 后端做了穿搭硬规则后验校验：不通过时返回 { error:'outfit_invalid' }，
-        // 这里主动抛错，走下面 catch 的本地规则兜底，保证一定给用户一套可用搭配。
-        if (data && data.error) {
-          const code = String(data.error || '').trim();
-          const msg = code === 'outfit_invalid' ? ('AI 推荐不符合穿搭规则：' + (data.detail || '')) : ('AI 推荐失败：' + code);
-          const err = new Error(msg);
-          err.code = code || 'AI_ERROR';
-          throw err;
-        }
         const wardrobeByBackendId = new Map((input.wardrobeItems || []).map((x) => [x.backendId || (String(x.id || '').startsWith('api-') ? Number(String(x.id).slice(4)) : null), x]));
         const selected = (data.selected_clothing_ids || []).map((id) => {
           const item = wardrobeByBackendId.get(Number(id));
@@ -2428,12 +2419,9 @@
         return result;
       } catch (e) {
         if (e.code === 'STALE_ACCOUNT' || e.status === 401) throw e;
-        const local = localRuleOutfit(input);
-        local._source = 'local-fallback';
-        local.source = 'local-fallback';
-        local._error = (e && e.message) || String(e);
-        logAICall({ at: Date.now(), source: 'local-fallback', provider: 'backend', model: '', ok: false, latencyMs: Date.now() - started, message: '后端 AI 推荐不可用，已回退本地规则：' + local._error });
-        return local;
+        const message = (e && e.message) || '后端 AI 推荐失败';
+        logAICall({ at: Date.now(), source: 'backend-ai', provider: 'backend', model: '', ok: false, latencyMs: Date.now() - started, message });
+        throw e;
       }
     }
     const local = localRuleOutfit(input);

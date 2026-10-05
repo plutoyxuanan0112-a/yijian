@@ -1118,6 +1118,7 @@ h2 {
 .sheet-body {
   overflow-y: auto;
   flex: 1;
+  min-height: 0;
   -webkit-overflow-scrolling: touch;
   padding-right: 2px;
 }
@@ -1126,6 +1127,10 @@ h2 {
 }
 /* 搭配详情卡片：只占约四分之三高度 */
 .sheet.sheet-detail {
+  max-height: 75%;
+}
+/* 编辑单品只占应用容器约四分之三，字段在弹窗内部滚动。 */
+.sheet.sheet-edit {
   max-height: 75%;
 }
 .close-x {

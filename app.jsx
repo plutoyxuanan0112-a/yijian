@@ -355,33 +355,10 @@
           .filter((x) => x && x.image);
         setOutfit(result);
         setOpenSheet('detail'); // 生成后直接弹出详情卡片
-        // v15：普通用户不感知 AI/回退/服务商，只给结果反馈
-        showToast(result._source === 'backend-ai' ? '已参考账号偏好完成搭配' : '智能搭配暂不可用，已提供本地规则搭配');
+        showToast('已按你的衣橱完成搭配');
       } catch (e) {
         if (generatingToken !== S.getApiToken() || e.code === 'STALE_ACCOUNT' || e.status === 401) return;
-        showToast('智能搭配暂不可用，已提供本地规则搭配');
-        const fb = S.localRuleOutfit({
-          wardrobeItems: wardrobe,
-          weather: w,
-          style,
-          scene,
-        });
-        fb._source = 'local-fallback';
-        fb.selected_items = (fb.selected_items || [])
-          .map((it) => {
-            const w = wardrobe.find((x) => x.id === it.id);
-            if (!w) return it;
-            return {
-              ...it,
-              image: w.image,
-              color: w.color,
-              category: w.category,
-              name: w.name,
-            };
-          })
-          .filter((x) => x && x.image);
-        setOutfit(fb);
-        setOpenSheet('detail'); // 兜底搭配同样直接弹出详情卡片
+        showToast((e && e.message) || '智能搭配暂时不可用，请稍后重试');
       } finally {
         setGenerating(false);
       }

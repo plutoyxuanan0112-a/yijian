@@ -1797,7 +1797,7 @@
               (displayMaterials ? " · " + displayMaterials : "")
         }
         onClose={onClose}
-        variant={editing ? "" : "mid"}
+        variant={editing ? "edit" : "mid"}
       >
         <input
           type="file"

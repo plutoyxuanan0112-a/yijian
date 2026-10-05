@@ -924,6 +924,8 @@
     var bw = bub.offsetWidth, bh = bub.offsetHeight;
     var ring = ringRectNow();
     var hole = E.holeRect;                 // 明亮可操作镂空（可能只是底部操作栏，而非整张 sheet）
+    // 气泡和 Eira 都使用同一帧的坐标，并在布局变化后成组重排，避免视觉分离。
+    bub.style.maxWidth = Math.max(120, Math.min(220, f.right - f.left - 24)) + 'px';
 
     // 避让区：明亮镂空（含高亮环/目标按钮）+ 高亮环。
     var avoids = [];
@@ -1380,7 +1382,13 @@
     });
     if (window.ResizeObserver) {
       try {
-        var ro = new ResizeObserver(function () {});
+        var ro = new ResizeObserver(function () {
+          if (!E.active) return;
+          // 手机框尺寸变化时必须让高亮、气泡和 Eira 同步重排。
+          if (E.bubble) placeBubbleGroup();
+          else placeFloatEira();
+          positionSkip();
+        });
         var phone = q('.phone'); if (phone) ro.observe(phone);
         E.ro = ro;
         E.cleanup.push(function () { try { ro.disconnect(); } catch (e) {} E.ro = null; });
