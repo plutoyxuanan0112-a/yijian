@@ -2521,9 +2521,9 @@
     <div className="modal-mask" onClick={onClose}>
       <div className="confirm-popover" onClick={(e) => e.stopPropagation()}>
         <div className="confirm-popover-title">{title || "确认删除？"}</div>
-        <div className="confirm-popover-message">
-          {message || "删除后将无法恢复。"}
-        </div>
+        {message && (
+          <div className="confirm-popover-message">{message}</div>
+        )}
         <div className="confirm-popover-actions">
           <button className="ghost" onClick={onClose}>
             {cancelText || "取消"}
@@ -3723,7 +3723,6 @@
         {confirmLogout && (
           <DeleteConfirmSheet
             title="确认退出登录？"
-            message="退出后本机会清空当前账号的衣橱和日记展示，重新登录后再从云端读取。"
             confirmText="退出登录"
             cancelText="取消"
             onClose={() => setConfirmLogout(false)}

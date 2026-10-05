@@ -384,6 +384,7 @@
       fitTags: row.fit ? String(row.fit).split(/[、,，/]+/).filter(Boolean) : parsed.fitTags,
       fitOther: row.fit_other || '',
       customNotes: parsed.customNotes,
+      isExample: !!(row.image_url && String(row.image_url).includes('/demo-wardrobe/')),
       image: resolveBackendImageUrl(row.image_url),
       createdAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
       updatedAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),

@@ -727,7 +727,7 @@ h2 {
 .item-demo-tag {
   position: absolute;
   top: 6px;
-  left: 6px;
+  right: 6px;
   background: rgba(255, 255, 255, 0.85);
   color: var(--muted);
   font-size: 9px;
