@@ -140,7 +140,7 @@
 
   function seedDemoWardrobe() {
     try {
-      if (!isLoggedIn() && window.YijianDemo && typeof window.YijianDemo.resetGuide === 'function') {
+      if (window.YijianDemo && typeof window.YijianDemo.resetGuide === 'function') {
         window.YijianDemo.resetGuide();
         return;
       }
@@ -1561,6 +1561,11 @@
     E.active = false; E.step = null; E.idx = -1;
     if (markDone) markGuideDone(mode);
     if (mode === 'main') setDemoWeatherCopy(false);
+    try {
+      if (window.YijianDemo && typeof window.YijianDemo.endGuide === 'function') {
+        window.YijianDemo.endGuide();
+      }
+    } catch (e) {}
     showPersistEira();               // 引导结束：常驻 Eira 回到左下角
   }
 

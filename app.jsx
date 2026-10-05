@@ -4,7 +4,7 @@
  * 编排全局状态、页面切换、Sheet 打开关闭、Toast、生成穿搭闭环
  */
 (function () {
-  const { useState, useEffect, useMemo, useCallback } = React;
+  const { useState, useEffect, useMemo, useCallback, useRef } = React;
   const S = window.YijianStore;
   const U = window.YijianUI;
 
@@ -118,6 +118,8 @@
     const [outfit, setOutfit] = useState(null);
     const [generating, setGenerating] = useState(false);
     const [demoMode, setDemoMode] = useState(false);
+    const [guideDemoMode, setGuideDemoMode] = useState(false);
+    const guideRestoreRef = useRef(null);
     // Sheets
     const [openSheet, setOpenSheet] = useState(null); // 'upload' | 'link' | 'detail' | 'replace' | 'record' | 'itemDetail'
     const [shareTarget, setShareTarget] = useState(null);
@@ -256,10 +258,11 @@
     );
 
     const isLoggedIn = profile && profile.authStatus === 'demo_logged_in';
+    const isDemoSession = demoMode || guideDemoMode;
 
     useEffect(() => {
-      if (isLoggedIn && demoMode) setDemoMode(false);
-    }, [isLoggedIn, demoMode]);
+      if (isLoggedIn && demoMode && !guideDemoMode) setDemoMode(false);
+    }, [isLoggedIn, demoMode, guideDemoMode]);
 
     const remindLogin = useCallback(
       (actionText) => {
@@ -294,10 +297,18 @@
           setGeoLocating(false);
         },
         resetGuide: function () {
-          if (isLoggedIn || !DEMO_WARDROBE.length) return;
+          if (!DEMO_WARDROBE.length) return;
+          if (!guideRestoreRef.current) {
+            guideRestoreRef.current = {
+              wardrobe,
+              outfit,
+              weather,
+            };
+          }
           const items = getFreshDemoWardrobe();
           saveDemoWardrobe(items);
-          setDemoMode(true);
+          if (!isLoggedIn) setDemoMode(true);
+          setGuideDemoMode(true);
           setWardrobe(items);
           setWeather({
             ...S.DEFAULT_WEATHER,
@@ -311,8 +322,19 @@
           setOutfit(buildControlledDemoOutfit(items, '简约', '通勤'));
           setOpenSheet(null);
         },
+        endGuide: function () {
+          const snapshot = guideRestoreRef.current;
+          setGuideDemoMode(false);
+          if (!isLoggedIn) setDemoMode(false);
+          if (snapshot) {
+            setWardrobe(snapshot.wardrobe || []);
+            setOutfit(snapshot.outfit || null);
+            setWeather(snapshot.weather || S.DEFAULT_WEATHER);
+            guideRestoreRef.current = null;
+          }
+        },
         isLoggedIn: function () { return !!isLoggedIn; },
-        isDemo: function () { return !!demoMode; },
+        isDemo: function () { return !!(demoMode || guideDemoMode); },
         demoSourceStatus: function () {
           return (window.YijianDemoCatalog && window.YijianDemoCatalog.sourceStatus) ||
             '真实示例衣物待上传';
@@ -323,11 +345,11 @@
           delete window.YijianDemo;
         }
       };
-    }, [isLoggedIn, demoMode]);
+    }, [isLoggedIn, demoMode, guideDemoMode, wardrobe, outfit, weather]);
 
     // 生成
     const doGenerate = useCallback(async () => {
-      if (!isLoggedIn && !demoMode) {
+      if (!isLoggedIn && !isDemoSession) {
         remindLogin('生成你的搭配');
         return;
       }
@@ -344,7 +366,7 @@
       }
       // 引导演示与真实衣橱严格分离：此分支只使用固定示例组合，
       // 在调用 S.generateAIOutfit 之前直接返回，绝不请求后端或大模型。
-      const isGuidedDemo = !isLoggedIn && demoMode;
+      const isGuidedDemo = isDemoSession;
       if (isGuidedDemo) {
         const demoResult = buildControlledDemoOutfit(wardrobe, style, scene);
         demoResult.demo_source_status =
@@ -392,7 +414,7 @@
       } finally {
         setGenerating(false);
       }
-    }, [isLoggedIn, demoMode, remindLogin, wardrobe, weather, style, scene, showToast]);
+    }, [isLoggedIn, isDemoSession, demoMode, guideDemoMode, remindLogin, wardrobe, weather, style, scene, showToast]);
 
     // 天气
     const doFetchWeather = useCallback(async () => {
@@ -451,12 +473,12 @@
     }, [isLoggedIn, remindLogin]);
 
     const handleSaveOutfit = useCallback(async () => {
-      if (!isLoggedIn && !demoMode) {
+      if (!isLoggedIn && !isDemoSession) {
         remindLogin('保存这套搭配');
         return;
       }
       if (!outfit) return;
-      if (!isLoggedIn && demoMode) {
+      if (isDemoSession) {
         // 演示搭配只写入本地演示日记，不进入账号接口。
         const saved = S.saveOutfitRecord({ outfit, weather, scene, style });
         setRecords(S.getOutfits());
@@ -479,7 +501,7 @@
       S.recordStyleBehavior(style, 'save_outfit');
       setOpenSheet(null);
       return saved;
-    }, [isLoggedIn, demoMode, remindLogin, outfit, weather, scene, style, showToast]);
+    }, [isLoggedIn, isDemoSession, demoMode, guideDemoMode, remindLogin, outfit, weather, scene, style, showToast]);
 
     // 首次挂载时若已存过真实天气则沿用；否则先给默认。
     // 注意：不能因为浏览器 permissions API 返回 'denied' 就直接把 UI 状态设成 'denied'——
@@ -705,7 +727,7 @@
       (newItem) => {
         if (!outfit || !replaceTarget) return;
         // 演示模式使用固定替换映射；真实模式才使用用户选中的真实衣物。
-        const pickedItem = demoMode
+        const pickedItem = isDemoSession
           ? wardrobe.find((item) =>
               item.id === DEMO_GUIDE_REPLACEMENTS[replaceTarget.id],
             ) || newItem
@@ -736,7 +758,7 @@
         setOpenSheet('detail');
         showToast('已替换 ' + pickedItem.category);
       },
-      [outfit, replaceTarget, style, showToast, demoMode, wardrobe],
+      [outfit, replaceTarget, style, showToast, isDemoSession, wardrobe],
     );
 
     // 删除整套里的某个单品（任务 D：不想要的包/配饰等可直接去掉，删除后仍能正常保存到日记）
@@ -755,7 +777,7 @@
       (newItem) => {
         if (!outfit || !newItem) return;
         // 演示模式只允许固定示例包袋进入当前演示搭配。
-        const pickedItem = demoMode
+        const pickedItem = isDemoSession
           ? wardrobe.find((item) => item.id === DEMO_GUIDE_ADD_ITEM) || newItem
           : newItem;
         const already = (outfit.selected_items || []).some((p) => p && p.id === pickedItem.id);
@@ -783,7 +805,7 @@
         setOpenSheet('detail');
         showToast('已添加 ' + (newItem.category || '单品'));
       },
-      [outfit, showToast, demoMode, wardrobe],
+      [outfit, showToast, isDemoSession, wardrobe],
     );
 
     // 删除记录
