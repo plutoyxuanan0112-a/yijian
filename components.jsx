@@ -4322,6 +4322,17 @@
   }
 
   async function bloggerAction(b, action) {
+    if (!S.getApiToken()) {
+      window.dispatchEvent(new Event("yijian:login-needed"));
+      window.dispatchEvent(
+        new CustomEvent("yijian:toast", {
+          detail: action === "block_blogger"
+            ? "登录后才能屏蔽博主"
+            : "登录后才能喜欢和管理博主偏好",
+        }),
+      );
+      return false;
+    }
     try {
       await S.sendFeedback({
         blogger_id: b.id,
@@ -4373,6 +4384,15 @@
           title={likeLabel}
           onClick={async (e) => {
             e.stopPropagation();
+            if (!S.getApiToken()) {
+              window.dispatchEvent(new Event("yijian:login-needed"));
+              window.dispatchEvent(
+                new CustomEvent("yijian:toast", {
+                  detail: "登录后才能收藏博主",
+                }),
+              );
+              return;
+            }
             setBusy(true);
             if (
               await bloggerAction(
