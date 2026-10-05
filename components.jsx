@@ -4338,18 +4338,6 @@
         action_type: action,
         recommendation_id: b.recommendation_id,
       });
-      window.dispatchEvent(
-        new CustomEvent("yijian:toast", {
-          detail:
-            action === "block_blogger"
-              ? "已屏蔽，将减少此类风格推荐"
-              : action === "like_blogger"
-                ? "已喜欢，将用于推荐与搭配"
-                : action === "restore_blogger"
-                  ? "已恢复推荐"
-                  : "已取消喜欢",
-        }),
-      );
       return true;
     } catch (e) {
       window.dispatchEvent(
@@ -4432,11 +4420,6 @@
                 blogger.recommendation_id,
               );
               setSaved(!saved);
-              window.dispatchEvent(
-                new CustomEvent("yijian:toast", {
-                  detail: saved ? "已取消收藏" : "已保存到「我的灵感库」",
-                }),
-              );
             } catch (error) {
               window.dispatchEvent(
                 new CustomEvent("yijian:toast", {
