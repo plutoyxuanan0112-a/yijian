@@ -2591,10 +2591,22 @@
       window.dispatchEvent(new Event('yijian:login-needed'));
       throw new Error('登录后可以保存喜欢和偏好');
     }
-    const data = await apiFetch('/api/v1/user/feedback', {
-      method: 'POST',
-      body: JSON.stringify({ event_id: event.event_id || uid('feedback'), ...event }),
-    });
+    const payload = { event_id: event.event_id || uid('feedback'), ...event };
+    let data;
+    try {
+      data = await apiFetch('/api/v1/user/feedback', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    } catch (error) {
+      // 旧版后端没有推荐归因记录时，保留行为本身，不让喜欢/屏蔽被 404 阻断。
+      if (error.status !== 404 || !payload.recommendation_id) throw error;
+      const { recommendation_id, ...withoutAttribution } = payload;
+      data = await apiFetch('/api/v1/user/feedback', {
+        method: 'POST',
+        body: JSON.stringify(withoutAttribution),
+      });
+    }
     if (event.action_type !== 'view_blogger') {
       window.dispatchEvent(new Event('yijian:taste-change'));
     }
@@ -2608,9 +2620,19 @@
       window.dispatchEvent(new Event('yijian:login-needed'));
       throw new Error('登录后可以收藏博主');
     }
-    const data = await apiFetch('/api/v1/bloggers/' + encodeURIComponent(bloggerId) + '/collection', {
-      method: 'PUT', body: JSON.stringify({ saved, recommendation_id: recommendationId }),
-    });
+    const payload = { saved, recommendation_id: recommendationId };
+    let data;
+    try {
+      data = await apiFetch('/api/v1/bloggers/' + encodeURIComponent(bloggerId) + '/collection', {
+        method: 'PUT', body: JSON.stringify(payload),
+      });
+    } catch (error) {
+      // 收藏主体仍可保存；仅在归因记录过期/缺失时去掉归因字段重试。
+      if (error.status !== 404 || !recommendationId) throw error;
+      data = await apiFetch('/api/v1/bloggers/' + encodeURIComponent(bloggerId) + '/collection', {
+        method: 'PUT', body: JSON.stringify({ saved }),
+      });
+    }
     const list = getLinks().filter(l => l.bloggerId !== bloggerId);
     if (data.item) {
       const item = mapBackendLink(data.item);
