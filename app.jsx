@@ -215,7 +215,8 @@
           }
           S.clearUserSession();
           setProfile(S.getProfile());
-          setWardrobe([]);
+          setDemoMode(true);
+          setWardrobe(DEMO_WARDROBE.length ? getDemoWardrobe() : []);
           setRecords([]);
           setLinks([]);
           setOutfit(null);

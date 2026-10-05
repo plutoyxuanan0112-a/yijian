@@ -22,8 +22,11 @@
   // 真实后端配置：优先读取 window.YIJIAN_API_BASE，其次 localStorage，默认指向本地 FastAPI。
   // 如果后端不可用，下面的数据方法会自动保留 localStorage 兜底，不破坏 v17 UI。
   const DEFAULT_API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname)
-    ? 'http://127.0.0.1:8000' : 'https://yijian-backend.onrender.com';
-  const LEGACY_API_BASES = ['https://yijian-backend-ir33.onrender.com'];
+    ? 'http://127.0.0.1:8000' : 'https://yijian-backend-yx2026.onrender.com';
+  const LEGACY_API_BASES = [
+    'https://yijian-backend.onrender.com',
+    'https://yijian-backend-ir33.onrender.com',
+  ];
   let bloggerMediaSeedPromise = null;
   async function loadBloggerMediaSeed() {
     if (!bloggerMediaSeedPromise) {
@@ -3585,15 +3588,21 @@
   // 匿名也发请求（apiFetch 仅在有 token 时才带 Authorization，不强制依赖登录）；
   // 接口空或异常时统一回落到本地种子。
   async function fetchBloggerRecommendations() {
-      const data = await apiFetch('/api/v1/bloggers/recommendations');
-      const list = (data && (data.items || data.bloggers || data.recommendations)) || (Array.isArray(data) ? data : []);
-      return mergeBloggerMedia(list, await loadBloggerMediaSeed()).slice(0, 20);
+      try {
+        const data = await apiFetch('/api/v1/bloggers/recommendations');
+        const list = (data && (data.items || data.bloggers || data.recommendations)) || (Array.isArray(data) ? data : []);
+        if (list.length) return mergeBloggerMedia(list, await loadBloggerMediaSeed()).slice(0, 20);
+      } catch (e) {}
+      return mergeBloggerMedia(seedRecommendations(), await loadBloggerMediaSeed()).slice(0, 20);
   }
   async function fetchBloggers(tag) {
-      const path = '/api/v1/bloggers?track=true' + (tag ? '&tag=' + encodeURIComponent(tag) : '');
-      const data = await apiFetch(path);
-      const list = (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
-      return mergeBloggerMedia(list, await loadBloggerMediaSeed());
+      try {
+        const path = '/api/v1/bloggers?track=true' + (tag ? '&tag=' + encodeURIComponent(tag) : '');
+        const data = await apiFetch(path);
+        const list = (data && (data.items || data.bloggers)) || (Array.isArray(data) ? data : []);
+        if (list.length) return mergeBloggerMedia(list, await loadBloggerMediaSeed());
+      } catch (e) {}
+      return mergeBloggerMedia(seedByTag(tag), await loadBloggerMediaSeed());
   }
   function recordBloggerEvent(recommendationId, action) {
     if (!recommendationId) return Promise.resolve();
