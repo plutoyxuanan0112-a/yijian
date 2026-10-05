@@ -140,6 +140,10 @@
 
   function seedDemoWardrobe() {
     try {
+      if (!isLoggedIn() && window.YijianDemo && typeof window.YijianDemo.resetGuide === 'function') {
+        window.YijianDemo.resetGuide();
+        return;
+      }
       if (!isLoggedIn() && window.YijianDemo && typeof window.YijianDemo.seed === 'function') {
         window.YijianDemo.seed();
       }
@@ -147,6 +151,13 @@
   }
   function goHome() { try { window.YijianDemo && window.YijianDemo.goHome && window.YijianDemo.goHome(); } catch (e) {} }
   function goWardrobe() { try { window.YijianDemo && window.YijianDemo.goWardrobe && window.YijianDemo.goWardrobe(); } catch (e) {} }
+  function openLoginRegister() {
+    finish(true);
+    setTimeout(function () {
+      var button = T.profileBtn();
+      if (button) button.click();
+    }, 240);
+  }
 
   /* 手机外框范围（暗化、气泡、跳过都限制在此矩形内） */
   function getFrameRect() {
@@ -1781,8 +1792,7 @@
       },
 
       // 11 · 衣橱上传（气泡 + 动态点击指引）
-      // 未登录时：拦截对上传按钮的点击，不让 App 直接弹出真实注册/登录表单，
-      // 改为先进入下一步的「登录提示卡」，保证顺序：上传气泡 → 登录提示卡 → 真实表单。
+      // 未登录时：直接打开登录/注册，不再增加中间提示卡。
       {
         key: 'upload', target: T.wardrobeUpload, place: 'below', radius: 14, cue: true,
         title: '来传你的第一件衣服吧～',
@@ -1791,9 +1801,23 @@
         interceptClick: [{
           match: '.page .section-head button.primary',
           when: function () { return !isLoggedIn(); },
-          run: function () { goToKey('login'); },
+          run: function () { openLoginRegister(); },
         }],
-        buttons: [nextLink('知道啦 ›')],
+        buttons: [{
+          label: '去登录上传 ›',
+          kind: 'primary',
+          onClick: function () {
+            if (isLoggedIn()) {
+              finish(true);
+              setTimeout(function () {
+                var upload = T.wardrobeUpload();
+                if (upload) upload.click();
+              }, 240);
+              return;
+            }
+            openLoginRegister();
+          },
+        }],
       },
 
       // 12 · 未登录：去注册 / 登录（Eira 趴在卡片上沿；已登录自动跳过 → 结束）
@@ -1804,8 +1828,7 @@
         title: '解锁你的专属衣橱',
         buttons: [
           { label: '去注册 / 登录', kind: 'primary', onClick: function () {
-            finish(true);
-            setTimeout(function () { var b = T.profileBtn(); if (b) b.click(); }, 240);
+            openLoginRegister();
           } },
           { label: '稍后再说 ›', kind: 'text', onClick: function () { finish(true); } },
         ],

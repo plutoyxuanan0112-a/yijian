@@ -34,6 +34,12 @@
   // 游客引导演示使用结构占位衣物，真实示例照片由 Eira 后续上传后替换。
   const DEMO_WARDROBE = (window.YijianDemoCatalog && window.YijianDemoCatalog.items) || [];
   const DEMO_WARDROBE_STORAGE_KEY = 'yijian_demo_wardrobe_items';
+  const DEMO_GUIDE_REPLACEMENTS = {
+    'demo-top-2': 'demo-top-1',
+    'demo-bottom-1': 'demo-bottom-2',
+    'demo-shoes-1': 'demo-shoes-2',
+  };
+  const DEMO_GUIDE_ADD_ITEM = 'demo-bag-1';
   function normalizeDemoItems(items) {
     return (items || []).map((item) => ({
       ...(S.normalizeItem ? S.normalizeItem(item) : item),
@@ -57,6 +63,9 @@
         JSON.stringify(normalizeDemoItems(items)),
       );
     } catch (e) {}
+  }
+  function getFreshDemoWardrobe() {
+    return normalizeDemoItems(DEMO_WARDROBE);
   }
   function buildControlledDemoOutfit(items, style, scene) {
     const byId = (id) => items.find((item) => item.id === id);
@@ -283,6 +292,24 @@
           setGeoStatus('ok');
           setGeoLocating(false);
         },
+        resetGuide: function () {
+          if (isLoggedIn || !DEMO_WARDROBE.length) return;
+          const items = getFreshDemoWardrobe();
+          saveDemoWardrobe(items);
+          setDemoMode(true);
+          setWardrobe(items);
+          setWeather({
+            ...S.DEFAULT_WEATHER,
+            isFallback: false,
+            isDemo: true,
+            city: '模拟城市',
+            weatherLabel: '晴',
+          });
+          setGeoStatus('ok');
+          setGeoLocating(false);
+          setOutfit(buildControlledDemoOutfit(items, '简约', '通勤'));
+          setOpenSheet(null);
+        },
         isLoggedIn: function () { return !!isLoggedIn; },
         isDemo: function () { return !!demoMode; },
         demoSourceStatus: function () {
@@ -314,9 +341,10 @@
         setPage('wardrobe');
         return;
       }
-      // 游客演示只走当前核心版本的本地规则，不调用后端 AI，
-      // 避免未上传的占位衣物进入正式推荐，也避免引导结果受模型随机性影响。
-      if (!isLoggedIn && demoMode) {
+      // 引导演示与真实衣橱严格分离：此分支只使用固定示例组合，
+      // 在调用 S.generateAIOutfit 之前直接返回，绝不请求后端或大模型。
+      const isGuidedDemo = !isLoggedIn && demoMode;
+      if (isGuidedDemo) {
         const demoResult = buildControlledDemoOutfit(wardrobe, style, scene);
         demoResult.demo_source_status =
           '当前展示示例衣服搭配组合，上传真实衣物，解锁你的专属搭配。';
@@ -325,6 +353,7 @@
         showToast('已用示意衣物完成演示搭配');
         return;
       }
+      // 只有真实登录用户才会进入这里，使用真实衣橱和后端 AI。
       setGenerating(true);
       const generatingToken = S.getApiToken();
       await S.recordStyleBehavior(style, 'choose_style');
@@ -427,6 +456,7 @@
       }
       if (!outfit) return;
       if (!isLoggedIn && demoMode) {
+        // 演示搭配只写入本地演示日记，不进入账号接口。
         const saved = S.saveOutfitRecord({ outfit, weather, scene, style });
         setRecords(S.getOutfits());
         setOpenSheet(null);
@@ -513,7 +543,11 @@
       const deletingItem = deleteTarget;
       try {
         if (deletingItem.isDemo) {
-          setWardrobe((current) => current.filter((item) => item.id !== deletingItem.id));
+          setWardrobe((current) => {
+            const next = current.filter((item) => item.id !== deletingItem.id);
+            saveDemoWardrobe(next);
+            return next;
+          });
           setDeleteTarget(null);
           showToast('已从示例衣橱移除');
           return;
@@ -669,33 +703,39 @@
     const handleReplacePick = useCallback(
       (newItem) => {
         if (!outfit || !replaceTarget) return;
+        // 演示模式使用固定替换映射；真实模式才使用用户选中的真实衣物。
+        const pickedItem = demoMode
+          ? wardrobe.find((item) =>
+              item.id === DEMO_GUIDE_REPLACEMENTS[replaceTarget.id],
+            ) || newItem
+          : newItem;
         const updated = {
           ...outfit,
           selected_items: outfit.selected_items.map((p) =>
             p.id === replaceTarget.id
               ? {
-                  id: newItem.id,
-                  name: newItem.name,
-                  category: newItem.category,
-                  image: newItem.image,
-                  color: newItem.color,
+                  id: pickedItem.id,
+                  name: pickedItem.name,
+                  category: pickedItem.category,
+                  image: pickedItem.image,
+                  color: pickedItem.color,
                   reason:
                     '手动替换的 ' +
-                    newItem.category +
+                    pickedItem.category +
                     '，风格 ' +
-                    (newItem.styleTags || []).join(' / '),
+                    (pickedItem.styleTags || []).join(' / '),
                 }
               : p,
           ),
-          color_reason: outfit.color_reason + '（已替换 ' + newItem.category + '）',
+          color_reason: (outfit.color_reason || '') + '（已替换 ' + pickedItem.category + '）',
         };
         setOutfit(updated);
         S.recordStyleBehavior(style, 'replace_item');
         setReplaceTarget(null);
         setOpenSheet('detail');
-        showToast('已替换 ' + newItem.category);
+        showToast('已替换 ' + pickedItem.category);
       },
-      [outfit, replaceTarget, style, showToast],
+      [outfit, replaceTarget, style, showToast, demoMode, wardrobe],
     );
 
     // 删除整套里的某个单品（任务 D：不想要的包/配饰等可直接去掉，删除后仍能正常保存到日记）
@@ -713,23 +753,27 @@
     const handleAddPick = useCallback(
       (newItem) => {
         if (!outfit || !newItem) return;
-        const already = (outfit.selected_items || []).some((p) => p && p.id === newItem.id);
+        // 演示模式只允许固定示例包袋进入当前演示搭配。
+        const pickedItem = demoMode
+          ? wardrobe.find((item) => item.id === DEMO_GUIDE_ADD_ITEM) || newItem
+          : newItem;
+        const already = (outfit.selected_items || []).some((p) => p && p.id === pickedItem.id);
         if (already) {
           showToast('这件已经在这套搭配里了');
           setOpenSheet('detail');
           return;
         }
         const added = {
-          id: newItem.id,
-          name: newItem.name,
-          category: newItem.category,
-          image: newItem.image,
-          color: newItem.color,
+          id: pickedItem.id,
+          name: pickedItem.name,
+          category: pickedItem.category,
+          image: pickedItem.image,
+          color: pickedItem.color,
           reason:
             '手动添加的 ' +
-            (newItem.category || '单品') +
+            (pickedItem.category || '单品') +
             '，风格 ' +
-            (newItem.styleTags || []).join(' / '),
+            (pickedItem.styleTags || []).join(' / '),
         };
         setOutfit({
           ...outfit,
@@ -738,7 +782,7 @@
         setOpenSheet('detail');
         showToast('已添加 ' + (newItem.category || '单品'));
       },
-      [outfit, showToast],
+      [outfit, showToast, demoMode, wardrobe],
     );
 
     // 删除记录
