@@ -1706,7 +1706,10 @@
             sceneTags: result.scene_tags ? result.scene_tags.split("、") : [],
             seasonTags: result.season ? result.season.split("、") : [],
           }));
-          setAnalysisNote("已根据新照片预填，请确认后保存");
+          const usageText = result.usage?.total_tokens
+            ? `（本次 ${result.usage.total_tokens} tokens）`
+            : "";
+          setAnalysisNote(`已根据新照片预填，请确认后保存${usageText}`);
         } else {
           setAnalysisNote(
             "未自动识别：" + (analysis.reason?.message || "服务暂不可用"),
@@ -2668,7 +2671,11 @@
           onRemove={onRemove}
           onAdd={onAdd}
           footer={[
-            outfit._source === "backend-ai" ? "智能推荐" : "本地规则搭配",
+            outfit.isDemo
+              ? "演示搭配"
+              : outfit._source === "backend-ai"
+                ? "智能推荐"
+                : "本地规则搭配",
             weather && weather.weatherLabel
               ? (weather.temperature != null
                   ? weather.temperature + "°C · "
@@ -2684,8 +2691,9 @@
         {(() => {
           // 推荐来源小标签：帮助判断本次到底走了 AI 还是本地规则，样式低调。
           const src = outfit._source || outfit.source;
-          const isAI = src === "backend-ai" || src === "ai";
-          const label = isAI ? "AI 生成" : "本地规则";
+          const isDemo = !!outfit.isDemo || src === "demo-local-rule";
+          const isAI = !isDemo && (src === "backend-ai" || src === "ai");
+          const label = isDemo ? "演示搭配" : isAI ? "AI 生成" : "本地规则";
           return (
             <div
               style={{
@@ -2717,6 +2725,11 @@
             }}
           >
             {outfit.demo_source_status}
+          </p>
+        )}
+        {outfit.usage?.total_tokens > 0 && (
+          <p className="bl-reason">
+            本次 AI 用量：{outfit.usage.total_tokens} tokens
           </p>
         )}
         {outfit._source === "local-fallback" && (

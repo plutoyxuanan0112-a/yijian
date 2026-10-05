@@ -90,6 +90,7 @@
       scene_reason: '正式搭配会结合你的真实衣橱、场景和已审核规则重新计算。',
       summary: '',
       tips: ['点击换一件、删除或添加，体验搭配编辑。'],
+      isDemo: true,
       _source: 'demo-local-rule',
       source: 'demo-local-rule',
     };
