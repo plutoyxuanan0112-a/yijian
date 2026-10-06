@@ -361,6 +361,8 @@
     eira: null,
     menu: null,
     adviceBubble: null,
+    adviceDetail: null,
+    adviceCheckTimer: null,
     dragged: false,
     wasLoggedIn: false,
     docClose: null,
@@ -435,8 +437,18 @@
   function onPersistClick() {
     if (P.eira) P.eira.classList.remove('ob-eira-hint');
     eiraPulse(P.eira, 'tap', 440);
+    if (P.adviceDetail && isOutfitDetailVisible()) {
+      if (P.adviceBubble) closeEiraAdvice();
+      else showEiraAdvice(P.adviceDetail);
+      return;
+    }
     if (P.menu) closePersistMenu();
     else openPersistMenu();
+  }
+  function isOutfitDetailVisible() {
+    var sheet = q('.sheet.sheet-detail');
+    return !!(sheet && !sheet.classList.contains('ob-hidden') &&
+      getComputedStyle(sheet).display !== 'none');
   }
   function currentMainTab() {
     var active = q('.bottom .nav.active span');
@@ -539,6 +551,7 @@
     closePersistMenu();
     showPersistEira();
     closeEiraAdvice();
+    P.adviceDetail = detail;
     var bubble = document.createElement('div');
     bubble.className = 'ob-eira-advice';
     var title = document.createElement('div');
@@ -561,7 +574,14 @@
     document.body.appendChild(bubble);
     P.adviceBubble = bubble;
     placeEiraAdvice();
-    window.setTimeout(closeEiraAdvice, 9000);
+    if (!P.adviceCheckTimer) {
+      P.adviceCheckTimer = window.setInterval(function () {
+        if (P.adviceDetail && !isOutfitDetailVisible()) {
+          closeEiraAdvice();
+          P.adviceDetail = null;
+        }
+      }, 400);
+    }
   }
 
   /* 登录成功 → 常驻 Eira 雀跃庆祝（轮询 isLoggedIn 由 false→true） */

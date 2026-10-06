@@ -2801,7 +2801,7 @@
               {outfit.purchase_recommendations.map((advice, index) => (
                 <div key={advice.role || index} style={{ fontSize: 12, lineHeight: 1.65, color: "#5d5968" }}>
                   <div style={{ color: "#373241", fontWeight: 600 }}>
-                    {advice.item_type} · {advice.style}
+                    缺少：{advice.item_type}
                   </div>
                   {advice.scene && <div>场景：{advice.scene}</div>}
                   {Array.isArray(advice.style_features) &&
@@ -2811,7 +2811,6 @@
                   <div>颜色：{advice.color_palette}</div>
                   <div>材质：{advice.material}</div>
                   <div>{advice.fit_and_length}</div>
-                  <div style={{ marginTop: 3 }}>{advice.match_reason}</div>
                 </div>
               ))}
             </div>

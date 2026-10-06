@@ -74,12 +74,18 @@
       ? outfit.purchase_recommendations
       : [];
     if (!recommendations.length && !(outfit && outfit.purchase_notice)) return;
+    const advice = recommendations[0] || {};
+    const conciseText = [
+      advice.item_type ? `缺少：${advice.item_type}` : '',
+      advice.style ? `风格：${advice.style}` : '',
+      advice.color_palette ? `颜色：${advice.color_palette}` : '',
+      advice.material ? `材质：${advice.material}` : '',
+      advice.fit_and_length ? `版型：${advice.fit_and_length}` : '',
+    ].filter(Boolean).join('；');
     window.dispatchEvent(new CustomEvent('yijian:eira-advice', {
       detail: {
-        text: outfit.purchase_notice ||
-          recommendations[0].match_reason ||
-          '这套可以先穿，我再帮你补齐关键单品。',
-        recommendation: recommendations[0] || null,
+        text: conciseText || outfit.purchase_notice || '缺少补充单品',
+        recommendation: advice,
       },
     }));
   }
