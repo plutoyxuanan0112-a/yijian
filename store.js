@@ -58,6 +58,12 @@
     const fromWindow = (window.YIJIAN_API_BASE || '').trim();
     if (fromWindow) return fromWindow.replace(/\/$/, '');
     const fromStorage = (localStorage.getItem(K.API_BASE) || '').trim().replace(/\/$/, '');
+    const isLocalPage = ['localhost', '127.0.0.1'].includes(location.hostname);
+    // 公网页面不允许浏览器遗留的调试地址覆盖正式后端，避免换部署后请求旧服务。
+    if (!isLocalPage) {
+      if (fromStorage) localStorage.removeItem(K.API_BASE);
+      return DEFAULT_API_BASE.replace(/\/$/, '');
+    }
     const isLocal = /^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?/i.test(fromStorage);
     const isLegacy = LEGACY_API_BASES.includes(fromStorage);
     if (fromStorage && !isLocal && !isLegacy) return fromStorage;
@@ -361,6 +367,7 @@
   function normalizeStyleTag(value) {
     const raw = String(value || '').trim();
     const aliases = {
+      '通勤': '',
       '优雅': '优雅知性',
       '气质': '优雅知性',
       '法式': '优雅知性',
@@ -375,7 +382,7 @@
       '日常': '简约',
       '甜系': '甜美',
     };
-    return aliases[raw] || raw;
+    return Object.prototype.hasOwnProperty.call(aliases, raw) ? aliases[raw] : raw;
   }
 
   function normalizeSceneTag(value) {
@@ -671,7 +678,7 @@
         record.date ||
         new Date().toISOString().slice(0, 10),
       style: record.style || '简约',
-      scene: record.scene || '通勤',
+        scene: record.scene || '通勤工作',
       weather: record.weather || null,
       outfit: record.outfit || {},
       createdAt: record.createdAt || Date.now(),
@@ -783,7 +790,7 @@
       method: 'POST',
       body: JSON.stringify({
         recommendation_text: text,
-        scene: record.scene || '日常通勤',
+        scene: record.scene || '日常休闲',
         weather: serializeRecordWeather(record.weather),
         selected_clothing_ids: selected,
         ai_provider: record.outfit?.ai_provider || null,
@@ -2270,7 +2277,7 @@
     const items = input.wardrobeItems || [];
     const missing = hasCoreCategories(items);
     const style = input.style || '简约';
-    const scene = input.scene || '通勤';
+    const scene = input.scene || '通勤工作';
     const weather = input.weather || DEFAULT_WEATHER;
     if (missing.length) {
       return {
@@ -2447,7 +2454,7 @@
         const data = await apiFetch('/api/v1/recommendations', {
           method: 'POST',
           body: JSON.stringify({
-            scene: input.scene || '日常通勤',
+            scene: input.scene || '日常休闲',
             weather:
               typeof input.weather === 'string'
                 ? input.weather
@@ -2571,7 +2578,6 @@
     '配饰',
   ];
   const STYLE_TAGS = [
-    '通勤',
     '优雅知性',
     '韩系',
     '简约',
