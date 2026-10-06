@@ -1,0 +1,27 @@
+{
+  "version": "aesthetic-0.1.0",
+  "weights": {
+    "scene": 20,
+    "style": 20,
+    "color": 20,
+    "silhouette": 15,
+    "material": 10,
+    "preference": 15
+  },
+  "limits": {
+    "max_colors": 3,
+    "max_accessories": 1,
+    "max_candidates": 24
+  },
+  "palette": {
+    "neutral_colors": ["黑", "白", "灰", "米色", "棕", "卡其", "蓝"],
+    "accent_limit": 1,
+    "forbidden_pairs": [
+      ["红", "绿"],
+      ["黄", "紫"]
+    ]
+  },
+  "temperature": {
+    "ai_generation": 0.3
+  }
+}
