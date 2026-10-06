@@ -425,9 +425,6 @@
     const notes = row.notes ? String(row.notes) : '';
     // 兼容旧数据的 notes 属性编码；新数据使用后端标准字段。
     const parsed = parseNotesAttrs(notes);
-    // #region debug-point C:image-url-transform
-    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'C',location:'frontend/store.js:mapBackendClothing',msg:'[DEBUG] Received clothing image URL',data:{clothingId:row.id,rawImageUrl:row.image_url||'',resolvedImageUrl:resolveBackendImageUrl(row.image_url)},ts:Date.now()})}).catch(()=>{});
-    // #endregion
     return normalizeItem({
       id: 'api-' + row.id,
       backendId: row.id,
@@ -456,9 +453,6 @@
 
   async function syncWardrobeFromBackend() {
     const data = await apiFetch('/api/v1/clothes');
-    // #region debug-point A:post-login-list
-    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'A',location:'frontend/store.js:syncWardrobeFromBackend',msg:'[DEBUG] Received wardrobe sync response',data:{itemCount:(data.items||[]).length,imageUrls:(data.items||[]).map((item)=>({id:item.id,imageUrl:item.image_url||''}))},ts:Date.now()})}).catch(()=>{});
-    // #endregion
     const remoteItems = (data.items || [])
       .map(mapBackendClothing)
       .filter((item) => item && item.category !== '连体');
@@ -485,9 +479,6 @@
     fd.append('file', blob, 'clothing.png');
     fd.append('category', 'clothes');
     const data = await apiFetch('/api/v1/uploads', { method: 'POST', body: fd });
-    // #region debug-point B:upload-result
-    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'B',location:'frontend/store.js:uploadImageToBackend',msg:'[DEBUG] Received image upload response',data:{imageUrl:data.url||'',apiBase:getApiBase()},ts:Date.now()})}).catch(()=>{});
-    // #endregion
     return data.url || '';
   }
 
@@ -533,9 +524,6 @@
     }
     const payload = clothingPayload(full, remoteImageUrl || nonDataImageUrl);
     const data = await apiFetch('/api/v1/clothes', { method: 'POST', body: JSON.stringify(payload) });
-    // #region debug-point D:create-clothing-result
-    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'D',location:'frontend/store.js:addWardrobeItemRemote',msg:'[DEBUG] Received clothing create response',data:{requestImageUrl:payload.image_url||'',clothingId:data.item&&data.item.id,imageUrl:data.item&&data.item.image_url||''},ts:Date.now()})}).catch(()=>{});
-    // #endregion
     const mapped = mapBackendClothing(data.item);
     const list = getWardrobe().filter((x) => x.backendId !== mapped.backendId && x.id !== mapped.id);
     list.push(mapped);
@@ -1041,11 +1029,18 @@
     return data.profile;
   }
   async function updateBodyProfile(bodyProfile) {
-    const data = await apiFetch('/api/v1/user-body', {
+    const request = () => apiFetch('/api/v1/user-body', {
       method: 'PUT',
       body: JSON.stringify(bodyProfile),
     });
-    return data.profile;
+    try {
+      return (await request()).profile;
+    } catch (error) {
+      // Render 唤醒或部署切换时可能短暂返回无 CORS 响应；PUT 是幂等更新，可安全重试一次。
+      if (!error || !['NETWORK', 'TIMEOUT'].includes(error.code)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      return (await request()).profile;
+    }
   }
   // 该用户在本机的所有「数据缓存」key（不含 token / profile / 站点配置 API_BASE / AI_CFG）。
   // 登录后「先清本地再从后端同步」、以及退出登录时都会用到，避免换账号串数据。
@@ -2468,6 +2463,10 @@
                   },
             style_preference: input.style || '简洁、实穿',
             extra_request: input.extra || input.extraRequest || '',
+            variation: Number(input.variation || 0),
+            previous_selected_clothing_ids: Array.isArray(input.previousSelectedClothingIds)
+              ? input.previousSelectedClothingIds.map(Number).filter(Number.isFinite)
+              : [],
           }),
         }, 65000);
         const wardrobeByBackendId = new Map((input.wardrobeItems || []).map((x) => [x.backendId || (String(x.id || '').startsWith('api-') ? Number(String(x.id).slice(4)) : null), x]));
