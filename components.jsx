@@ -3563,7 +3563,7 @@
 
     return (
       <>
-        <Sheet title="个人资料" subtitle="" onClose={onClose}>
+        <Sheet title="个人资料" subtitle="" variant="profile" onClose={onClose}>
           <input
             type="file"
             accept="image/*"

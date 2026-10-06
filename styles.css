@@ -1137,6 +1137,10 @@ h2 {
 .sheet.sheet-upload {
   max-height: 75%;
 }
+/* 个人资料字段较多，保留底部操作区并在弹窗内滚动。 */
+.sheet.sheet-profile {
+  max-height: 75%;
+}
 .close-x {
   width: 30px;
   height: 30px;
