@@ -82,7 +82,8 @@
   // 请求超时兜底：后端冷启动 / 不可达时，fetch 默认会一直挂起，
   // 导致上层 await 永不 resolve（登录按钮卡在「提交中…」）。
   // 用 AbortController 给每个请求加超时，超时后主动 abort，让上层 catch/finally 能执行。
-  const API_TIMEOUT_MS = 20000;
+  // Render Free 休眠后的首次唤醒接近一分钟，避免误报网络连接失败。
+  const API_TIMEOUT_MS = 70000;
   async function apiFetch(path, options, timeoutMs) {
     const isFormData = options && options.body instanceof FormData;
     const headers = isFormData
@@ -313,8 +314,8 @@
     const warmthTags = dedupe([...asArr(item.warmthTags), item.warmth]);
     const materials = dedupe([...asArr(item.materials), item.material]);
     const silhouettes = dedupe([...asArr(item.silhouettes), item.silhouette]);
-    const styleTags = dedupe(asArr(item.styleTags));
-    const sceneTags = dedupe(asArr(item.sceneTags));
+    const styleTags = dedupe(asArr(item.styleTags).map(normalizeStyleTag).filter(Boolean));
+    const sceneTags = dedupe(asArr(item.sceneTags).map(normalizeSceneTag).filter(Boolean));
     const seasonTags = dedupe(asArr(item.seasonTags));
 
     const merged = {
@@ -357,6 +358,47 @@
     return merged;
   }
 
+  function normalizeStyleTag(value) {
+    const raw = String(value || '').trim();
+    const aliases = {
+      '优雅': '优雅知性',
+      '气质': '优雅知性',
+      '法式': '优雅知性',
+      '学院': '复古',
+      '英伦': '复古',
+      '运动风': '户外运动',
+      '户外机能': '户外运动',
+      '户外': '户外运动',
+      '极简': '简约',
+      '实穿': '简约',
+      '休闲': '简约',
+      '日常': '简约',
+      '甜系': '甜美',
+    };
+    return aliases[raw] || raw;
+  }
+
+  function normalizeSceneTag(value) {
+    const raw = String(value || '').trim();
+    const aliases = {
+      '通勤': '通勤工作',
+      '出差': '通勤工作',
+      '正式': '正式场合',
+      '正式场合': '正式场合',
+      '日常': '日常休闲',
+      '周末': '日常休闲',
+      '周末休闲': '日常休闲',
+      '旅行': '旅行度假',
+      '度假': '旅行度假',
+      '聚会': '聚会社交',
+      '看秀': '聚会社交',
+      '运动': '运动户外',
+      '运动健身': '运动户外',
+      '户外': '运动户外',
+    };
+    return aliases[raw] || raw;
+  }
+
   function resolveBackendImageUrl(url) {
     if (!url) return '';
     const raw = String(url);
@@ -376,6 +418,9 @@
     const notes = row.notes ? String(row.notes) : '';
     // 兼容旧数据的 notes 属性编码；新数据使用后端标准字段。
     const parsed = parseNotesAttrs(notes);
+    // #region debug-point C:image-url-transform
+    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'C',location:'frontend/store.js:mapBackendClothing',msg:'[DEBUG] Received clothing image URL',data:{clothingId:row.id,rawImageUrl:row.image_url||'',resolvedImageUrl:resolveBackendImageUrl(row.image_url)},ts:Date.now()})}).catch(()=>{});
+    // #endregion
     return normalizeItem({
       id: 'api-' + row.id,
       backendId: row.id,
@@ -385,8 +430,8 @@
       colors: row.color ? String(row.color).split(/[、,，/]+/).filter(Boolean) : [],
       colorOther: row.color_other || '',
       seasonTags: row.season ? String(row.season).split(/[、,，/]+/).filter(Boolean) : [],
-      styleTags: row.style_tags ? String(row.style_tags).split(/[、,，/]+/).filter(Boolean) : [],
-      sceneTags: row.scene_tags ? String(row.scene_tags).split(/[、,，/]+/).filter(Boolean) : [],
+      styleTags: row.style_tags ? String(row.style_tags).split(/[、,，/]+/).map(normalizeStyleTag).filter(Boolean) : [],
+      sceneTags: row.scene_tags ? String(row.scene_tags).split(/[、,，/]+/).map(normalizeSceneTag).filter(Boolean) : [],
       warmthTags: row.warmth ? String(row.warmth).split(/[、,，/]+/).filter(Boolean) : parsed.warmthTags,
       warmthOther: row.warmth_other || '',
       materials: row.material ? String(row.material).split(/[、,，/]+/).filter(Boolean) : parsed.materials,
@@ -404,6 +449,9 @@
 
   async function syncWardrobeFromBackend() {
     const data = await apiFetch('/api/v1/clothes');
+    // #region debug-point A:post-login-list
+    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'A',location:'frontend/store.js:syncWardrobeFromBackend',msg:'[DEBUG] Received wardrobe sync response',data:{itemCount:(data.items||[]).length,imageUrls:(data.items||[]).map((item)=>({id:item.id,imageUrl:item.image_url||''}))},ts:Date.now()})}).catch(()=>{});
+    // #endregion
     const remoteItems = (data.items || [])
       .map(mapBackendClothing)
       .filter((item) => item && item.category !== '连体');
@@ -430,6 +478,9 @@
     fd.append('file', blob, 'clothing.png');
     fd.append('category', 'clothes');
     const data = await apiFetch('/api/v1/uploads', { method: 'POST', body: fd });
+    // #region debug-point B:upload-result
+    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'B',location:'frontend/store.js:uploadImageToBackend',msg:'[DEBUG] Received image upload response',data:{imageUrl:data.url||'',apiBase:getApiBase()},ts:Date.now()})}).catch(()=>{});
+    // #endregion
     return data.url || '';
   }
 
@@ -475,6 +526,9 @@
     }
     const payload = clothingPayload(full, remoteImageUrl || nonDataImageUrl);
     const data = await apiFetch('/api/v1/clothes', { method: 'POST', body: JSON.stringify(payload) });
+    // #region debug-point D:create-clothing-result
+    fetch('http://127.0.0.1:7777/event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'wardrobe-image-loss',runId:'pre-fix',hypothesisId:'D',location:'frontend/store.js:addWardrobeItemRemote',msg:'[DEBUG] Received clothing create response',data:{requestImageUrl:payload.image_url||'',clothingId:data.item&&data.item.id,imageUrl:data.item&&data.item.image_url||''},ts:Date.now()})}).catch(()=>{});
+    // #endregion
     const mapped = mapBackendClothing(data.item);
     const list = getWardrobe().filter((x) => x.backendId !== mapped.backendId && x.id !== mapped.id);
     list.push(mapped);
@@ -2530,14 +2584,14 @@
     '日系',
   ];
   const SCENE_TAGS = [
-    '通勤',
+    '日常休闲',
+    '通勤工作',
     '约会',
-    '旅行',
-    '周末休闲',
-    '运动健身',
-    '聚会',
+    '旅行度假',
+    '聚会社交',
+    '运动户外',
     '居家',
-    '正式',
+    '正式场合',
   ];
   const SEASON_TAGS = ['春', '夏', '秋', '冬'];
   const WARMTH = ['薄', '中等', '厚'];
