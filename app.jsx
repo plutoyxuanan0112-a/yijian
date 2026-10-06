@@ -81,6 +81,7 @@
       advice.color_palette ? `颜色：${advice.color_palette}` : '',
       advice.material ? `材质：${advice.material}` : '',
       advice.fit_and_length ? `版型：${advice.fit_and_length}` : '',
+      advice.pairing_plan ? `搭配：${advice.pairing_plan}` : '',
     ].filter(Boolean).join('；');
     window.dispatchEvent(new CustomEvent('yijian:eira-advice', {
       detail: {

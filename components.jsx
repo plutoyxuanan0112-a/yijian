@@ -2811,6 +2811,7 @@
                   <div>颜色：{advice.color_palette}</div>
                   <div>材质：{advice.material}</div>
                   <div>{advice.fit_and_length}</div>
+                  {advice.pairing_plan && <div>搭配：{advice.pairing_plan}</div>}
                 </div>
               ))}
             </div>
