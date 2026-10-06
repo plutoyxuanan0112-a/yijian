@@ -21,8 +21,10 @@
 
   // 真实后端配置：优先读取 window.YIJIAN_API_BASE，其次 localStorage，默认指向本地 FastAPI。
   // 如果后端不可用，下面的数据方法会自动保留 localStorage 兜底，不破坏 v17 UI。
+  const URL_API_BASE = new URLSearchParams(location.search).get('api');
   const DEFAULT_API_BASE = ['localhost', '127.0.0.1'].includes(location.hostname)
-    ? 'http://127.0.0.1:8000' : 'https://yijian-backend-yx2026.onrender.com';
+    ? ((URL_API_BASE || '').trim().replace(/\/$/, '') || 'http://127.0.0.1:8000')
+    : 'https://yijian-backend-yx2026.onrender.com';
   const LEGACY_API_BASES = [
     'https://yijian-backend.onrender.com',
     'https://yijian-backend-ir33.onrender.com',
@@ -358,7 +360,14 @@
   function resolveBackendImageUrl(url) {
     if (!url) return '';
     const raw = String(url);
-    if (raw.startsWith('http://127.0.0.1') || raw.startsWith('http://localhost')) return '';
+    if (raw.startsWith('http://127.0.0.1') || raw.startsWith('http://localhost')) {
+      try {
+        const urlObj = new URL(raw);
+        return getApiBase() + urlObj.pathname + urlObj.search;
+      } catch (e) {
+        return '';
+      }
+    }
     if (raw.startsWith('http')) return raw;
     return getApiBase() + raw;
   }
@@ -967,11 +976,11 @@
     return mergeRemoteProfile(data);
   }
   async function getBodyProfile() {
-    const data = await apiFetch('/api/v1/body-profile');
+    const data = await apiFetch('/api/v1/user-body');
     return data.profile;
   }
   async function updateBodyProfile(bodyProfile) {
-    const data = await apiFetch('/api/v1/body-profile', {
+    const data = await apiFetch('/api/v1/user-body', {
       method: 'PUT',
       body: JSON.stringify(bodyProfile),
     });
@@ -2419,7 +2428,7 @@
           ai_provider: data.provider,
           ai_model: data.model,
           personalization: data.personalization,
-          _source: 'backend-ai',
+          _source: data.source === 'purchase-advisor' ? 'purchase-advisor' : 'backend-ai',
           source: data.source || 'ai',
           _provider: data.provider,
           _model: data.model,
@@ -2429,6 +2438,10 @@
           aesthetic_score: data.aesthetic_score ?? null,
           aesthetic_scores: data.aesthetic_scores || {},
           aesthetic_candidates: data.aesthetic_candidates || [],
+          purchase_recommendations: data.purchase_recommendations || [],
+          purchase_notice: data.purchase_notice || null,
+          outfit_status: data.outfit_status || 'complete',
+          risk_notice: data.risk_notice || null,
         };
         logAICall({ at: Date.now(), source: 'backend-ai', provider: data.provider, model: data.model, ok: true, latencyMs: result._latencyMs, usage: result.usage, message: '后端 AI 推荐成功。' });
         return result;
