@@ -33,6 +33,8 @@
   } = U;
   // 游客引导演示使用结构占位衣物，真实示例照片由 Eira 后续上传后替换。
   const DEMO_WARDROBE = (window.YijianDemoCatalog && window.YijianDemoCatalog.items) || [];
+  const PURCHASE_DEMO_MODE =
+    new URLSearchParams(window.location.search).get('purchase-demo') === '1';
   const DEMO_WARDROBE_STORAGE_KEY = 'yijian_demo_wardrobe_items';
   const DEMO_GUIDE_REPLACEMENTS = {
     'demo-top-2': 'demo-top-1',
@@ -67,6 +69,14 @@
   function getFreshDemoWardrobe() {
     return normalizeDemoItems(DEMO_WARDROBE);
   }
+  function getPurchaseDemoWardrobe() {
+    const byCategory = (category) => DEMO_WARDROBE.find((item) => item.category === category);
+    return normalizeDemoItems([
+      byCategory('上衣'),
+      byCategory('下装'),
+      byCategory('鞋履'),
+    ].filter(Boolean));
+  }
   function buildControlledDemoOutfit(items, style, scene) {
     const byId = (id) => items.find((item) => item.id === id);
     const picks = [
@@ -95,29 +105,70 @@
       source: 'demo-local-rule',
     };
   }
+  function buildPurchaseDemoOutfit(items, style, scene) {
+    const picks = items.filter(Boolean).slice(0, 3);
+    return {
+      title: (style || '美式') + ' · ' + (scene || '周末') + ' · 衣橱补充演示',
+      selected_items: picks.map((item) => ({
+        id: item.id,
+        name: item.name,
+        category: item.category,
+        reason: '基于当前衣橱生成的可穿组合',
+        image: item.image,
+        color: item.color,
+        isDemo: true,
+      })),
+      summary: '先用现有衣物完成基础搭配，再补充一件风格核心单品，让整体风格更明确。',
+      style_reason: '当前衣橱已有基础单品，但与所选风格的视觉特征不完全匹配。',
+      weather_reason: '当前搭配可以先穿，但保暖层或风格核心单品仍有缺口。',
+      purchase_notice: '这套可以先穿。想让风格更明确，建议补充一件与现有衣物相容的核心单品。',
+      purchase_recommendations: [{
+        role: '风格与衣橱补充',
+        item_type: '短款工装夹克或牛仔外套',
+        style: style || '美式',
+        style_features: ['宽松直线', '休闲层次', '复古街头感'],
+        color_palette: '深蓝、黑色或卡其',
+        material: '丹宁或挺括帆布',
+        fit_and_length: '肩线自然、微宽松，可叠穿现有上衣',
+        match_reason: '这件单品可以把现有基础衣物往美式方向拉近，并与当前下装和鞋履重复利用。',
+      }],
+      tips: ['先穿现有组合；补充建议不是生成前置条件。'],
+      isDemo: true,
+      _source: 'purchase-advisor-demo',
+      source: 'purchase-advisor-demo',
+    };
+  }
 
   const App = () => {
     // 未登录时不读取本机 localStorage 中可能残留的用户数据。
     const hasToken = () => !!S.getApiToken();
+    const isPurchaseDemo = PURCHASE_DEMO_MODE && !hasToken();
     // 页面
     const [page, setPage] = useState('home');
     const [preferenceReturn, setPreferenceReturn] = useState({ page: 'inspire', profile: false });
     const [inspireTag, setInspireTag] = useState('全部');
     // 数据（未登录时一律为空，绝不把 localStorage 里的旧缓存灌进来展示）
-    const [wardrobe, setWardrobe] = useState(() => (hasToken() ? S.getWardrobe() : []));
+    const [wardrobe, setWardrobe] = useState(() => {
+      if (hasToken()) return S.getWardrobe();
+      return isPurchaseDemo ? getPurchaseDemoWardrobe() : [];
+    });
     const [records, setRecords] = useState(() => (hasToken() ? S.getOutfits() : []));
     const [links, setLinks] = useState(() => (hasToken() ? S.getLinks() : []));
     const [prefs, setPrefs] = useState(() => (hasToken() ? S.getPreferences() : { style: '', scene: '', aiEndpoint: '' }));
     // 生成的当前搭配
-    const [style, setStyle] = useState(prefs.style || '');
-    const [scene, setScene] = useState(prefs.scene || '');
-    const [weather, setWeather] = useState(() => (hasToken() ? S.getStoredWeather() : null));
+    const [style, setStyle] = useState(isPurchaseDemo ? '美式' : (prefs.style || ''));
+    const [scene, setScene] = useState(isPurchaseDemo ? '周末' : (prefs.scene || ''));
+    const [weather, setWeather] = useState(() => (
+      isPurchaseDemo
+        ? { ...S.DEFAULT_WEATHER, temperature: 8, weatherLabel: '晴', city: '模拟城市', isDemo: true }
+        : (hasToken() ? S.getStoredWeather() : null)
+    ));
     const [geoStatus, setGeoStatus] = useState('idle'); // idle | ok | denied | unavailable | timeout | no_support | insecure | weather_error
     const [geoLocating, setGeoLocating] = useState(false);
     const [profile, setProfile] = useState(() => S.getProfile());
     const [outfit, setOutfit] = useState(null);
     const [generating, setGenerating] = useState(false);
-    const [demoMode, setDemoMode] = useState(false);
+    const [demoMode, setDemoMode] = useState(isPurchaseDemo);
     const [guideDemoMode, setGuideDemoMode] = useState(false);
     const guideRestoreRef = useRef(null);
     // Sheets
@@ -147,11 +198,11 @@
 
     // 匿名内测首屏直接提供演示衣橱，避免必须重新进入引导才能看到示例衣物。
     useEffect(() => {
-      if (!S.getApiToken() && DEMO_WARDROBE.length) {
+      if (!S.getApiToken() && DEMO_WARDROBE.length && !isPurchaseDemo) {
         setDemoMode(true);
         setWardrobe((current) => current && current.length ? current : getDemoWardrobe());
       }
-    }, []);
+    }, [isPurchaseDemo]);
 
     useEffect(() => {
       const login = () => setOpenSheet('profile');
@@ -358,22 +409,24 @@
         setPage('wardrobe');
         return;
       }
-      const missing = S.hasCoreCategories(wardrobe);
-      if (missing.length) {
-        showToast('请先上传至少 3 件：上衣、下装/裙装、鞋履');
-        setPage('wardrobe');
-        return;
-      }
       // 引导演示与真实衣橱严格分离：此分支只使用固定示例组合，
       // 在调用 S.generateAIOutfit 之前直接返回，绝不请求后端或大模型。
       const isGuidedDemo = isDemoSession;
       if (isGuidedDemo) {
-        const demoResult = buildControlledDemoOutfit(wardrobe, style, scene);
+        const demoResult = isPurchaseDemo
+          ? buildPurchaseDemoOutfit(wardrobe, style, scene)
+          : buildControlledDemoOutfit(wardrobe, style, scene);
         demoResult.demo_source_status =
           '当前展示示例衣服搭配组合，上传真实衣物，解锁你的专属搭配。';
         setOutfit(demoResult);
         setOpenSheet('detail');
         showToast('已用示意衣物完成演示搭配');
+        return;
+      }
+      const missing = S.hasCoreCategories(wardrobe);
+      if (missing.length) {
+        showToast('请先上传至少 3 件：上衣、下装/裙装、鞋履');
+        setPage('wardrobe');
         return;
       }
       // 只有真实登录用户才会进入这里，使用真实衣橱和后端 AI。
@@ -414,7 +467,7 @@
       } finally {
         setGenerating(false);
       }
-    }, [isLoggedIn, isDemoSession, demoMode, guideDemoMode, remindLogin, wardrobe, weather, style, scene, showToast]);
+    }, [isLoggedIn, isDemoSession, isPurchaseDemo, demoMode, guideDemoMode, remindLogin, wardrobe, weather, style, scene, showToast]);
 
     // 天气
     const doFetchWeather = useCallback(async () => {

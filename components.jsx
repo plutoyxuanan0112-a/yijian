@@ -2692,8 +2692,16 @@
           // 推荐来源小标签：帮助判断本次到底走了 AI 还是本地规则，样式低调。
           const src = outfit._source || outfit.source;
           const isDemo = !!outfit.isDemo || src === "demo-local-rule";
+          const isPurchaseAdvice =
+            src === "purchase-advisor" || src === "purchase-advisor-demo";
           const isAI = !isDemo && (src === "backend-ai" || src === "ai");
-          const label = isDemo ? "演示搭配" : isAI ? "AI 生成" : "本地规则";
+          const label = isDemo
+            ? "演示搭配"
+            : isPurchaseAdvice
+              ? "衣橱补充建议"
+              : isAI
+                ? "AI 生成"
+                : "本地规则";
           return (
             <div
               style={{
@@ -2725,6 +2733,28 @@
             }}
           >
             {outfit.demo_source_status}
+          </p>
+        )}
+        {outfit.purchase_notice && (
+          <div
+            style={{
+              margin: "0 0 14px",
+              padding: "10px 13px",
+              border: "1px dashed #9a8be8",
+              borderRadius: 14,
+              background: "#fbfaff",
+              color: "#514b70",
+              fontSize: 12,
+              lineHeight: 1.6,
+            }}
+          >
+            <strong style={{ color: "#4f46a5" }}>Eira：</strong>
+            {outfit.purchase_notice}
+          </div>
+        )}
+        {outfit.risk_notice && (
+          <p className="bl-reason" style={{ margin: "0 0 12px", color: "#8a5a22" }}>
+            当前状态：{outfit.risk_notice}
           </p>
         )}
         {outfit.usage?.total_tokens > 0 && (
@@ -2771,6 +2801,33 @@
             </p>
           );
         })()}
+        {Array.isArray(outfit.purchase_recommendations) &&
+          outfit.purchase_recommendations.length > 0 && (
+            <div
+              style={{
+                margin: "0 0 14px",
+                padding: "12px 14px",
+                border: "1px solid #e5e1f0",
+                borderRadius: 12,
+                background: "#faf9fd",
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#3e3b48", marginBottom: 8 }}>
+                建议补充
+              </div>
+              {outfit.purchase_recommendations.map((advice, index) => (
+                <div key={advice.role || index} style={{ fontSize: 12, lineHeight: 1.65, color: "#5d5968" }}>
+                  <div style={{ color: "#373241", fontWeight: 600 }}>
+                    {advice.item_type} · {advice.style}
+                  </div>
+                  <div>颜色：{advice.color_palette}</div>
+                  <div>材质：{advice.material}</div>
+                  <div>{advice.fit_and_length}</div>
+                  <div style={{ marginTop: 3 }}>{advice.match_reason}</div>
+                </div>
+              ))}
+            </div>
+          )}
         {outfit.avoid && (
           <p
             className="detail-avoid"
