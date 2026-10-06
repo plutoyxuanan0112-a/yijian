@@ -75,13 +75,17 @@
       : [];
     if (!recommendations.length && !(outfit && outfit.purchase_notice)) return;
     const advice = recommendations[0] || {};
+    const clean = (value) => String(value || '')
+      .replace(/\s*[（(]\s*id\s*[=:：]?\s*\d+\s*[）)]/gi, '')
+      .replace(/\s+id\s*[=:：]?\s*\d+\b/gi, '')
+      .trim();
     const conciseText = [
-      advice.item_type ? `缺少：${advice.item_type}` : '',
-      advice.style ? `风格：${advice.style}` : '',
-      advice.color_palette ? `颜色：${advice.color_palette}` : '',
-      advice.material ? `材质：${advice.material}` : '',
-      advice.fit_and_length ? `版型：${advice.fit_and_length}` : '',
-      advice.pairing_plan ? `搭配：${advice.pairing_plan}` : '',
+      advice.item_type ? `缺少：${clean(advice.item_type)}` : '',
+      advice.style ? `风格：${clean(advice.style)}` : '',
+      advice.color_palette ? `颜色：${clean(advice.color_palette)}` : '',
+      advice.material ? `材质：${clean(advice.material)}` : '',
+      advice.fit_and_length ? `版型：${clean(advice.fit_and_length)}` : '',
+      advice.pairing_plan ? `搭配：${clean(advice.pairing_plan)}` : '',
     ].filter(Boolean).join('；');
     window.dispatchEvent(new CustomEvent('yijian:eira-advice', {
       detail: {
@@ -196,6 +200,7 @@
     // Sheets
     const [openSheet, setOpenSheet] = useState(null); // 'upload' | 'link' | 'detail' | 'replace' | 'record' | 'itemDetail'
     const [shareTarget, setShareTarget] = useState(null);
+    const generationVariation = useRef(0);
     const [uploadCategory, setUploadCategory] = useState('全部');
     const [replaceTarget, setReplaceTarget] = useState(null);
     const [detailRecord, setDetailRecord] = useState(null);
@@ -459,12 +464,19 @@
       if (generatingToken !== S.getApiToken()) { setGenerating(false); return; }
       let w = weather;
       if (!w) w = S.DEFAULT_WEATHER;
+      const previousSelectedClothingIds = (outfit?.selected_items || [])
+        .map((item) => item.backendId || item.id)
+        .filter((id) => Number.isFinite(Number(id)))
+        .map(Number);
+      const variation = generationVariation.current++;
       try {
         const result = await S.generateAIOutfit({
           wardrobeItems: wardrobe,
           weather: w,
           style,
           scene,
+          variation,
+          previousSelectedClothingIds,
         });
         if (generatingToken !== S.getApiToken()) return;
         // 填充 image 信息
