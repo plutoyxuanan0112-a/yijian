@@ -2735,23 +2735,6 @@
             {outfit.demo_source_status}
           </p>
         )}
-        {outfit.purchase_notice && (
-          <div
-            style={{
-              margin: "0 0 14px",
-              padding: "10px 13px",
-              border: "1px dashed #9a8be8",
-              borderRadius: 14,
-              background: "#fbfaff",
-              color: "#514b70",
-              fontSize: 12,
-              lineHeight: 1.6,
-            }}
-          >
-            <strong style={{ color: "#4f46a5" }}>Eira：</strong>
-            {outfit.purchase_notice}
-          </div>
-        )}
         {outfit.risk_notice && (
           <p className="bl-reason" style={{ margin: "0 0 12px", color: "#8a5a22" }}>
             当前状态：{outfit.risk_notice}
@@ -2820,6 +2803,11 @@
                   <div style={{ color: "#373241", fontWeight: 600 }}>
                     {advice.item_type} · {advice.style}
                   </div>
+                  {advice.scene && <div>场景：{advice.scene}</div>}
+                  {Array.isArray(advice.style_features) &&
+                    advice.style_features.length > 0 && (
+                      <div>风格特征：{advice.style_features.join("、")}</div>
+                    )}
                   <div>颜色：{advice.color_palette}</div>
                   <div>材质：{advice.material}</div>
                   <div>{advice.fit_and_length}</div>

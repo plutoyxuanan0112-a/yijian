@@ -69,6 +69,20 @@
   function getFreshDemoWardrobe() {
     return normalizeDemoItems(DEMO_WARDROBE);
   }
+  function emitEiraAdvice(outfit) {
+    const recommendations = Array.isArray(outfit && outfit.purchase_recommendations)
+      ? outfit.purchase_recommendations
+      : [];
+    if (!recommendations.length && !(outfit && outfit.purchase_notice)) return;
+    window.dispatchEvent(new CustomEvent('yijian:eira-advice', {
+      detail: {
+        text: outfit.purchase_notice ||
+          recommendations[0].match_reason ||
+          '这套可以先穿，我再帮你补齐关键单品。',
+        recommendation: recommendations[0] || null,
+      },
+    }));
+  }
   function getPurchaseDemoWardrobe() {
     const byCategory = (category) => DEMO_WARDROBE.find((item) => item.category === category);
     return normalizeDemoItems([
@@ -85,7 +99,7 @@
       byId('demo-shoes-1'),
     ].filter(Boolean);
     return {
-      title: (style || '简约') + ' · ' + (scene || '通勤') + ' · 演示搭配',
+      title: (style || '简约') + ' · ' + (scene || '通勤工作') + ' · 演示搭配',
       selected_items: picks.map((item) => ({
         id: item.id,
         name: item.name,
@@ -108,7 +122,7 @@
   function buildPurchaseDemoOutfit(items, style, scene) {
     const picks = items.filter(Boolean).slice(0, 3);
     return {
-      title: (style || '美式') + ' · ' + (scene || '周末') + ' · 衣橱补充演示',
+      title: (style || '美式') + ' · ' + (scene || '日常休闲') + ' · 衣橱补充演示',
       selected_items: picks.map((item) => ({
         id: item.id,
         name: item.name,
@@ -126,6 +140,7 @@
         role: '风格与衣橱补充',
         item_type: '短款工装夹克或牛仔外套',
         style: style || '美式',
+        scene: scene || '日常休闲',
         style_features: ['宽松直线', '休闲层次', '复古街头感'],
         color_palette: '深蓝、黑色或卡其',
         material: '丹宁或挺括帆布',
@@ -157,7 +172,7 @@
     const [prefs, setPrefs] = useState(() => (hasToken() ? S.getPreferences() : { style: '', scene: '', aiEndpoint: '' }));
     // 生成的当前搭配
     const [style, setStyle] = useState(isPurchaseDemo ? '美式' : (prefs.style || ''));
-    const [scene, setScene] = useState(isPurchaseDemo ? '周末' : (prefs.scene || ''));
+    const [scene, setScene] = useState(isPurchaseDemo ? '日常休闲' : (prefs.scene || ''));
     const [weather, setWeather] = useState(() => (
       isPurchaseDemo
         ? { ...S.DEFAULT_WEATHER, temperature: 8, weatherLabel: '晴', city: '模拟城市', isDemo: true }
@@ -370,7 +385,7 @@
           });
           setGeoStatus('ok');
           setGeoLocating(false);
-          setOutfit(buildControlledDemoOutfit(items, '简约', '通勤'));
+          setOutfit(buildControlledDemoOutfit(items, '简约', '通勤工作'));
           setOpenSheet(null);
         },
         endGuide: function () {
@@ -419,6 +434,7 @@
         demoResult.demo_source_status =
           '当前展示示例衣服搭配组合，上传真实衣物，解锁你的专属搭配。';
         setOutfit(demoResult);
+        emitEiraAdvice(demoResult);
         setOpenSheet('detail');
         showToast('已用示意衣物完成演示搭配');
         return;
@@ -459,6 +475,7 @@
           })
           .filter((x) => x && x.image);
         setOutfit(result);
+        emitEiraAdvice(result);
         setOpenSheet('detail'); // 生成后直接弹出详情卡片
         showToast('已按你的衣橱完成搭配');
       } catch (e) {

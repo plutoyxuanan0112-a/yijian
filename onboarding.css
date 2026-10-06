@@ -433,6 +433,41 @@ body.ob-open .ob-eira-float {
 }
 .ob-eira-menu-item:active { transform: scale(0.96); }
 
+/* 搭配完成后的购买建议：与常驻 Eira 绑定，不放进搭配详情卡。 */
+.ob-eira-advice {
+  position: fixed;
+  z-index: 99998;
+  width: min(230px, calc(100vw - 28px));
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-family: "Songti SC", "SimSun", serif;
+  color: #34235c;
+  background: #fff;
+  border: 1px solid #d8d0f3;
+  box-shadow: 0 14px 30px rgba(112, 88, 223, 0.2);
+  animation: ob-modal-in 0.26s cubic-bezier(0.2, 0.9, 0.28, 1.1);
+  pointer-events: none;
+}
+.ob-eira-advice-title {
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+.ob-eira-advice-text,
+.ob-eira-advice-meta {
+  font-size: 11px;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.ob-eira-advice-text { color: #5f557b; }
+.ob-eira-advice-meta {
+  margin-top: 5px;
+  color: #7568b1;
+}
+
 /* ============================================================
  * 页面加载遮罩：Eira loading + 进度条 + 文案
  * ============================================================ */

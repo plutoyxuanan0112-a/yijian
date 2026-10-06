@@ -357,7 +357,14 @@
    * 常驻萌宠 Eira —— 非引导时停在左下角，可拖动、点击弹菜单
    * 直接挂在 body（独立于引导遮罩层），避开底部导航栏。
    * ============================================================ */
-  var P = { eira: null, menu: null, dragged: false, wasLoggedIn: false, docClose: null };
+  var P = {
+    eira: null,
+    menu: null,
+    adviceBubble: null,
+    dragged: false,
+    wasLoggedIn: false,
+    docClose: null,
+  };
 
   function ensurePersistEira() {
     if (P.eira) return;
@@ -501,6 +508,60 @@
       P.docClose = null;
     }
     if (P.menu) { P.menu.remove(); P.menu = null; }
+  }
+
+  function closeEiraAdvice() {
+    if (P.adviceBubble) {
+      P.adviceBubble.remove();
+      P.adviceBubble = null;
+    }
+  }
+
+  function placeEiraAdvice() {
+    var bubble = P.adviceBubble, fe = P.eira;
+    if (!bubble || !fe) return;
+    var f = getFrameRect();
+    var ew = fe.offsetWidth || 103;
+    var ex = parseFloat(fe.style.left) || f.left + 8;
+    var ey = parseFloat(fe.style.top) || f.bottom - 180;
+    var bw = bubble.offsetWidth || 230;
+    var bh = bubble.offsetHeight || 90;
+    var x = ex + ew + 8;
+    var y = ey - bh - 8;
+    if (x + bw > f.right - 8) x = ex - bw - 8;
+    if (y < f.top + 8) y = ey - bh - 8;
+    bubble.style.left = Math.max(f.left + 8, x) + 'px';
+    bubble.style.top = Math.max(f.top + 8, y) + 'px';
+  }
+
+  function showEiraAdvice(detail) {
+    if (!detail) return;
+    closePersistMenu();
+    showPersistEira();
+    closeEiraAdvice();
+    var bubble = document.createElement('div');
+    bubble.className = 'ob-eira-advice';
+    var title = document.createElement('div');
+    title.className = 'ob-eira-advice-title';
+    title.textContent = 'Eira 的补充建议';
+    bubble.appendChild(title);
+    var text = document.createElement('div');
+    text.className = 'ob-eira-advice-text';
+    text.textContent = String(detail.text || '').slice(0, 120);
+    bubble.appendChild(text);
+    var recommendation = detail.recommendation;
+    if (recommendation && (recommendation.item_type || recommendation.scene)) {
+      var meta = document.createElement('div');
+      meta.className = 'ob-eira-advice-meta';
+      meta.textContent = [recommendation.item_type, recommendation.scene]
+        .filter(Boolean)
+        .join(' · ');
+      bubble.appendChild(meta);
+    }
+    document.body.appendChild(bubble);
+    P.adviceBubble = bubble;
+    placeEiraAdvice();
+    window.setTimeout(closeEiraAdvice, 9000);
   }
 
   /* 登录成功 → 常驻 Eira 雀跃庆祝（轮询 isLoggedIn 由 false→true） */
@@ -1905,6 +1966,10 @@
     bindTapOnClick();   // 全局点击 → Eira 轻点
     watchLogin();       // 登录成功 → Eira 雀跃
     window.addEventListener('yijian:account-change', resetAutoOpen);
+    window.addEventListener('yijian:eira-advice', function (event) {
+      showEiraAdvice(event && event.detail);
+    });
+    window.addEventListener('resize', placeEiraAdvice);
 
     whenAppReady(function () {
       // App 就绪，收起加载页（略给一点缓冲让首屏稳定）
