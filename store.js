@@ -430,7 +430,7 @@
     const fd = new FormData();
     fd.append('file', blob, 'clothing.png');
     const data = await apiFetch('/api/v1/clothing-analysis', { method: 'POST', body: fd }, 70000);
-    return data.item || {};
+    return { ...(data.item || {}), usage: data.usage || null };
   }
 
   function clothingPayload(full, imageUrl) {
@@ -682,6 +682,10 @@
       .map((cid) => Number(cid))
       .filter((n) => !Number.isNaN(n))
       .map((cid) => ({ id: 'api-' + cid, backendId: cid }));
+    let aestheticScores = row.aesthetic_scores || {};
+    if (typeof aestheticScores === 'string') {
+      try { aestheticScores = JSON.parse(aestheticScores); } catch (_) { aestheticScores = {}; }
+    }
     return {
       id: 'api-rec-' + row.id,
       backendId: row.id,
@@ -695,6 +699,9 @@
         summary: row.recommendation_text,
         color_reason: row.recommendation_text,
         selected_items: selectedItems,
+        aesthetic_version: row.aesthetic_version || null,
+        aesthetic_score: row.aesthetic_score ?? null,
+        aesthetic_scores: aestheticScores,
       },
       createdAt: row.created_at ? Date.parse(row.created_at) || Date.now() : Date.now(),
     };
@@ -718,6 +725,9 @@
         selected_clothing_ids: selected,
         ai_provider: record.outfit?.ai_provider || null,
         ai_model: record.outfit?.ai_model || null,
+        aesthetic_version: record.outfit?.aesthetic_version || null,
+        aesthetic_score: record.outfit?.aesthetic_score ?? null,
+        aesthetic_scores: record.outfit?.aesthetic_scores || {},
       }),
     });
     const mapped = mapBackendRecord(data.item);
@@ -2414,8 +2424,13 @@
           _provider: data.provider,
           _model: data.model,
           _latencyMs: Date.now() - started,
+          usage: data.usage || null,
+          aesthetic_version: data.aesthetic_version || null,
+          aesthetic_score: data.aesthetic_score ?? null,
+          aesthetic_scores: data.aesthetic_scores || {},
+          aesthetic_candidates: data.aesthetic_candidates || [],
         };
-        logAICall({ at: Date.now(), source: 'backend-ai', provider: data.provider, model: data.model, ok: true, latencyMs: result._latencyMs, message: '后端 AI 推荐成功。' });
+        logAICall({ at: Date.now(), source: 'backend-ai', provider: data.provider, model: data.model, ok: true, latencyMs: result._latencyMs, usage: result.usage, message: '后端 AI 推荐成功。' });
         return result;
       } catch (e) {
         if (e.code === 'STALE_ACCOUNT' || e.status === 401) throw e;
